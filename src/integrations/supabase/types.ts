@@ -1,0 +1,523 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
+  public: {
+    Tables: {
+      battles: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          location: string | null
+          name: string
+          organizer_id: string
+          phase: Database["public"]["Enums"]["battle_phase"]
+          seed_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          location?: string | null
+          name: string
+          organizer_id: string
+          phase?: Database["public"]["Enums"]["battle_phase"]
+          seed_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string | null
+          name?: string
+          organizer_id?: string
+          phase?: Database["public"]["Enums"]["battle_phase"]
+          seed_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battles_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dancers: {
+        Row: {
+          age: number | null
+          average_score: number | null
+          city: string | null
+          created_at: string
+          id: string
+          is_qualified: boolean | null
+          name: string
+          nomination_id: string
+          photo_url: string | null
+          position: number | null
+        }
+        Insert: {
+          age?: number | null
+          average_score?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_qualified?: boolean | null
+          name: string
+          nomination_id: string
+          photo_url?: string | null
+          position?: number | null
+        }
+        Update: {
+          age?: number | null
+          average_score?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_qualified?: boolean | null
+          name?: string
+          nomination_id?: string
+          photo_url?: string | null
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dancers_nomination_id_fkey"
+            columns: ["nomination_id"]
+            isOneToOne: false
+            referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_votes: {
+        Row: {
+          created_at: string
+          id: string
+          judge_id: string
+          match_id: string
+          round_number: number
+          vote_for: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          judge_id: string
+          match_id: string
+          round_number?: number
+          vote_for?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          judge_id?: string
+          match_id?: string
+          round_number?: number
+          vote_for?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_votes_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_votes_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_votes_vote_for_fkey"
+            columns: ["vote_for"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          dancer_left_id: string | null
+          dancer_right_id: string | null
+          id: string
+          is_completed: boolean | null
+          nomination_id: string
+          position: number
+          round: string
+          votes_left: number | null
+          votes_right: number | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dancer_left_id?: string | null
+          dancer_right_id?: string | null
+          id?: string
+          is_completed?: boolean | null
+          nomination_id: string
+          position: number
+          round: string
+          votes_left?: number | null
+          votes_right?: number | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dancer_left_id?: string | null
+          dancer_right_id?: string | null
+          id?: string
+          is_completed?: boolean | null
+          nomination_id?: string
+          position?: number
+          round?: string
+          votes_left?: number | null
+          votes_right?: number | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_dancer_left_id_fkey"
+            columns: ["dancer_left_id"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_dancer_right_id_fkey"
+            columns: ["dancer_right_id"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_nomination_id_fkey"
+            columns: ["nomination_id"]
+            isOneToOne: false
+            referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nominations: {
+        Row: {
+          battle_id: string
+          created_at: string
+          description: string | null
+          id: string
+          max_dancers: number | null
+          name: string
+          phase: Database["public"]["Enums"]["battle_phase"]
+          top_count: number | null
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_dancers?: number | null
+          name: string
+          phase?: Database["public"]["Enums"]["battle_phase"]
+          top_count?: number | null
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_dancers?: number | null
+          name?: string
+          phase?: Database["public"]["Enums"]["battle_phase"]
+          top_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nominations_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scores: {
+        Row: {
+          created_at: string
+          creativity: number | null
+          dancer_id: string
+          energy: number | null
+          id: string
+          judge_id: string
+          technique: number | null
+          total: number | null
+        }
+        Insert: {
+          created_at?: string
+          creativity?: number | null
+          dancer_id: string
+          energy?: number | null
+          id?: string
+          judge_id: string
+          technique?: number | null
+          total?: number | null
+        }
+        Update: {
+          created_at?: string
+          creativity?: number | null
+          dancer_id?: string
+          energy?: number | null
+          id?: string
+          judge_id?: string
+          technique?: number | null
+          total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_dancer_id_fkey"
+            columns: ["dancer_id"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          battle_id: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          battle_id?: string | null
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          battle_id?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      app_role: "organizer" | "judge" | "selector"
+      battle_phase: "registration" | "selection" | "bracket" | "completed"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["organizer", "judge", "selector"],
+      battle_phase: ["registration", "selection", "bracket", "completed"],
+    },
+  },
+} as const
