@@ -62,18 +62,10 @@ export default function BattleView() {
   const [isOrganizer, setIsOrganizer] = useState(false);
 
   useEffect(() => {
-    checkUser();
     if (id) {
       loadBattleData();
     }
   }, [id]);
-
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setCurrentUserId(user.id);
-    }
-  };
 
   useEffect(() => {
     if (selectedNomination) {
@@ -83,6 +75,11 @@ export default function BattleView() {
 
   const loadBattleData = async () => {
     try {
+      // Сначала проверяем пользователя
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || null;
+      setCurrentUserId(userId);
+
       const { data: battleData, error: battleError } = await supabase
         .from("battles")
         .select("*")
@@ -91,7 +88,8 @@ export default function BattleView() {
 
       if (battleError) throw battleError;
       setBattle(battleData);
-      setIsOrganizer(battleData.organizer_id === currentUserId);
+      setIsOrganizer(battleData.organizer_id === userId);
+      console.log("Is Organizer:", battleData.organizer_id === userId, "User ID:", userId, "Organizer ID:", battleData.organizer_id);
 
       const { data: nominationsData, error: nominationsError } = await supabase
         .from("nominations")
