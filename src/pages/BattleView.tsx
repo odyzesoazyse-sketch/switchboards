@@ -58,12 +58,22 @@ export default function BattleView() {
   const [dancers, setDancers] = useState<Dancer[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isOrganizer, setIsOrganizer] = useState(false);
 
   useEffect(() => {
+    checkUser();
     if (id) {
       loadBattleData();
     }
   }, [id]);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentUserId(user.id);
+    }
+  };
 
   useEffect(() => {
     if (selectedNomination) {
@@ -81,6 +91,7 @@ export default function BattleView() {
 
       if (battleError) throw battleError;
       setBattle(battleData);
+      setIsOrganizer(battleData.organizer_id === currentUserId);
 
       const { data: nominationsData, error: nominationsError } = await supabase
         .from("nominations")
@@ -140,7 +151,7 @@ export default function BattleView() {
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {
       registration: "Регистрация",
-      qualification: "Отбор",
+      selection: "Отбор",
       bracket: "Сетка",
       completed: "Завершён",
     };
@@ -149,6 +160,132 @@ export default function BattleView() {
 
   const getRoundMatches = (round: string) => {
     return matches.filter(m => m.round === round);
+  };
+
+  const changeNominationPhase = async (newPhase: "registration" | "selection" | "bracket" | "completed") => {
+    if (!selectedNomination || !isOrganizer) return;
+
+    try {
+      const { error } = await supabase
+        .from("nominations")
+        .update({ phase: newPhase })
+        .eq("id", selectedNomination);
+
+      if (error) throw error;
+
+      if (newPhase === "bracket") {
+        await createBracket();
+      }
+
+      toast({
+        title: "Успех",
+        description: `Фаза изменена на "${getPhaseLabel(newPhase)}"`,
+      });
+
+      await loadBattleData();
+      await loadNominationData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addTestDancers = async () => {
+    if (!selectedNomination || !isOrganizer) return;
+
+    const testNames = [
+      "Макс", "Алекс", "Дима", "Саша", "Никита", "Влад", "Артём", "Денис",
+      "Егор", "Иван", "Андрей", "Сергей", "Миша", "Паша", "Женя", "Роман"
+    ];
+
+    try {
+      const dancersToAdd = testNames.map((name, index) => ({
+        nomination_id: selectedNomination,
+        name,
+        city: "Москва",
+        age: 18 + Math.floor(Math.random() * 15),
+        position: index + 1,
+        average_score: 0,
+        is_qualified: false,
+      }));
+
+      const { error } = await supabase.from("dancers").insert(dancersToAdd);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успех",
+        description: `Добавлено ${testNames.length} танцоров`,
+      });
+
+      await loadNominationData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createBracket = async () => {
+    if (!selectedNomination) return;
+
+    try {
+      const topDancers = dancers
+        .sort((a, b) => (b.average_score || 0) - (a.average_score || 0))
+        .slice(0, currentNomination?.top_count || 16);
+
+      if (topDancers.length < 2) {
+        throw new Error("Недостаточно танцоров для создания сетки");
+      }
+
+      // Отметить квалифицированных
+      for (const dancer of topDancers) {
+        await supabase
+          .from("dancers")
+          .update({ is_qualified: true })
+          .eq("id", dancer.id);
+      }
+
+      // Создать первый раунд
+      const shuffled = [...topDancers].sort(() => Math.random() - 0.5);
+      const matchesToCreate = [];
+
+      for (let i = 0; i < shuffled.length; i += 2) {
+        if (i + 1 < shuffled.length) {
+          matchesToCreate.push({
+            nomination_id: selectedNomination,
+            round: shuffled.length === 2 ? "final" : 
+                   shuffled.length === 4 ? "semifinal" :
+                   shuffled.length === 8 ? "quarterfinal" : "round_of_16",
+            position: i / 2,
+            dancer_left_id: shuffled[i].id,
+            dancer_right_id: shuffled[i + 1].id,
+            votes_left: 0,
+            votes_right: 0,
+            is_completed: false,
+          });
+        }
+      }
+
+      const { error } = await supabase.from("matches").insert(matchesToCreate);
+      if (error) throw error;
+
+      toast({
+        title: "Сетка создана",
+        description: `Создано ${matchesToCreate.length} матчей`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -229,6 +366,33 @@ export default function BattleView() {
                   <span>В сетку: топ-{currentNomination.top_count}</span>
                 </div>
               </div>
+
+              {isOrganizer && (
+                <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
+                  <div className="flex gap-2 flex-wrap">
+                    {currentNomination.phase === "registration" && (
+                      <>
+                        <Button onClick={addTestDancers} variant="outline">
+                          Добавить танцоров (тест)
+                        </Button>
+                        <Button onClick={() => changeNominationPhase("selection")}>
+                          Начать отбор
+                        </Button>
+                      </>
+                    )}
+                    {currentNomination.phase === "selection" && (
+                      <Button onClick={() => changeNominationPhase("bracket")}>
+                        Перейти к сетке
+                      </Button>
+                    )}
+                    {currentNomination.phase === "bracket" && (
+                      <Button onClick={() => changeNominationPhase("completed")} variant="outline">
+                        Завершить номинацию
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </Card>
 
             {currentNomination.phase === "bracket" && matches.length > 0 && (
@@ -340,7 +504,7 @@ export default function BattleView() {
               </div>
             )}
 
-            {dancers.length > 0 && currentNomination.phase === "qualification" && (
+            {dancers.length > 0 && currentNomination.phase === "selection" && (
               <div>
                 <h3 className="text-2xl font-bold mb-4">Участники отбора</h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
