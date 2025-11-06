@@ -396,51 +396,57 @@ export default function BattleView() {
           )}
         </div>
 
-        {/* Заявки судей */}
-        {isOrganizer && judgeApplications.length > 0 && (
+        {/* Заявки судей - всегда показываем для организатора */}
+        {isOrganizer && (
           <Card className="p-6 mb-6">
             <h2 className="text-2xl font-bold mb-4">Заявки судей</h2>
-            <div className="space-y-3">
-              {judgeApplications.map((app) => (
-                <Card key={app.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold">{app.profiles?.full_name || app.profiles?.email}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(app.created_at).toLocaleString("ru-RU")}
+            {judgeApplications.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Нет заявок на судейство
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {judgeApplications.map((app) => (
+                  <Card key={app.id} className="p-4 bg-card/50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">{app.profiles?.full_name || app.profiles?.email}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(app.created_at).toLocaleString("ru-RU")}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {app.status === "pending" ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}
+                              className="gap-2"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              Одобрить
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}
+                              className="gap-2"
+                            >
+                              <XCircle className="h-4 w-4" />
+                              Отклонить
+                            </Button>
+                          </>
+                        ) : (
+                          <Badge variant={app.status === "approved" ? "default" : "destructive"}>
+                            {app.status === "approved" ? "Одобрена" : "Отклонена"}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {app.status === "pending" ? (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}
-                            className="gap-2"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                            Одобрить
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}
-                            className="gap-2"
-                          >
-                            <XCircle className="h-4 w-4" />
-                            Отклонить
-                          </Button>
-                        </>
-                      ) : (
-                        <Badge variant={app.status === "approved" ? "default" : "destructive"}>
-                          {app.status === "approved" ? "Одобрена" : "Отклонена"}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </Card>
         )}
 

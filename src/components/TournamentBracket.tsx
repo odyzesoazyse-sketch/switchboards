@@ -33,15 +33,15 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
       .sort((a, b) => a.position - b.position);
   };
 
-  const round16 = getMatchesByRound("1/8");
-  const quarters = getMatchesByRound("1/4");
-  const semis = getMatchesByRound("1/2");
+  const round16 = getMatchesByRound("round_of_16");
+  const quarters = getMatchesByRound("quarterfinal");
+  const semis = getMatchesByRound("semifinal");
   const finals = getMatchesByRound("final");
 
   const renderMatch = (match: BracketMatch, isWinner = false) => (
     <Card
       key={match.id}
-      className={`p-3 text-center space-y-2 ${
+      className={`p-3 text-center space-y-2 min-w-[140px] ${
         match.winner_id ? "border-primary" : "border-border"
       } ${isWinner ? "bg-primary/10" : ""}`}
     >
@@ -68,65 +68,79 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
       <div className="min-w-[1200px] flex items-center justify-center gap-8">
         {/* Round of 16 - Left Side */}
         {round16.length > 0 && (
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-12 justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-2">
               1/8 ФИНАЛА
             </div>
-            {round16.slice(0, Math.ceil(round16.length / 2)).map(match => renderMatch(match))}
+            <div className="flex flex-col gap-12">
+              {round16.slice(0, Math.ceil(round16.length / 2)).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
 
         {/* Quarterfinals - Left Side */}
         {quarters.length > 0 && (
-          <div className="flex flex-col gap-24">
+          <div className="flex flex-col gap-24 justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-2">
-              1/4 ФИНАЛА
+              ЧЕТВЕРТЬФИНАЛ
             </div>
-            {quarters.slice(0, Math.ceil(quarters.length / 2)).map(match => renderMatch(match))}
+            <div className="flex flex-col gap-24">
+              {quarters.slice(0, Math.ceil(quarters.length / 2)).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
 
-        {/* Semifinals */}
-        {semis.length > 0 && (
-          <div className="flex flex-col gap-48">
-            <div className="text-center font-bold text-sm text-muted-foreground mb-2">
+        {/* Semifinals - Left */}
+        {semis.length > 0 && semis.length >= 1 && (
+          <div className="flex flex-col justify-center">
+            <div className="text-center font-bold text-sm text-muted-foreground mb-8">
               ПОЛУФИНАЛ
             </div>
-            {semis.map(match => renderMatch(match))}
+            <div className="flex flex-col gap-48">
+              {semis.slice(0, 1).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
 
         {/* Finals */}
         {finals.length > 0 && (
-          <div className="flex flex-col gap-96">
-            <div className="text-center font-bold text-sm text-muted-foreground mb-2">
+          <div className="flex flex-col justify-center">
+            <div className="text-center font-bold text-sm text-muted-foreground mb-8">
               ФИНАЛ
             </div>
-            {finals.map(match => renderMatch(match, true))}
+            <div className="flex flex-col">
+              {finals.map(match => renderMatch(match, true))}
+            </div>
           </div>
         )}
 
         {/* Semifinals - Right */}
-        {semis.length > 0 && (
-          <div className="flex flex-col gap-48">
+        {semis.length > 1 && (
+          <div className="flex flex-col justify-center">
             <div className="h-8" />
-            {/* Empty space for alignment */}
+            <div className="flex flex-col gap-48">
+              {semis.slice(1, 2).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
 
         {/* Quarterfinals - Right Side */}
-        {quarters.length > 0 && (
-          <div className="flex flex-col gap-24">
+        {quarters.length > Math.ceil(quarters.length / 2) && (
+          <div className="flex flex-col gap-24 justify-center">
             <div className="h-8" />
-            {quarters.slice(Math.ceil(quarters.length / 2)).map(match => renderMatch(match))}
+            <div className="flex flex-col gap-24">
+              {quarters.slice(Math.ceil(quarters.length / 2)).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
 
         {/* Round of 16 - Right Side */}
-        {round16.length > 0 && (
-          <div className="flex flex-col gap-12">
+        {round16.length > Math.ceil(round16.length / 2) && (
+          <div className="flex flex-col gap-12 justify-center">
             <div className="h-8" />
-            {round16.slice(Math.ceil(round16.length / 2)).map(match => renderMatch(match))}
+            <div className="flex flex-col gap-12">
+              {round16.slice(Math.ceil(round16.length / 2)).map(match => renderMatch(match))}
+            </div>
           </div>
         )}
       </div>
