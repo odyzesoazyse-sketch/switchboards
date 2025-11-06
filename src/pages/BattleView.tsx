@@ -307,14 +307,24 @@ export default function BattleView() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад к баттлам
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Назад к баттлам
+          </Button>
+          
+          {isOrganizer && (
+            <Button
+              onClick={() => navigate(`/battle/${id}/operator`)}
+              variant="default"
+            >
+              Панель оператора
+            </Button>
+          )}
+        </div>
 
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">

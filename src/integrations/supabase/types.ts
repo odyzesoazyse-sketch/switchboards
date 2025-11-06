@@ -347,6 +347,85 @@ export type Database = {
           },
         ]
       }
+      screen_state: {
+        Row: {
+          battle_id: string
+          created_at: string
+          current_match_id: string | null
+          current_round: number | null
+          id: string
+          match_status: string | null
+          nomination_id: string | null
+          rounds_to_win: number | null
+          show_judges: boolean | null
+          show_score: boolean | null
+          show_timer: boolean | null
+          show_winner: boolean | null
+          timer_seconds: number | null
+          updated_at: string
+          votes_left: number | null
+          votes_right: number | null
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          current_match_id?: string | null
+          current_round?: number | null
+          id?: string
+          match_status?: string | null
+          nomination_id?: string | null
+          rounds_to_win?: number | null
+          show_judges?: boolean | null
+          show_score?: boolean | null
+          show_timer?: boolean | null
+          show_winner?: boolean | null
+          timer_seconds?: number | null
+          updated_at?: string
+          votes_left?: number | null
+          votes_right?: number | null
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          current_match_id?: string | null
+          current_round?: number | null
+          id?: string
+          match_status?: string | null
+          nomination_id?: string | null
+          rounds_to_win?: number | null
+          show_judges?: boolean | null
+          show_score?: boolean | null
+          show_timer?: boolean | null
+          show_winner?: boolean | null
+          timer_seconds?: number | null
+          updated_at?: string
+          votes_left?: number | null
+          votes_right?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_state_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screen_state_current_match_id_fkey"
+            columns: ["current_match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screen_state_nomination_id_fkey"
+            columns: ["nomination_id"]
+            isOneToOne: false
+            referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           battle_id: string | null

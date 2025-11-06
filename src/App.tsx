@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CreateBattle from "./pages/CreateBattle";
 import BattleView from "./pages/BattleView";
+import BattleScreen from "./pages/BattleScreen";
+import OperatorPanel from "./pages/OperatorPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/battle/create" element={<CreateBattle />} />
           <Route path="/battle/:id" element={<BattleView />} />
+          <Route path="/battle/:id/screen" element={<BattleScreen />} />
+          <Route path="/battle/:id/operator" element={<OperatorPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
