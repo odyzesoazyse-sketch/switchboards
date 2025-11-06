@@ -48,6 +48,8 @@ export default function BattleScreen() {
   const [rightDancer, setRightDancer] = useState<Dancer | null>(null);
   const [judges, setJudges] = useState<Judge[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [battleName, setBattleName] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
@@ -93,14 +95,53 @@ export default function BattleScreen() {
 
   const loadScreenState = async () => {
     try {
-      const { data: stateData, error: stateError } = await supabase
+      setLoading(true);
+      
+      // Загружаем название баттла
+      const { data: battleData } = await supabase
+        .from("battles")
+        .select("name")
+        .eq("id", id)
+        .single();
+      
+      if (battleData) {
+        setBattleName(battleData.name);
+      }
+      
+      let stateData = null;
+      
+      const { data: existingState, error: stateError } = await supabase
         .from("screen_state")
         .select("*")
         .eq("battle_id", id)
         .maybeSingle();
 
       if (stateError) throw stateError;
-      if (!stateData) return;
+
+      if (!existingState) {
+        // Создаём screen_state автоматически, если его нет
+        const { data: newState, error: createError } = await supabase
+          .from("screen_state")
+          .insert({
+            battle_id: id,
+            show_judges: true,
+            show_timer: false,
+            timer_seconds: 120,
+            show_winner: false,
+            show_score: true,
+            rounds_to_win: 2,
+            current_round: 1,
+            votes_left: 0,
+            votes_right: 0,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        stateData = newState;
+      } else {
+        stateData = existingState;
+      }
 
       setScreenState(stateData);
 
@@ -156,6 +197,8 @@ export default function BattleScreen() {
       }
     } catch (error) {
       console.error("Error loading screen state:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,12 +208,37 @@ export default function BattleScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
+          <p className="text-xl text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!screenState) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-          <p className="text-xl text-muted-foreground">Ожидание баттла...</p>
+          <p className="text-xl text-muted-foreground">Инициализация экрана...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentMatch && !screenState.show_winner) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center p-8">
+        <div className="text-center space-y-8">
+          <h1 className="text-6xl font-bold text-white drop-shadow-2xl">{battleName}</h1>
+          <div className="bg-white/20 backdrop-blur-md rounded-3xl p-12 border-4 border-white/50">
+            <p className="text-4xl text-white">Ожидание выбора матча...</p>
+            <p className="text-xl text-white/80 mt-4">Оператор скоро выберет следующий баттл</p>
+          </div>
         </div>
       </div>
     );
