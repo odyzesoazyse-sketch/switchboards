@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          battle_id: string | null
+          created_at: string
+          event_details: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          battle_id?: string | null
+          created_at?: string
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          battle_id?: string | null
+          created_at?: string
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       battles: {
         Row: {
           created_at: string
@@ -101,6 +136,41 @@ export type Database = {
             columns: ["nomination_id"]
             isOneToOne: false
             referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      judge_applications: {
+        Row: {
+          battle_id: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judge_applications_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
             referencedColumns: ["id"]
           },
         ]
@@ -463,10 +533,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_activity_log: {
+        Args: {
+          p_battle_id: string
+          p_event_details?: Json
+          p_event_type: string
+        }
+        Returns: string
+      }
     }
     Enums: {
-      app_role: "organizer" | "judge" | "selector"
+      app_role:
+        | "organizer"
+        | "judge"
+        | "selector"
+        | "operator"
+        | "participant"
+        | "spectator"
       battle_phase: "registration" | "selection" | "bracket" | "completed"
     }
     CompositeTypes: {
@@ -595,7 +678,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["organizer", "judge", "selector"],
+      app_role: [
+        "organizer",
+        "judge",
+        "selector",
+        "operator",
+        "participant",
+        "spectator",
+      ],
       battle_phase: ["registration", "selection", "bracket", "completed"],
     },
   },
