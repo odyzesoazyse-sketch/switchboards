@@ -74,6 +74,31 @@ export default function BattleView() {
     }
   }, [selectedNomination]);
 
+  useEffect(() => {
+    if (!id || !isOrganizer) return;
+
+    // Подписка на изменения заявок судей
+    const channel = supabase
+      .channel('judge-applications-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'judge_applications',
+          filter: `battle_id=eq.${id}`
+        },
+        () => {
+          loadBattleData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, isOrganizer]);
+
   const loadBattleData = async () => {
     try {
       // Сначала проверяем пользователя
