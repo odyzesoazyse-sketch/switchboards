@@ -144,7 +144,7 @@ export default function OperatorPanel() {
         .from("screen_state")
         .insert({
           battle_id: id,
-          nomination_id: selectedNomination,
+          nomination_id: selectedNomination || null,
           show_judges: true,
           show_timer: false,
           timer_seconds: 120,
@@ -194,14 +194,44 @@ export default function OperatorPanel() {
   };
 
   const showMatch = async (matchId: string) => {
-    await updateScreenState({
-      current_match_id: matchId,
-      nomination_id: selectedNomination,
-      show_winner: false,
-      current_round: currentRound,
-      votes_left: votesLeft,
-      votes_right: votesRight,
-    });
+    if (!screenState) {
+      toast({
+        title: "Ошибка",
+        description: "Состояние экрана не инициализировано",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("screen_state")
+        .update({
+          current_match_id: matchId,
+          nomination_id: selectedNomination || null,
+          show_winner: false,
+          current_round: currentRound,
+          votes_left: votesLeft,
+          votes_right: votesRight,
+        })
+        .eq("id", screenState.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Матч выбран",
+        description: "Матч отображается на экране",
+      });
+      
+      // Обновляем локальное состояние
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const applySettings = async () => {
