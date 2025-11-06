@@ -79,6 +79,9 @@ const Dashboard = () => {
             <span className="text-sm text-muted-foreground">
               {user?.email}
             </span>
+            <Button variant="outline" onClick={() => navigate("/judge")}>
+              Панель судьи
+            </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Выход
             </Button>

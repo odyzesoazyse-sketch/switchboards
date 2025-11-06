@@ -10,6 +10,8 @@ import CreateBattle from "./pages/CreateBattle";
 import BattleView from "./pages/BattleView";
 import BattleScreen from "./pages/BattleScreen";
 import OperatorPanel from "./pages/OperatorPanel";
+import JudgePanel from "./pages/JudgePanel";
+import ActivityLogs from "./pages/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/battle/:id" element={<BattleView />} />
           <Route path="/battle/:id/screen" element={<BattleScreen />} />
           <Route path="/battle/:id/operator" element={<OperatorPanel />} />
+          <Route path="/battle/:id/logs" element={<ActivityLogs />} />
+          <Route path="/judge" element={<JudgePanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

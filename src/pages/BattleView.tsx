@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Trophy } from "lucide-react";
+import { ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Battle {
@@ -60,6 +60,7 @@ export default function BattleView() {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isOrganizer, setIsOrganizer] = useState(false);
+  const [judgeApplications, setJudgeApplications] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -101,6 +102,23 @@ export default function BattleView() {
       
       if (nominationsData && nominationsData.length > 0) {
         setSelectedNomination(nominationsData[0].id);
+      }
+
+      // Загружаем заявки судей, если пользователь организатор
+      if (userId && battleData?.organizer_id === userId) {
+        const { data: appsData } = await supabase
+          .from("judge_applications")
+          .select(`
+            *,
+            profiles (
+              full_name,
+              email
+            )
+          `)
+          .eq("battle_id", id)
+          .order("created_at", { ascending: false });
+
+        setJudgeApplications(appsData || []);
       }
     } catch (error: any) {
       toast({
@@ -229,6 +247,48 @@ export default function BattleView() {
     }
   };
 
+  const handleJudgeApplication = async (applicationId: string, userId: string, status: "approved" | "rejected") => {
+    try {
+      // Обновляем статус заявки
+      const { error: updateError } = await supabase
+        .from("judge_applications")
+        .update({ status })
+        .eq("id", applicationId);
+
+      if (updateError) throw updateError;
+
+      // Если одобрено, добавляем роль судьи
+      if (status === "approved") {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: userId,
+            battle_id: id,
+            role: "judge",
+          });
+
+        if (roleError && !roleError.message.includes("duplicate")) {
+          throw roleError;
+        }
+      }
+
+      toast({
+        title: status === "approved" ? "Заявка одобрена" : "Заявка отклонена",
+        description: status === "approved" 
+          ? "Судья добавлен к баттлу" 
+          : "Заявка была отклонена",
+      });
+
+      await loadBattleData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const createBracket = async () => {
     if (!selectedNomination) return;
 
@@ -317,14 +377,72 @@ export default function BattleView() {
           </Button>
           
           {isOrganizer && (
-            <Button
-              onClick={() => navigate(`/battle/${id}/operator`)}
-              variant="default"
-            >
-              Панель оператора
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => navigate(`/battle/${id}/operator`)}
+                variant="default"
+              >
+                Панель оператора
+              </Button>
+              <Button 
+                onClick={() => navigate(`/battle/${id}/logs`)} 
+                variant="outline"
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Журнал
+              </Button>
+            </div>
           )}
         </div>
+
+        {/* Заявки судей */}
+        {isOrganizer && judgeApplications.length > 0 && (
+          <Card className="p-6 mb-6">
+            <h2 className="text-2xl font-bold mb-4">Заявки судей</h2>
+            <div className="space-y-3">
+              {judgeApplications.map((app) => (
+                <Card key={app.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold">{app.profiles?.full_name || app.profiles?.email}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(app.created_at).toLocaleString("ru-RU")}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {app.status === "pending" ? (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}
+                            className="gap-2"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Одобрить
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}
+                            className="gap-2"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Отклонить
+                          </Button>
+                        </>
+                      ) : (
+                        <Badge variant={app.status === "approved" ? "default" : "destructive"}>
+                          {app.status === "approved" ? "Одобрена" : "Отклонена"}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </Card>
+        )}
 
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
