@@ -427,6 +427,7 @@ export type Database = {
           match_status: string | null
           nomination_id: string | null
           rounds_to_win: number | null
+          show_bracket: boolean | null
           show_judges: boolean | null
           show_score: boolean | null
           show_timer: boolean | null
@@ -445,6 +446,7 @@ export type Database = {
           match_status?: string | null
           nomination_id?: string | null
           rounds_to_win?: number | null
+          show_bracket?: boolean | null
           show_judges?: boolean | null
           show_score?: boolean | null
           show_timer?: boolean | null
@@ -463,6 +465,7 @@ export type Database = {
           match_status?: string | null
           nomination_id?: string | null
           rounds_to_win?: number | null
+          show_bracket?: boolean | null
           show_judges?: boolean | null
           show_score?: boolean | null
           show_timer?: boolean | null

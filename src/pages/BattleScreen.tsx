@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import TournamentBracket from "@/components/TournamentBracket";
 
 interface ScreenState {
   id: string;
@@ -19,6 +20,7 @@ interface ScreenState {
   match_status: string;
   votes_left: number;
   votes_right: number;
+  show_bracket: boolean;
 }
 
 interface Dancer {
@@ -30,6 +32,15 @@ interface Dancer {
 
 interface Match {
   id: string;
+  dancer_left_id: string | null;
+  dancer_right_id: string | null;
+  winner_id: string | null;
+}
+
+interface BracketMatch {
+  id: string;
+  round: string;
+  position: number;
   dancer_left_id: string | null;
   dancer_right_id: string | null;
   winner_id: string | null;
@@ -50,6 +61,8 @@ export default function BattleScreen() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [battleName, setBattleName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [allMatches, setAllMatches] = useState<BracketMatch[]>([]);
+  const [allDancers, setAllDancers] = useState<Dancer[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -174,6 +187,23 @@ export default function BattleScreen() {
         }
       }
 
+      // Загружаем все матчи и танцоров для турнирной сетки
+      if (stateData.nomination_id) {
+        const { data: allMatchesData } = await supabase
+          .from("matches")
+          .select("*")
+          .eq("nomination_id", stateData.nomination_id)
+          .order("position", { ascending: true });
+
+        const { data: allDancersData } = await supabase
+          .from("dancers")
+          .select("*")
+          .eq("nomination_id", stateData.nomination_id);
+
+        setAllMatches(allMatchesData || []);
+        setAllDancers(allDancersData || []);
+      }
+
       if (stateData.show_judges) {
         const { data: judgesData } = await supabase
           .from("user_roles")
@@ -225,6 +255,24 @@ export default function BattleScreen() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
           <p className="text-xl text-muted-foreground">Инициализация экрана...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (screenState.show_bracket) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 p-8">
+        <div className="max-w-[1600px] mx-auto space-y-8">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+              {battleName}
+            </h1>
+            <p className="text-2xl text-muted-foreground">Турнирная сетка</p>
+          </div>
+          <Card className="p-8 bg-card/50 backdrop-blur-sm">
+            <TournamentBracket matches={allMatches} dancers={allDancers} />
+          </Card>
         </div>
       </div>
     );

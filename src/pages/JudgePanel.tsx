@@ -49,6 +49,7 @@ export default function JudgePanel() {
   const { toast } = useToast();
   const [applications, setApplications] = useState<JudgeApplication[]>([]);
   const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
+  const [availableBattles, setAvailableBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function JudgePanel() {
       setApplications(appsData || []);
       
       await loadActiveMatches();
+      await loadAvailableBattles(user.id);
       setLoading(false);
     } catch (error: any) {
       toast({
@@ -109,6 +111,30 @@ export default function JudgePanel() {
         variant: "destructive",
       });
       setLoading(false);
+    }
+  };
+
+  const loadAvailableBattles = async (userId: string) => {
+    try {
+      // Получаем все батлы, которые еще не завершены
+      const { data: battlesData } = await supabase
+        .from("battles")
+        .select("*")
+        .neq("phase", "completed")
+        .order("date", { ascending: true });
+
+      if (!battlesData) {
+        setAvailableBattles([]);
+        return;
+      }
+
+      // Фильтруем батлы, на которые пользователь еще не подавал заявку
+      const appliedBattleIds = applications.map(app => app.battle_id);
+      const available = battlesData.filter(battle => !appliedBattleIds.includes(battle.id));
+      
+      setAvailableBattles(available);
+    } catch (error: any) {
+      console.error("Error loading available battles:", error);
     }
   };
 
@@ -363,6 +389,30 @@ export default function JudgePanel() {
                 </div>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Доступные батлы */}
+        {availableBattles.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Доступные батлы</h2>
+            <div className="grid gap-4">
+              {availableBattles.map((battle) => (
+                <Card key={battle.id} className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold">{battle.name}</h3>
+                      <p className="text-muted-foreground">
+                        {new Date(battle.date).toLocaleDateString("ru-RU")} • {battle.location}
+                      </p>
+                    </div>
+                    <Button onClick={() => applyToBattle(battle.id)}>
+                      Подать заявку
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
 

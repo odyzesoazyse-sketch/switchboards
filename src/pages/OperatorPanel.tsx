@@ -38,6 +38,7 @@ interface ScreenState {
   rounds_to_win: number;
   votes_left: number;
   votes_right: number;
+  show_bracket: boolean;
 }
 
 export default function OperatorPanel() {
@@ -59,6 +60,7 @@ export default function OperatorPanel() {
   const [currentRound, setCurrentRound] = useState(1);
   const [votesLeft, setVotesLeft] = useState(0);
   const [votesRight, setVotesRight] = useState(0);
+  const [showBracket, setShowBracket] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -101,6 +103,7 @@ export default function OperatorPanel() {
         setCurrentRound(stateData.current_round);
         setVotesLeft(stateData.votes_left);
         setVotesRight(stateData.votes_right);
+        setShowBracket(stateData.show_bracket || false);
       } else {
         await createScreenState();
       }
@@ -262,6 +265,15 @@ export default function OperatorPanel() {
     });
   };
 
+  const toggleBracket = async () => {
+    const newValue = !showBracket;
+    setShowBracket(newValue);
+    await updateScreenState({
+      show_bracket: newValue,
+      current_match_id: newValue ? null : screenState?.current_match_id,
+    });
+  };
+
   const getDancerName = (dancerId: string | null) => {
     if (!dancerId) return "Ожидание";
     const dancer = dancers.find(d => d.id === dancerId);
@@ -392,14 +404,22 @@ export default function OperatorPanel() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={resetMatch} variant="outline" className="flex-1 gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={resetMatch} variant="outline" className="gap-2">
                   <RotateCcw className="h-4 w-4" />
                   Сбросить
                 </Button>
-                <Button onClick={showWinnerScreen} className="flex-1 gap-2">
+                <Button onClick={showWinnerScreen} className="gap-2">
                   <Trophy className="h-4 w-4" />
-                  Показать победителя
+                  Победитель
+                </Button>
+                <Button 
+                  onClick={toggleBracket} 
+                  variant={showBracket ? "default" : "outline"}
+                  className="col-span-2 gap-2"
+                >
+                  <Trophy className="h-4 w-4" />
+                  {showBracket ? "Скрыть сетку" : "Показать сетку"}
                 </Button>
               </div>
             </div>
