@@ -247,6 +247,30 @@ export default function JudgePanel() {
     }
   };
 
+  const cancelApplication = async (applicationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("judge_applications")
+        .delete()
+        .eq("id", applicationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Заявка отменена",
+        description: "Ваша заявка была успешно отменена",
+      });
+
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const submitVote = async (matchId: string, votedFor: string, currentRound: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -434,7 +458,18 @@ export default function JudgePanel() {
                         {new Date(app.battles.date).toLocaleDateString("ru-RU")} • {app.battles.location}
                       </p>
                     </div>
-                    {getStatusBadge(app.status)}
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(app.status)}
+                      {app.status === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cancelApplication(app.id)}
+                        >
+                          Отменить
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>
               ))}

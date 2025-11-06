@@ -133,17 +133,27 @@ export default function BattleView() {
       if (userId && battleData?.organizer_id === userId) {
         const { data: appsData } = await supabase
           .from("judge_applications")
-          .select(`
-            *,
-            profiles (
-              full_name,
-              email
-            )
-          `)
+          .select("*")
           .eq("battle_id", id)
           .order("created_at", { ascending: false });
 
-        setJudgeApplications(appsData || []);
+        if (appsData) {
+          // Загружаем профили отдельным запросом
+          const userIds = appsData.map(app => app.user_id);
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", userIds);
+
+          const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+          
+          const appsWithProfiles = appsData.map(app => ({
+            ...app,
+            profiles: profilesMap.get(app.user_id) || null
+          }));
+
+          setJudgeApplications(appsWithProfiles);
+        }
       }
     } catch (error: any) {
       toast({
