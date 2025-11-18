@@ -87,7 +87,7 @@ export default function ActivityLogs() {
       setLoading(false);
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -97,13 +97,13 @@ export default function ActivityLogs() {
 
   const getEventBadge = (eventType: string) => {
     const badges: Record<string, { color: string; label: string }> = {
-      "judge_application_submitted": { color: "bg-blue-500", label: "Заявка подана" },
-      "judge_application_approved": { color: "bg-green-500", label: "Заявка одобрена" },
-      "judge_application_rejected": { color: "bg-red-500", label: "Заявка отклонена" },
-      "match_vote_submitted": { color: "bg-purple-500", label: "Голос подан" },
-      "match_started": { color: "bg-yellow-500", label: "Матч начат" },
-      "match_completed": { color: "bg-green-600", label: "Матч завершён" },
-      "screen_updated": { color: "bg-indigo-500", label: "Экран обновлён" },
+      "judge_application_submitted": { color: "bg-blue-500", label: "Application submitted" },
+      "judge_application_approved": { color: "bg-green-500", label: "Application approved" },
+      "judge_application_rejected": { color: "bg-red-500", label: "Application rejected" },
+      "match_vote_submitted": { color: "bg-purple-500", label: "Vote submitted" },
+      "match_started": { color: "bg-yellow-500", label: "Match started" },
+      "match_completed": { color: "bg-green-600", label: "Match completed" },
+      "screen_updated": { color: "bg-indigo-500", label: "Screen updated" },
     };
 
     const badge = badges[eventType] || { color: "bg-gray-500", label: eventType };
@@ -155,13 +155,13 @@ export default function ActivityLogs() {
                       {getEventBadge(log.event_type)}
                       <div className="mt-2 text-sm">
                         <span className="font-semibold">
-                          {log.profiles?.full_name || log.profiles?.email || "Система"}
+                          {log.profiles?.full_name || log.profiles?.email || "System"}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      {new Date(log.created_at).toLocaleString("ru-RU")}
+                      {new Date(log.created_at).toLocaleString("en-US")}
                     </div>
                   </div>
                   {log.event_details && formatDetails(log.event_details)}

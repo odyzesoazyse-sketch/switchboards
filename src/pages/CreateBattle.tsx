@@ -28,7 +28,7 @@ const CreateBattle = () => {
 
   const addNomination = () => {
     if (nominations.length >= 5) {
-      toast.error("Максимум 5 номинаций");
+      toast.error("Maximum 5 categories");
       return;
     }
     setNominations([...nominations, { 
@@ -40,7 +40,7 @@ const CreateBattle = () => {
 
   const removeNomination = (id: string) => {
     if (nominations.length === 1) {
-      toast.error("Должна быть минимум 1 номинация");
+      toast.error("Must have at least 1 category");
       return;
     }
     setNominations(nominations.filter(n => n.id !== id));
@@ -56,18 +56,18 @@ const CreateBattle = () => {
     e.preventDefault();
     
     if (!battleName.trim()) {
-      toast.error("Введите название баттла");
+      toast.error("Enter battle name");
       return;
     }
     
     if (!battleDate || !battleTime) {
-      toast.error("Укажите дату и время баттла");
+      toast.error("Specify battle date and time");
       return;
     }
 
     const emptyNominations = nominations.filter(n => !n.name.trim());
     if (emptyNominations.length > 0) {
-      toast.error("Все номинации должны иметь название");
+      toast.error("All categories must have a name");
       return;
     }
 
@@ -76,7 +76,7 @@ const CreateBattle = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Необходимо войти в систему");
+        toast.error("Must sign in");
         navigate("/auth");
         return;
       }
@@ -113,11 +113,11 @@ const CreateBattle = () => {
 
       if (nominationsError) throw nominationsError;
 
-      toast.success("Баттл создан!");
+      toast.success("Battle created!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error creating battle:", error);
-      toast.error(error.message || "Ошибка при создании баттла");
+      toast.error(error.message || "Error creating battle");
     } finally {
       setLoading(false);
     }
@@ -133,10 +133,10 @@ const CreateBattle = () => {
             className="mb-2"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад к дашборду
+            Back to dashboard
           </Button>
           <h1 className="text-2xl font-bold text-gradient-primary">
-            Создать новый баттл
+            Create new battle
           </h1>
         </div>
       </header>
@@ -146,14 +146,14 @@ const CreateBattle = () => {
           {/* Battle Info */}
           <Card className="border-border/50">
             <CardHeader>
-              <CardTitle>Информация о баттле</CardTitle>
+              <CardTitle>Battle Information</CardTitle>
               <CardDescription>
-                Основные данные мероприятия
+                Basic event details
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Название баттла *</Label>
+                <Label htmlFor="name">Battle Name *</Label>
                 <Input
                   id="name"
                   placeholder="Moscow Break 2025"
@@ -165,7 +165,7 @@ const CreateBattle = () => {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="date">Дата *</Label>
+                  <Label htmlFor="date">Date *</Label>
                   <Input
                     id="date"
                     type="date"
@@ -175,7 +175,7 @@ const CreateBattle = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Время *</Label>
+                  <Label htmlFor="time">Time *</Label>
                   <Input
                     id="time"
                     type="time"
@@ -187,10 +187,10 @@ const CreateBattle = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Локация</Label>
+                <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  placeholder="Москва, ул. Ленина 1"
+                  placeholder="Moscow, Lenin St. 1"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                 />
@@ -203,9 +203,9 @@ const CreateBattle = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Номинации</CardTitle>
+                  <CardTitle>Categories</CardTitle>
                   <CardDescription>
-                    Добавьте до 5 номинаций (Solo, Doubles, Power Moves и т.д.)
+                    Add up to 5 categories (Solo, Doubles, Power Moves, etc.)
                   </CardDescription>
                 </div>
                 <Button
@@ -217,7 +217,7 @@ const CreateBattle = () => {
                   className="border-primary text-primary hover:bg-primary/10"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Добавить
+                  Add
                 </Button>
               </div>
             </CardHeader>
@@ -229,7 +229,7 @@ const CreateBattle = () => {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-muted-foreground">
-                      Номинация {index + 1}
+                      Category {index + 1}
                     </span>
                     {nominations.length > 1 && (
                       <Button
@@ -246,7 +246,7 @@ const CreateBattle = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor={`nom-name-${nomination.id}`}>
-                      Название *
+                      Name *
                     </Label>
                     <Input
                       id={`nom-name-${nomination.id}`}
@@ -259,11 +259,11 @@ const CreateBattle = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor={`nom-desc-${nomination.id}`}>
-                      Описание
+                      Description
                     </Label>
                     <Textarea
                       id={`nom-desc-${nomination.id}`}
-                      placeholder="Краткое описание номинации..."
+                      placeholder="Brief category description..."
                       value={nomination.description}
                       onChange={(e) => updateNomination(nomination.id, 'description', e.target.value)}
                       rows={2}
@@ -282,14 +282,14 @@ const CreateBattle = () => {
               onClick={() => navigate("/dashboard")}
               className="flex-1"
             >
-              Отмена
+              Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="flex-1 bg-primary hover:bg-primary/90 glow-primary"
             >
-              {loading ? "Создание..." : "Создать баттл"}
+              {loading ? "Creating..." : "Create Battle"}
             </Button>
           </div>
         </form>

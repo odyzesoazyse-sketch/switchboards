@@ -36,7 +36,7 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        toast.success("Добро пожаловать!");
+        toast.success("Welcome back!");
         navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -50,10 +50,10 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast.success("Аккаунт создан! Проверьте email для подтверждения.");
+        toast.success("Account created! Check your email for confirmation.");
       }
     } catch (error: any) {
-      toast.error(error.message || "Ошибка аутентификации");
+      toast.error(error.message || "Authentication error");
     } finally {
       setLoading(false);
     }
@@ -68,27 +68,27 @@ const Auth = () => {
               BreakDance Judge
             </h1>
             <p className="text-sm text-muted-foreground">
-              Честное судейство брейкданс-баттлов
+              Fair breakdance battle judging
             </p>
           </div>
           <CardTitle className="text-2xl">
-            {isLogin ? "Вход" : "Регистрация"}
+            {isLogin ? "Sign In" : "Sign Up"}
           </CardTitle>
           <CardDescription>
             {isLogin 
-              ? "Войдите в систему для продолжения" 
-              : "Создайте аккаунт организатора"}
+              ? "Sign in to continue" 
+              : "Create an organizer account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName">Полное имя</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="Иван Иванов"
+                  placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
@@ -107,7 +107,7 @@ const Auth = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -123,7 +123,7 @@ const Auth = () => {
               className="w-full bg-primary hover:bg-primary/90 glow-primary"
               disabled={loading}
             >
-              {loading ? "Загрузка..." : isLogin ? "Войти" : "Создать аккаунт"}
+              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
           <div className="mt-4 text-center">
@@ -133,8 +133,8 @@ const Auth = () => {
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               {isLogin 
-                ? "Нет аккаунта? Зарегистрироваться" 
-                : "Уже есть аккаунт? Войти"}
+                ? "Don't have an account? Sign up" 
+                : "Already have an account? Sign in"}
             </button>
           </div>
         </CardContent>

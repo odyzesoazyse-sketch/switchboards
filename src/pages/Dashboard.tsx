@@ -49,7 +49,7 @@ const Dashboard = () => {
       if (error) throw error;
       setBattles(data || []);
     } catch (error: any) {
-      toast.error("Ошибка загрузки баттлов");
+      toast.error("Error loading battles");
     } finally {
       setLoading(false);
     }
@@ -80,10 +80,10 @@ const Dashboard = () => {
               {user?.email}
             </span>
             <Button variant="outline" onClick={() => navigate("/judge")}>
-              Панель судьи
+              Judge Panel
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
-              Выход
+              Sign Out
             </Button>
           </div>
         </div>
@@ -92,9 +92,9 @@ const Dashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Мои баттлы</h2>
+            <h2 className="text-3xl font-bold mb-2">My Battles</h2>
             <p className="text-muted-foreground">
-              Управляйте вашими брейкданс-мероприятиями
+              Manage your breakdance events
             </p>
           </div>
           <Button 
@@ -102,7 +102,7 @@ const Dashboard = () => {
             className="bg-primary hover:bg-primary/90 glow-primary"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Создать баттл
+            Create Battle
           </Button>
         </div>
 
@@ -111,17 +111,17 @@ const Dashboard = () => {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Trophy className="w-16 h-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">
-                Пока нет баттлов
+                No battles yet
               </h3>
               <p className="text-muted-foreground text-center mb-6">
-                Создайте свой первый баттл и начните судейство
+                Create your first battle and start judging
               </p>
               <Button 
                 onClick={() => navigate("/battle/create")}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Создать первый баттл
+                Create First Battle
               </Button>
             </CardContent>
           </Card>
@@ -146,7 +146,7 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Users className="w-4 h-4" />
-                      <span>{battle.nominations?.[0]?.count || 0} номинаций</span>
+                      <span>{battle.nominations?.[0]?.count || 0} categories</span>
                     </div>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                       battle.phase === "registration" 
@@ -157,10 +157,10 @@ const Dashboard = () => {
                         ? "bg-accent/20 text-accent"
                         : "bg-muted text-muted-foreground"
                     }`}>
-                      {battle.phase === "registration" && "Регистрация"}
-                      {battle.phase === "selection" && "Отбор"}
-                      {battle.phase === "bracket" && "Сетка"}
-                      {battle.phase === "completed" && "Завершён"}
+                      {battle.phase === "registration" && "Registration"}
+                      {battle.phase === "selection" && "Selection"}
+                      {battle.phase === "bracket" && "Bracket"}
+                      {battle.phase === "completed" && "Completed"}
                     </div>
                   </div>
                 </CardContent>

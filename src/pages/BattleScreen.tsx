@@ -390,11 +390,11 @@ export default function BattleScreen() {
 
         {screenState.show_judges && judges.length > 0 && (
           <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-            <h3 className="text-2xl font-bold mb-4 text-center">Судьи</h3>
+            <h3 className="text-2xl font-bold mb-4 text-center">Judges</h3>
             <div className="flex justify-center gap-6 flex-wrap">
               {judges.map((judge) => (
                 <Badge key={judge.id} variant="secondary" className="text-lg px-4 py-2">
-                  {judge.full_name || "Судья"}
+                  {judge.full_name || "Judge"}
                 </Badge>
               ))}
             </div>

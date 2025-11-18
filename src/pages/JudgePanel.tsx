@@ -106,7 +106,7 @@ export default function JudgePanel() {
       setLoading(false);
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -233,14 +233,14 @@ export default function JudgePanel() {
       if (error) throw error;
 
       toast({
-        title: "Заявка отправлена",
-        description: "Ожидайте одобрения организатора",
+        title: "Application submitted",
+        description: "Awaiting organizer approval",
       });
 
       await loadData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -257,14 +257,14 @@ export default function JudgePanel() {
       if (error) throw error;
 
       toast({
-        title: "Заявка отменена",
-        description: "Ваша заявка была успешно отменена",
+        title: "Application canceled",
+        description: "Your application has been successfully canceled",
       });
 
       await loadData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -287,8 +287,8 @@ export default function JudgePanel() {
 
       if (existingVote) {
         toast({
-          title: "Уже проголосовали",
-          description: "Вы уже проголосовали в этом раунде",
+          title: "Already voted",
+          description: "You have already voted in this round",
           variant: "destructive",
         });
         return;
@@ -306,14 +306,14 @@ export default function JudgePanel() {
       if (error) throw error;
 
       toast({
-        title: "Голос принят",
-        description: "Ваш голос успешно зарегистрирован",
+        title: "Vote accepted",
+        description: "Your vote has been successfully registered",
       });
 
       await loadActiveMatches();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -371,7 +371,7 @@ export default function JudgePanel() {
                     <Card className="p-6 text-center border-red-500/50 hover:border-red-500 transition-colors">
                       <div className="space-y-3">
                         <div className="text-2xl font-bold text-red-500">
-                          {match.dancer_left?.name || "Ожидание"}
+                          {match.dancer_left?.name || "Waiting"}
                         </div>
                         {match.dancer_left?.city && (
                           <div className="text-sm text-muted-foreground">{match.dancer_left.city}</div>
@@ -394,7 +394,7 @@ export default function JudgePanel() {
                     <Card className="p-6 text-center border-blue-500/50 hover:border-blue-500 transition-colors">
                       <div className="space-y-3">
                         <div className="text-2xl font-bold text-blue-500">
-                          {match.dancer_right?.name || "Ожидание"}
+                          {match.dancer_right?.name || "Waiting"}
                         </div>
                         {match.dancer_right?.city && (
                           <div className="text-sm text-muted-foreground">{match.dancer_right.city}</div>
