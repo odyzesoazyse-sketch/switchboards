@@ -109,7 +109,7 @@ export default function OperatorPanel() {
       }
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -134,7 +134,7 @@ export default function OperatorPanel() {
       setDancers(dancersData || []);
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -165,7 +165,7 @@ export default function OperatorPanel() {
       setScreenState(data);
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -184,12 +184,12 @@ export default function OperatorPanel() {
       if (error) throw error;
 
       toast({
-        title: "Обновлено",
-        description: "Состояние экрана обновлено",
+        title: "Updated",
+        description: "Screen state updated",
       });
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -199,8 +199,8 @@ export default function OperatorPanel() {
   const showMatch = async (matchId: string) => {
     if (!screenState) {
       toast({
-        title: "Ошибка",
-        description: "Состояние экрана не инициализировано",
+        title: "Error",
+        description: "Screen state not initialized",
         variant: "destructive",
       });
       return;
@@ -222,15 +222,15 @@ export default function OperatorPanel() {
       if (error) throw error;
 
       toast({
-        title: "Матч выбран",
-        description: "Матч отображается на экране",
+        title: "Match selected",
+        description: "Match is displayed on screen",
       });
       
-      // Обновляем локальное состояние
+      // Update local state
       await loadData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -275,7 +275,7 @@ export default function OperatorPanel() {
   };
 
   const getDancerName = (dancerId: string | null) => {
-    if (!dancerId) return "Ожидание";
+    if (!dancerId) return "Waiting";
     const dancer = dancers.find(d => d.id === dancerId);
     return dancer ? dancer.name : "?";
   };
@@ -419,7 +419,7 @@ export default function OperatorPanel() {
                   className="col-span-2 gap-2"
                 >
                   <Trophy className="h-4 w-4" />
-                  {showBracket ? "Скрыть сетку" : "Показать сетку"}
+                  {showBracket ? "Hide bracket" : "Show bracket"}
                 </Button>
               </div>
             </div>
@@ -428,13 +428,13 @@ export default function OperatorPanel() {
 
         {nominations.length > 0 && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold">Выбрать матч для показа</h2>
+            <h2 className="text-2xl font-bold">Select match to display</h2>
             
             <div>
-              <Label>Номинация</Label>
+              <Label>Category</Label>
               <Select value={selectedNomination} onValueChange={setSelectedNomination}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите номинацию" />
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   {nominations.map((nom) => (

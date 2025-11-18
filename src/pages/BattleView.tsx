@@ -201,10 +201,10 @@ export default function BattleView() {
 
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {
-      registration: "Регистрация",
-      selection: "Отбор",
-      bracket: "Сетка",
-      completed: "Завершён",
+      registration: "Registration",
+      selection: "Selection",
+      bracket: "Bracket",
+      completed: "Completed",
     };
     return labels[phase] || phase;
   };
@@ -229,8 +229,8 @@ export default function BattleView() {
       }
 
       toast({
-        title: "Успех",
-        description: `Фаза изменена на "${getPhaseLabel(newPhase)}"`,
+        title: "Success",
+        description: `Phase changed to "${getPhaseLabel(newPhase)}"`,
       });
 
       await loadBattleData();
@@ -248,15 +248,15 @@ export default function BattleView() {
     if (!selectedNomination || !isOrganizer) return;
 
     const testNames = [
-      "Макс", "Алекс", "Дима", "Саша", "Никита", "Влад", "Артём", "Денис",
-      "Егор", "Иван", "Андрей", "Сергей", "Миша", "Паша", "Женя", "Роман"
+      "Max", "Alex", "Dima", "Sasha", "Nikita", "Vlad", "Artem", "Denis",
+      "Egor", "Ivan", "Andrey", "Sergey", "Misha", "Pasha", "Eugene", "Roman"
     ];
 
     try {
       const dancersToAdd = testNames.map((name, index) => ({
         nomination_id: selectedNomination,
         name,
-        city: "Москва",
+        city: "Moscow",
         age: 18 + Math.floor(Math.random() * 15),
         position: index + 1,
         average_score: 0,
@@ -268,14 +268,14 @@ export default function BattleView() {
       if (error) throw error;
 
       toast({
-        title: "Успех",
-        description: `Добавлено ${testNames.length} танцоров`,
+        title: "Success",
+        description: `Added ${testNames.length} dancers`,
       });
 
       await loadNominationData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -308,16 +308,16 @@ export default function BattleView() {
       }
 
       toast({
-        title: status === "approved" ? "Заявка одобрена" : "Заявка отклонена",
+        title: status === "approved" ? "Application approved" : "Application rejected",
         description: status === "approved" 
-          ? "Судья добавлен к баттлу" 
-          : "Заявка была отклонена",
+          ? "Judge added to battle" 
+          : "Application was rejected",
       });
 
       await loadBattleData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -333,7 +333,7 @@ export default function BattleView() {
         .slice(0, currentNomination?.top_count || 16);
 
       if (topDancers.length < 2) {
-        throw new Error("Недостаточно танцоров для создания сетки");
+        throw new Error("Not enough dancers to create bracket");
       }
 
       // Отметить квалифицированных
@@ -369,12 +369,12 @@ export default function BattleView() {
       if (error) throw error;
 
       toast({
-        title: "Сетка создана",
-        description: `Создано ${matchesToCreate.length} матчей`,
+        title: "Bracket created",
+        description: `Created ${matchesToCreate.length} matches`,
       });
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -473,7 +473,7 @@ export default function BattleView() {
                           </>
                         ) : (
                           <Badge variant={app.status === "approved" ? "default" : "destructive"}>
-                            {app.status === "approved" ? "Одобрена" : "Отклонена"}
+                            {app.status === "approved" ? "Approved" : "Rejected"}
                           </Badge>
                         )}
                       </div>
@@ -571,10 +571,10 @@ export default function BattleView() {
                   if (roundMatches.length === 0) return null;
 
                   const roundLabels: Record<string, string> = {
-                    round_of_16: "1/8 финала",
-                    quarterfinal: "Четвертьфиналы",
-                    semifinal: "Полуфиналы",
-                    final: "Финал",
+                    round_of_16: "Round of 16",
+                    quarterfinal: "Quarterfinals",
+                    semifinal: "Semifinals",
+                    final: "Final",
                   };
 
                   return (
