@@ -10,9 +10,10 @@ interface SliderVotingProps {
   dancerRight: { name: string; city?: string | null };
   currentRound: number;
   onSubmit: (matchId: string, technique: number, musicality: number, performance: number, round: number) => void;
+  disabled?: boolean;
 }
 
-export default function SliderVoting({ matchId, dancerLeft, dancerRight, currentRound, onSubmit }: SliderVotingProps) {
+export default function SliderVoting({ matchId, dancerLeft, dancerRight, currentRound, onSubmit, disabled = false }: SliderVotingProps) {
   const [technique, setTechnique] = useState([0]);
   const [musicality, setMusicality] = useState([0]);
   const [performance, setPerformance] = useState([0]);
@@ -71,6 +72,7 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
             max={5}
             step={0.5}
             className="w-full"
+            disabled={disabled}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span className="text-opponent-left">-5 Left</span>
@@ -93,6 +95,7 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
             max={5}
             step={0.5}
             className="w-full"
+            disabled={disabled}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span className="text-opponent-left">-5 Left</span>
@@ -115,6 +118,7 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
             max={5}
             step={0.5}
             className="w-full"
+            disabled={disabled}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span className="text-opponent-left">-5 Left</span>
@@ -137,7 +141,7 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
             onClick={handleSubmit}
             className="w-full"
             size="lg"
-            disabled={total === 0}
+            disabled={disabled || total === 0}
           >
             Submit Vote
           </Button>
