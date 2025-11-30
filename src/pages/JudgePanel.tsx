@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import SliderVoting from "@/components/SliderVoting";
 
 interface Battle {
   id: string;
@@ -42,6 +44,7 @@ interface ActiveMatch extends Match {
   nomination_name?: string;
   current_round: number;
   battle_name: string;
+  judging_mode?: string;
 }
 
 export default function JudgePanel() {
@@ -181,7 +184,8 @@ export default function JudgePanel() {
         .select(`
           *,
           nominations (
-            name
+            name,
+            judging_mode
           )
         `)
         .in("id", matchIds);
@@ -209,6 +213,7 @@ export default function JudgePanel() {
           nomination_name: match.nominations?.name,
           current_round: screenState?.current_round || 1,
           battle_name: screenState?.battles?.name || "",
+          judging_mode: match.nominations?.judging_mode || "simple",
         };
       });
 
@@ -320,21 +325,83 @@ export default function JudgePanel() {
     }
   };
 
+  const submitSliderVote = async (matchId: string, technique: number, musicality: number, performance: number, currentRound: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Проверяем, не голосовал ли уже судья в этом раунде
+      const { data: existingVote } = await supabase
+        .from("match_votes")
+        .select("id")
+        .eq("match_id", matchId)
+        .eq("judge_id", user.id)
+        .eq("round_number", currentRound)
+        .maybeSingle();
+
+      if (existingVote) {
+        toast({
+          title: "Already voted",
+          description: "You have already voted in this round",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Определяем победителя на основе суммы
+      const total = technique + musicality + performance;
+      let votedFor = null;
+      
+      // Если total > 0, победил правый (синий), если < 0 - левый (красный)
+      const match = activeMatches.find(m => m.id === matchId);
+      if (match) {
+        votedFor = total > 0 ? match.dancer_right_id : match.dancer_left_id;
+      }
+
+      const { error } = await supabase
+        .from("match_votes")
+        .insert({
+          match_id: matchId,
+          judge_id: user.id,
+          vote_for: votedFor,
+          round_number: currentRound,
+          slider_technique: technique,
+          slider_musicality: musicality,
+          slider_performance: performance,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Vote accepted",
+        description: "Your slider scores have been registered",
+      });
+
+      await loadActiveMatches();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-green-500">Одобрена</Badge>;
+        return <Badge className="bg-green-500">Approved</Badge>;
       case "rejected":
-        return <Badge variant="destructive">Отклонена</Badge>;
+        return <Badge variant="destructive">Rejected</Badge>;
       default:
-        return <Badge variant="secondary">Ожидание</Badge>;
+        return <Badge variant="secondary">Pending</Badge>;
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-xl">Загрузка...</div>
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
@@ -345,71 +412,87 @@ export default function JudgePanel() {
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            К дашборду
+            Back to Dashboard
           </Button>
         </div>
 
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Панель судьи
+          Judge Panel
         </h1>
 
         {/* Активные матчи для голосования */}
         {activeMatches.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Активные матчи</h2>
+            <h2 className="text-2xl font-bold">Active Matches</h2>
             {activeMatches.map((match) => (
               <Card key={match.id} className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-bold">{match.battle_name}</h3>
-                      <p className="text-muted-foreground">{match.nomination_name} - Раунд {match.current_round}</p>
+                      <p className="text-muted-foreground">{match.nomination_name} - Round {match.current_round}</p>
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-4 items-center">
-                    <Card className="p-6 text-center border-red-500/50 hover:border-red-500 transition-colors">
-                      <div className="space-y-3">
-                        <div className="text-2xl font-bold text-red-500">
-                          {match.dancer_left?.name || "Waiting"}
+                  {match.judging_mode === "simple" ? (
+                    <div className="grid md:grid-cols-3 gap-4 items-center">
+                      <Card className="p-6 text-center border-opponent-left/50 hover:border-opponent-left transition-colors">
+                        <div className="space-y-3">
+                          <div className="text-2xl font-bold text-opponent-left">
+                            {match.dancer_left?.name || "Waiting"}
+                          </div>
+                          {match.dancer_left?.city && (
+                            <div className="text-sm text-muted-foreground">{match.dancer_left.city}</div>
+                          )}
+                          <Button
+                            onClick={() => match.dancer_left_id && submitVote(match.id, match.dancer_left_id, match.current_round)}
+                            className="w-full bg-opponent-left hover:bg-opponent-left/90"
+                            disabled={!match.dancer_left_id}
+                          >
+                            <Trophy className="mr-2 h-4 w-4" />
+                            Vote
+                          </Button>
                         </div>
-                        {match.dancer_left?.city && (
-                          <div className="text-sm text-muted-foreground">{match.dancer_left.city}</div>
-                        )}
-                        <Button
-                          onClick={() => match.dancer_left_id && submitVote(match.id, match.dancer_left_id, match.current_round)}
-                          className="w-full bg-red-500 hover:bg-red-600"
-                          disabled={!match.dancer_left_id}
-                        >
-                          <Trophy className="mr-2 h-4 w-4" />
-                          Голосовать
-                        </Button>
-                      </div>
-                    </Card>
+                      </Card>
 
-                    <div className="text-center text-3xl font-bold text-muted-foreground">
-                      VS
+                      <div className="text-center text-3xl font-bold text-muted-foreground">
+                        VS
+                      </div>
+
+                      <Card className="p-6 text-center border-opponent-right/50 hover:border-opponent-right transition-colors">
+                        <div className="space-y-3">
+                          <div className="text-2xl font-bold text-opponent-right">
+                            {match.dancer_right?.name || "Waiting"}
+                          </div>
+                          {match.dancer_right?.city && (
+                            <div className="text-sm text-muted-foreground">{match.dancer_right.city}</div>
+                          )}
+                          <Button
+                            onClick={() => match.dancer_right_id && submitVote(match.id, match.dancer_right_id, match.current_round)}
+                            className="w-full bg-opponent-right hover:bg-opponent-right/90"
+                            disabled={!match.dancer_right_id}
+                          >
+                            <Trophy className="mr-2 h-4 w-4" />
+                            Vote
+                          </Button>
+                        </div>
+                      </Card>
                     </div>
-
-                    <Card className="p-6 text-center border-blue-500/50 hover:border-blue-500 transition-colors">
-                      <div className="space-y-3">
-                        <div className="text-2xl font-bold text-blue-500">
-                          {match.dancer_right?.name || "Waiting"}
-                        </div>
-                        {match.dancer_right?.city && (
-                          <div className="text-sm text-muted-foreground">{match.dancer_right.city}</div>
-                        )}
-                        <Button
-                          onClick={() => match.dancer_right_id && submitVote(match.id, match.dancer_right_id, match.current_round)}
-                          className="w-full bg-blue-500 hover:bg-blue-600"
-                          disabled={!match.dancer_right_id}
-                        >
-                          <Trophy className="mr-2 h-4 w-4" />
-                          Голосовать
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
+                  ) : (
+                    <SliderVoting
+                      matchId={match.id}
+                      dancerLeft={{
+                        name: match.dancer_left?.name || "Waiting",
+                        city: match.dancer_left?.city
+                      }}
+                      dancerRight={{
+                        name: match.dancer_right?.name || "Waiting",
+                        city: match.dancer_right?.city
+                      }}
+                      currentRound={match.current_round}
+                      onSubmit={submitSliderVote}
+                    />
+                  )}
                 </div>
               </Card>
             ))}
@@ -419,7 +502,7 @@ export default function JudgePanel() {
         {/* Доступные батлы */}
         {availableBattles.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Доступные батлы</h2>
+            <h2 className="text-2xl font-bold">Available Battles</h2>
             <div className="grid gap-4">
               {availableBattles.map((battle) => (
                 <Card key={battle.id} className="p-6">
@@ -431,7 +514,7 @@ export default function JudgePanel() {
                       </p>
                     </div>
                     <Button onClick={() => applyToBattle(battle.id)}>
-                      Подать заявку
+                      Submit Application
                     </Button>
                   </div>
                 </Card>
@@ -442,10 +525,10 @@ export default function JudgePanel() {
 
         {/* Мои заявки */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Мои заявки на судейство</h2>
+          <h2 className="text-2xl font-bold">My Judge Applications</h2>
           {applications.length === 0 ? (
             <Card className="p-6 text-center text-muted-foreground">
-              У вас пока нет заявок на судейство
+              No judge applications yet
             </Card>
           ) : (
             <div className="grid gap-4">
@@ -466,7 +549,7 @@ export default function JudgePanel() {
                           size="sm"
                           onClick={() => cancelApplication(app.id)}
                         >
-                          Отменить
+                          Cancel
                         </Button>
                       )}
                     </div>

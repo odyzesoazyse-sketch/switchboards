@@ -182,6 +182,9 @@ export type Database = {
           judge_id: string
           match_id: string
           round_number: number
+          slider_musicality: number | null
+          slider_performance: number | null
+          slider_technique: number | null
           vote_for: string | null
         }
         Insert: {
@@ -190,6 +193,9 @@ export type Database = {
           judge_id: string
           match_id: string
           round_number?: number
+          slider_musicality?: number | null
+          slider_performance?: number | null
+          slider_technique?: number | null
           vote_for?: string | null
         }
         Update: {
@@ -198,6 +204,9 @@ export type Database = {
           judge_id?: string
           match_id?: string
           round_number?: number
+          slider_musicality?: number | null
+          slider_performance?: number | null
+          slider_technique?: number | null
           vote_for?: string | null
         }
         Relationships: [
@@ -301,6 +310,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          judging_mode: string
           max_dancers: number | null
           name: string
           phase: Database["public"]["Enums"]["battle_phase"]
@@ -311,6 +321,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          judging_mode?: string
           max_dancers?: number | null
           name: string
           phase?: Database["public"]["Enums"]["battle_phase"]
@@ -321,6 +332,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          judging_mode?: string
           max_dancers?: number | null
           name?: string
           phase?: Database["public"]["Enums"]["battle_phase"]

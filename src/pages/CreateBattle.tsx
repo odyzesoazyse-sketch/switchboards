@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Plus, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,6 +14,7 @@ interface Nomination {
   id: string;
   name: string;
   description: string;
+  judging_mode: 'simple' | 'sliders';
 }
 
 const CreateBattle = () => {
@@ -23,7 +25,7 @@ const CreateBattle = () => {
   const [battleTime, setBattleTime] = useState("");
   const [location, setLocation] = useState("");
   const [nominations, setNominations] = useState<Nomination[]>([
-    { id: "1", name: "", description: "" }
+    { id: "1", name: "", description: "", judging_mode: "simple" }
   ]);
 
   const addNomination = () => {
@@ -34,7 +36,8 @@ const CreateBattle = () => {
     setNominations([...nominations, { 
       id: Date.now().toString(), 
       name: "", 
-      description: "" 
+      description: "",
+      judging_mode: "simple"
     }]);
   };
 
@@ -46,7 +49,7 @@ const CreateBattle = () => {
     setNominations(nominations.filter(n => n.id !== id));
   };
 
-  const updateNomination = (id: string, field: 'name' | 'description', value: string) => {
+  const updateNomination = (id: string, field: 'name' | 'description' | 'judging_mode', value: string) => {
     setNominations(nominations.map(n => 
       n.id === id ? { ...n, [field]: value } : n
     ));
@@ -104,7 +107,8 @@ const CreateBattle = () => {
         battle_id: battle.id,
         name: n.name,
         description: n.description || null,
-        phase: "registration" as const
+        phase: "registration" as const,
+        judging_mode: n.judging_mode
       }));
 
       const { error: nominationsError } = await supabase
@@ -268,6 +272,24 @@ const CreateBattle = () => {
                       onChange={(e) => updateNomination(nomination.id, 'description', e.target.value)}
                       rows={2}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`nom-mode-${nomination.id}`}>
+                      Judging Mode
+                    </Label>
+                    <Select
+                      value={nomination.judging_mode}
+                      onValueChange={(value) => updateNomination(nomination.id, 'judging_mode', value)}
+                    >
+                      <SelectTrigger id={`nom-mode-${nomination.id}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="simple">Simple Vote (Pick Winner)</SelectItem>
+                        <SelectItem value="sliders">3 Sliders (-5 to +5)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               ))}
