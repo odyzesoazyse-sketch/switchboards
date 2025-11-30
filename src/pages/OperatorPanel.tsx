@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Monitor, Play, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import SliderVoting from "@/components/SliderVoting";
 
 interface Match {
   id: string;
@@ -61,6 +63,8 @@ export default function OperatorPanel() {
   const [votesLeft, setVotesLeft] = useState(0);
   const [votesRight, setVotesRight] = useState(0);
   const [showBracket, setShowBracket] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [judgingMode, setJudgingMode] = useState<string>("simple");
 
   useEffect(() => {
     if (id) {
@@ -132,6 +136,17 @@ export default function OperatorPanel() {
         .eq("nomination_id", selectedNomination);
 
       setDancers(dancersData || []);
+
+      // Load judging mode
+      const { data: nominationData } = await supabase
+        .from("nominations")
+        .select("judging_mode")
+        .eq("id", selectedNomination)
+        .single();
+
+      if (nominationData) {
+        setJudgingMode(nominationData.judging_mode || "simple");
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -284,6 +299,13 @@ export default function OperatorPanel() {
     window.open(`/battle/${id}/screen`, '_blank');
   };
 
+  const getCurrentMatch = () => {
+    if (!screenState?.current_match_id) return null;
+    return matches.find(m => m.id === screenState.current_match_id);
+  };
+
+  const currentMatch = getCurrentMatch();
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -292,10 +314,88 @@ export default function OperatorPanel() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Назад к баттлу
           </Button>
-          <Button onClick={openScreen} className="gap-2">
-            <Monitor className="h-4 w-4" />
-            Открыть экран
-          </Button>
+          <div className="flex gap-2">
+            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Eye className="h-4 w-4" />
+                  Judge Preview
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Judge Screen Preview</DialogTitle>
+                </DialogHeader>
+                {currentMatch ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-muted-foreground">Round {currentRound}</p>
+                    </div>
+                    {judgingMode === "simple" ? (
+                      <div className="grid md:grid-cols-3 gap-4 items-center">
+                        <Card className="p-6 text-center border-opponent-left/50">
+                          <div className="space-y-3">
+                            <div className="text-2xl font-bold text-opponent-left">
+                              {getDancerName(currentMatch.dancer_left_id)}
+                            </div>
+                            <Button
+                              disabled
+                              className="w-full bg-opponent-left hover:bg-opponent-left/90"
+                            >
+                              <Trophy className="mr-2 h-4 w-4" />
+                              Vote
+                            </Button>
+                          </div>
+                        </Card>
+
+                        <div className="text-center text-3xl font-bold text-muted-foreground">
+                          VS
+                        </div>
+
+                        <Card className="p-6 text-center border-opponent-right/50">
+                          <div className="space-y-3">
+                            <div className="text-2xl font-bold text-opponent-right">
+                              {getDancerName(currentMatch.dancer_right_id)}
+                            </div>
+                            <Button
+                              disabled
+                              className="w-full bg-opponent-right hover:bg-opponent-right/90"
+                            >
+                              <Trophy className="mr-2 h-4 w-4" />
+                              Vote
+                            </Button>
+                          </div>
+                        </Card>
+                      </div>
+                    ) : (
+                      <SliderVoting
+                        matchId={currentMatch.id}
+                        dancerLeft={{
+                          name: getDancerName(currentMatch.dancer_left_id),
+                          city: null
+                        }}
+                        dancerRight={{
+                          name: getDancerName(currentMatch.dancer_right_id),
+                          city: null
+                        }}
+                        currentRound={currentRound}
+                        onSubmit={() => {}}
+                        disabled
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No active match. Select a match to preview judge screen.
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+            <Button onClick={openScreen} className="gap-2">
+              <Monitor className="h-4 w-4" />
+              Открыть экран
+            </Button>
+          </div>
         </div>
 
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
