@@ -4,8 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Battle {
   id: string;
@@ -48,6 +59,13 @@ interface Match {
   is_completed: boolean;
 }
 
+interface ApprovedJudge {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+}
+
 export default function BattleView() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -61,6 +79,7 @@ export default function BattleView() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [judgeApplications, setJudgeApplications] = useState<any[]>([]);
+  const [approvedJudges, setApprovedJudges] = useState<ApprovedJudge[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -154,15 +173,64 @@ export default function BattleView() {
 
           setJudgeApplications(appsWithProfiles);
         }
+
+        // Load approved judges
+        const { data: judgeRoles } = await supabase
+          .from("user_roles")
+          .select("id, user_id")
+          .eq("battle_id", id)
+          .eq("role", "judge");
+
+        if (judgeRoles && judgeRoles.length > 0) {
+          const judgeUserIds = judgeRoles.map(r => r.user_id);
+          const { data: judgeProfiles } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", judgeUserIds);
+
+          const profilesMap = new Map(judgeProfiles?.map(p => [p.id, p]) || []);
+          const judges: ApprovedJudge[] = judgeRoles.map(r => ({
+            id: r.id,
+            user_id: r.user_id,
+            full_name: profilesMap.get(r.user_id)?.full_name || null,
+            email: profilesMap.get(r.user_id)?.email || null,
+          }));
+          setApprovedJudges(judges);
+        } else {
+          setApprovedJudges([]);
+        }
       }
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteBattle = async () => {
+    if (!id || !isOrganizer) return;
+    try {
+      const { error } = await supabase.from("battles").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Battle deleted" });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const removeJudge = async (roleId: string) => {
+    try {
+      const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
+      if (error) throw error;
+      setApprovedJudges(approvedJudges.filter(j => j.id !== roleId));
+      toast({ title: "Judge removed" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -392,7 +460,7 @@ export default function BattleView() {
   if (!battle) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Баттл не найден</p>
+        <p className="text-muted-foreground">Battle not found</p>
       </div>
     );
   }
@@ -403,86 +471,92 @@ export default function BattleView() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard")}
-          >
+          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад к баттлам
+            Back to Battles
           </Button>
           
           {isOrganizer && (
             <div className="flex gap-2">
-              <Button
-                onClick={() => navigate(`/battle/${id}/operator`)}
-                variant="default"
-              >
-                Панель оператора
+              <Button onClick={() => navigate(`/battle/${id}/operator`)} variant="default">
+                Operator Panel
               </Button>
-              <Button 
-                onClick={() => navigate(`/battle/${id}/logs`)} 
-                variant="outline"
-                className="gap-2"
-              >
+              <Button onClick={() => navigate(`/battle/${id}/logs`)} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
-                Журнал
+                Logs
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Battle?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete "{battle.name}" and all related data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteBattle} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
 
-        {/* Заявки судей - всегда показываем для организатора */}
+        {/* Judge Applications & Approved Judges */}
         {isOrganizer && (
-          <Card className="p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-4">Заявки судей</h2>
-            {judgeApplications.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Нет заявок на судейство
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {judgeApplications.map((app) => (
-                  <Card key={app.id} className="p-4 bg-card/50">
-                    <div className="flex items-center justify-between">
-                      <div>
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Card className="p-6">
+              <h2 className="text-xl font-bold mb-4">Judge Applications</h2>
+              {judgeApplications.filter(a => a.status === "pending").length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">No pending applications</div>
+              ) : (
+                <div className="space-y-3">
+                  {judgeApplications.filter(a => a.status === "pending").map((app) => (
+                    <Card key={app.id} className="p-3 bg-card/50">
+                      <div className="flex items-center justify-between">
                         <div className="font-semibold">{app.profiles?.full_name || app.profiles?.email}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(app.created_at).toLocaleString("ru-RU")}
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}>
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}>
+                            <XCircle className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {app.status === "pending" ? (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}
-                              className="gap-2"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              Одобрить
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}
-                              className="gap-2"
-                            >
-                              <XCircle className="h-4 w-4" />
-                              Отклонить
-                            </Button>
-                          </>
-                        ) : (
-                          <Badge variant={app.status === "approved" ? "default" : "destructive"}>
-                            {app.status === "approved" ? "Approved" : "Rejected"}
-                          </Badge>
-                        )}
-                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-xl font-bold mb-4">Approved Judges ({approvedJudges.length})</h2>
+              {approvedJudges.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">No judges yet</div>
+              ) : (
+                <div className="space-y-2">
+                  {approvedJudges.map((judge) => (
+                    <div key={judge.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                      <span className="font-medium">{judge.full_name || judge.email}</span>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeJudge(judge.id)}>
+                        <UserMinus className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </Card>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
         )}
 
         <div className="mb-8">
@@ -490,7 +564,7 @@ export default function BattleView() {
             {battle.name}
           </h1>
           <div className="flex gap-4 text-muted-foreground">
-            <span>{new Date(battle.date).toLocaleDateString("ru-RU")}</span>
+            <span>{new Date(battle.date).toLocaleDateString("en-US")}</span>
             {battle.location && <span>📍 {battle.location}</span>}
             <Badge variant="secondary">{getPhaseLabel(battle.phase)}</Badge>
           </div>
@@ -526,11 +600,11 @@ export default function BattleView() {
               <div className="flex gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
-                  <span>Участников: {dancers.length} / {currentNomination.max_dancers}</span>
+                  <span>Participants: {dancers.length} / {currentNomination.max_dancers}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Trophy className="h-4 w-4 text-accent" />
-                  <span>В сетку: топ-{currentNomination.top_count}</span>
+                  <span>Bracket: top-{currentNomination.top_count}</span>
                 </div>
               </div>
 
@@ -539,23 +613,15 @@ export default function BattleView() {
                   <div className="flex gap-2 flex-wrap">
                     {currentNomination.phase === "registration" && (
                       <>
-                        <Button onClick={addTestDancers} variant="outline">
-                          Добавить танцоров (тест)
-                        </Button>
-                        <Button onClick={() => changeNominationPhase("selection")}>
-                          Начать отбор
-                        </Button>
+                        <Button onClick={addTestDancers} variant="outline">Add Test Dancers</Button>
+                        <Button onClick={() => changeNominationPhase("selection")}>Start Selection</Button>
                       </>
                     )}
                     {currentNomination.phase === "selection" && (
-                      <Button onClick={() => changeNominationPhase("bracket")}>
-                        Перейти к сетке
-                      </Button>
+                      <Button onClick={() => changeNominationPhase("bracket")}>Go to Bracket</Button>
                     )}
                     {currentNomination.phase === "bracket" && (
-                      <Button onClick={() => changeNominationPhase("completed")} variant="outline">
-                        Завершить номинацию
-                      </Button>
+                      <Button onClick={() => changeNominationPhase("completed")} variant="outline">Complete</Button>
                     )}
                   </div>
                 </div>
@@ -564,7 +630,7 @@ export default function BattleView() {
 
             {currentNomination.phase === "bracket" && matches.length > 0 && (
               <div className="space-y-8">
-                <h3 className="text-2xl font-bold">Сетка баттла</h3>
+                <h3 className="text-2xl font-bold">Battle Bracket</h3>
                 
                 {["final", "semifinal", "quarterfinal", "round_of_16"].map((round) => {
                   const roundMatches = getRoundMatches(round);
@@ -643,22 +709,17 @@ export default function BattleView() {
                                         )}
                                       </>
                                     ) : (
-                                      <div className="text-xs text-muted-foreground">Ожидание</div>
+                                      <div className="text-xs text-muted-foreground">Waiting</div>
                                     )}
                                   </div>
                                   {match.is_completed && (
-                                    <div className="text-sm font-bold mt-2 text-accent">
-                                      {match.votes_right}
-                                    </div>
+                                    <div className="text-sm font-bold mt-2 text-accent">{match.votes_right}</div>
                                   )}
                                 </div>
                               </div>
-
                               {match.is_completed && (
                                 <div className="mt-3 text-center">
-                                  <Badge variant="secondary" className="bg-primary/20">
-                                    Завершён
-                                  </Badge>
+                                  <Badge variant="secondary" className="bg-primary/20">Completed</Badge>
                                 </div>
                               )}
                             </Card>
@@ -673,37 +734,24 @@ export default function BattleView() {
 
             {dancers.length > 0 && currentNomination.phase === "selection" && (
               <div>
-                <h3 className="text-2xl font-bold mb-4">Участники отбора</h3>
+                <h3 className="text-2xl font-bold mb-4">Selection Participants</h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {dancers.map((dancer, index) => (
-                    <Card
-                      key={dancer.id}
-                      className="p-4 bg-card/50 backdrop-blur-sm border-border/50"
-                    >
+                    <Card key={dancer.id} className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-lg font-bold">
-                          {index + 1}
-                        </div>
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-lg font-bold">{index + 1}</div>
                         <div>
                           <div className="font-bold">{dancer.name}</div>
-                          {dancer.city && (
-                            <div className="text-xs text-muted-foreground">{dancer.city}</div>
-                          )}
+                          {dancer.city && <div className="text-xs text-muted-foreground">{dancer.city}</div>}
                         </div>
                       </div>
                       {dancer.average_score > 0 && (
                         <div className="mt-2 text-sm">
-                          <span className="text-muted-foreground">Средний балл: </span>
-                          <span className="font-bold text-primary">
-                            {dancer.average_score.toFixed(1)}
-                          </span>
+                          <span className="text-muted-foreground">Avg Score: </span>
+                          <span className="font-bold text-primary">{dancer.average_score.toFixed(1)}</span>
                         </div>
                       )}
-                      {dancer.is_qualified && (
-                        <Badge variant="secondary" className="mt-2 bg-primary/20">
-                          Прошёл в сетку
-                        </Badge>
-                      )}
+                      {dancer.is_qualified && <Badge variant="secondary" className="mt-2 bg-primary/20">Qualified</Badge>}
                     </Card>
                   ))}
                 </div>
