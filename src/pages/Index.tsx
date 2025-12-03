@@ -14,9 +14,8 @@ const Index = () => {
           <div className="inline-block mb-6 animate-fade-in">
             <Trophy className="w-20 h-20 text-primary mx-auto mb-4 animate-pulse-glow" />
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-            <span className="text-gradient-primary">BreakDance</span>{" "}
-            <span className="text-gradient-secondary">Judge</span>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in text-foreground">
+            SWITCHBOARD
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in">
             Fair breakdance battle judging with real-time voting and live visualization for audiences
@@ -172,7 +171,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border/50 py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2025 BreakDance Judge. Fair judging for the breakdance community.</p>
+          <p>© 2025 SWITCHBOARD. Fair judging for the breakdance community.</p>
         </div>
       </footer>
     </div>
