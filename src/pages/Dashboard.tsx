@@ -136,7 +136,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="border-b border-border/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient-primary">BreakDance Judge</h1>
+          <h1 className="text-2xl font-bold text-foreground">SWITCHBOARD</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user?.email}</span>
             {isJudge && (
