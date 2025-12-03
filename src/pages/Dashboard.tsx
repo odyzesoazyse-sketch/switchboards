@@ -25,22 +25,12 @@ interface Battle {
   nominations?: { count: number }[];
 }
 
-interface JudgeBattle {
-  id: string;
-  name: string;
-  date: string;
-  phase: string;
-  location: string | null;
-}
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [battles, setBattles] = useState<Battle[]>([]);
-  const [judgeBattles, setJudgeBattles] = useState<JudgeBattle[]>([]);
   const [loading, setLoading] = useState(true);
   const [isJudge, setIsJudge] = useState(false);
-  const [isOrganizer, setIsOrganizer] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -76,10 +66,7 @@ const Dashboard = () => {
 
       if (battleError) throw battleError;
       
-      if (organizerBattles && organizerBattles.length > 0) {
-        setIsOrganizer(true);
-        setBattles(organizerBattles);
-      }
+      const hasOrganizerBattles = organizerBattles && organizerBattles.length > 0;
 
       // Check if user is judge for any battles
       const { data: judgeRoles } = await supabase
@@ -88,19 +75,20 @@ const Dashboard = () => {
         .eq("user_id", userId)
         .eq("role", "judge");
 
-      if (judgeRoles && judgeRoles.length > 0) {
+      const hasJudgeRole = judgeRoles && judgeRoles.length > 0;
+
+      // If user is ONLY a judge (not organizer), redirect directly to judge panel
+      if (hasJudgeRole && !hasOrganizerBattles) {
+        navigate("/judge");
+        return;
+      }
+
+      if (hasOrganizerBattles) {
+        setBattles(organizerBattles);
+      }
+
+      if (hasJudgeRole) {
         setIsJudge(true);
-        const battleIds = judgeRoles.map(r => r.battle_id).filter(Boolean);
-        
-        if (battleIds.length > 0) {
-          const { data: jBattles } = await supabase
-            .from("battles")
-            .select("*")
-            .in("id", battleIds)
-            .order("date", { ascending: false });
-          
-          setJudgeBattles(jBattles || []);
-        }
       }
     } catch (error: any) {
       toast.error("Error loading data");
@@ -144,83 +132,6 @@ const Dashboard = () => {
     );
   }
 
-  // Judge-only view
-  if (isJudge && !isOrganizer) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-card">
-        <header className="border-b border-border/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gradient-primary">BreakDance Judge</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">{user?.email}</span>
-              <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
-            </div>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-              <Gavel className="w-8 h-8 text-primary" />
-              My Judging
-            </h2>
-            <p className="text-muted-foreground">Battles you are judging</p>
-          </div>
-
-          {judgeBattles.length === 0 ? (
-            <Card className="border-border/50">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Gavel className="w-16 h-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No battles assigned</h3>
-                <p className="text-muted-foreground text-center">Wait for organizer to approve your application</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {judgeBattles.map((battle) => (
-                <Card 
-                  key={battle.id}
-                  className="border-border/50 hover:border-primary/50 transition-all cursor-pointer group"
-                  onClick={() => navigate("/judge")}
-                >
-                  <CardHeader>
-                    <CardTitle className="group-hover:text-primary transition-colors">
-                      {battle.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(battle.date).toLocaleDateString("en-US")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm">
-                      {battle.location && (
-                        <span className="text-muted-foreground">📍 {battle.location}</span>
-                      )}
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        battle.phase === "bracket" ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                      }`}>
-                        {getPhaseLabel(battle.phase)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-8 text-center">
-            <Button size="lg" onClick={() => navigate("/judge")} className="gap-2">
-              <Gavel className="w-5 h-5" />
-              Open Judge Panel
-            </Button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Organizer view (can also be judge)
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="border-b border-border/50 backdrop-blur-sm">
