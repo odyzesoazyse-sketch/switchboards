@@ -122,7 +122,7 @@ export default function ActivityLogs() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-xl">Загрузка...</div>
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
@@ -133,17 +133,17 @@ export default function ActivityLogs() {
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate(`/battle/${id}`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад к баттлу
+            Back to Battle
           </Button>
         </div>
 
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Журнал активности
+          Activity Log
         </h1>
 
         {logs.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground">
-            Пока нет записей в журнале
+            No activity logs yet
           </Card>
         ) : (
           <div className="space-y-3">

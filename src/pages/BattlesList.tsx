@@ -75,8 +75,8 @@ export default function BattlesList() {
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="border-b border-border/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gradient-primary cursor-pointer" onClick={() => navigate("/")}>
-            BreakDance Judge
+          <h1 className="text-2xl font-bold text-foreground cursor-pointer" onClick={() => navigate("/")}>
+            SWITCHBOARD
           </h1>
           <Button variant="outline" onClick={() => navigate("/auth")}>
             Sign In

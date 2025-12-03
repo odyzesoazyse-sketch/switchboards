@@ -305,7 +305,7 @@ export default function BattleView() {
       await loadNominationData();
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -677,7 +677,7 @@ export default function BattleView() {
                                         )}
                                       </>
                                     ) : (
-                                      <div className="text-xs text-muted-foreground">Ожидание</div>
+                                      <div className="text-xs text-muted-foreground">Waiting</div>
                                     )}
                                   </div>
                                   {match.is_completed && (
