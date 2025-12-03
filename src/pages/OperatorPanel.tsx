@@ -65,6 +65,8 @@ export default function OperatorPanel() {
   const [showBracket, setShowBracket] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [judgingMode, setJudgingMode] = useState<string>("simple");
+  const [voteCount, setVoteCount] = useState(0);
+  const [totalJudges, setTotalJudges] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -77,6 +79,55 @@ export default function OperatorPanel() {
       loadMatches();
     }
   }, [selectedNomination]);
+
+  // Real-time vote subscription
+  useEffect(() => {
+    if (!screenState?.current_match_id) {
+      setVoteCount(0);
+      return;
+    }
+
+    const loadVoteCount = async () => {
+      const { count } = await supabase
+        .from("match_votes")
+        .select("*", { count: "exact", head: true })
+        .eq("match_id", screenState.current_match_id)
+        .eq("round_number", currentRound);
+      
+      setVoteCount(count || 0);
+    };
+
+    const loadJudgeCount = async () => {
+      const { count } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("battle_id", id)
+        .eq("role", "judge");
+      
+      setTotalJudges(count || 0);
+    };
+
+    loadVoteCount();
+    loadJudgeCount();
+
+    const channel = supabase
+      .channel('vote-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_votes',
+          filter: `match_id=eq.${screenState.current_match_id}`
+        },
+        () => loadVoteCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [screenState?.current_match_id, currentRound, id]);
 
   const loadData = async () => {
     try {
@@ -467,7 +518,17 @@ export default function OperatorPanel() {
           </Card>
 
           <Card className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold">Управление матчем</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Match Control</h2>
+              {screenState?.current_match_id && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+                  <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
+                  <span className="text-sm font-medium">
+                    Votes: {voteCount}/{totalJudges}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <div className="space-y-4">
               <div>
