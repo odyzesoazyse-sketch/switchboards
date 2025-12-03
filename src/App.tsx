@@ -12,6 +12,8 @@ import BattleScreen from "./pages/BattleScreen";
 import OperatorPanel from "./pages/OperatorPanel";
 import JudgePanel from "./pages/JudgePanel";
 import ActivityLogs from "./pages/ActivityLogs";
+import BattlesList from "./pages/BattlesList";
+import BattlePublic from "./pages/BattlePublic";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/battles" element={<BattlesList />} />
+          <Route path="/battles/:id" element={<BattlePublic />} />
           <Route path="/battle/create" element={<CreateBattle />} />
           <Route path="/battle/:id" element={<BattleView />} />
           <Route path="/battle/:id/screen" element={<BattleScreen />} />
