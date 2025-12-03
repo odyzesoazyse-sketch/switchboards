@@ -372,13 +372,13 @@ export default function JudgePanel() {
                 <History className="h-5 w-5" />
                 Vote History
               </Button>
-              <Button
+            <Button
                 variant="ghost"
                 className="w-full justify-start gap-3"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/")}
               >
                 <Home className="h-5 w-5" />
-                Dashboard
+                Home
               </Button>
               <Button
                 variant="ghost"
@@ -501,10 +501,10 @@ export default function JudgePanel() {
             <Button
               variant="ghost"
               className="w-full justify-start gap-3"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/")}
             >
               <Home className="h-5 w-5" />
-              Dashboard
+              Home
             </Button>
             <Button
               variant="ghost"
