@@ -64,8 +64,8 @@ const Auth = () => {
       <Card className="w-full max-w-md border-border/50 backdrop-blur-sm">
         <CardHeader className="space-y-1">
           <div className="text-center mb-4">
-            <h1 className="text-4xl font-bold text-gradient-primary mb-2">
-              BreakDance Judge
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              SWITCHBOARD
             </h1>
             <p className="text-sm text-muted-foreground">
               Fair breakdance battle judging

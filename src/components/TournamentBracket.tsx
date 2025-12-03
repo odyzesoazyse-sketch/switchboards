@@ -70,7 +70,7 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
         {round16.length > 0 && (
           <div className="flex flex-col gap-12 justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-2">
-              1/8 ФИНАЛА
+              ROUND OF 16
             </div>
             <div className="flex flex-col gap-12">
               {round16.slice(0, Math.ceil(round16.length / 2)).map(match => renderMatch(match))}
@@ -82,7 +82,7 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
         {quarters.length > 0 && (
           <div className="flex flex-col gap-24 justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-2">
-              ЧЕТВЕРТЬФИНАЛ
+              QUARTERFINAL
             </div>
             <div className="flex flex-col gap-24">
               {quarters.slice(0, Math.ceil(quarters.length / 2)).map(match => renderMatch(match))}
@@ -94,7 +94,7 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
         {semis.length > 0 && semis.length >= 1 && (
           <div className="flex flex-col justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-8">
-              ПОЛУФИНАЛ
+              SEMIFINAL
             </div>
             <div className="flex flex-col gap-48">
               {semis.slice(0, 1).map(match => renderMatch(match))}
@@ -106,7 +106,7 @@ export default function TournamentBracket({ matches, dancers }: TournamentBracke
         {finals.length > 0 && (
           <div className="flex flex-col justify-center">
             <div className="text-center font-bold text-sm text-muted-foreground mb-8">
-              ФИНАЛ
+              FINAL
             </div>
             <div className="flex flex-col">
               {finals.map(match => renderMatch(match, true))}

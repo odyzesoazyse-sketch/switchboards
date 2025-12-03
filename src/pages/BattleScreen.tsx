@@ -243,7 +243,7 @@ export default function BattleScreen() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-          <p className="text-xl text-muted-foreground">Загрузка...</p>
+          <p className="text-xl text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -254,7 +254,7 @@ export default function BattleScreen() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-          <p className="text-xl text-muted-foreground">Инициализация экрана...</p>
+          <p className="text-xl text-muted-foreground">Initializing screen...</p>
         </div>
       </div>
     );
@@ -268,7 +268,7 @@ export default function BattleScreen() {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
               {battleName}
             </h1>
-            <p className="text-2xl text-muted-foreground">Турнирная сетка</p>
+            <p className="text-2xl text-muted-foreground">Tournament Bracket</p>
           </div>
           <Card className="p-8 bg-card/50 backdrop-blur-sm">
             <TournamentBracket matches={allMatches} dancers={allDancers} />
@@ -284,8 +284,8 @@ export default function BattleScreen() {
         <div className="text-center space-y-8">
           <h1 className="text-6xl font-bold text-white drop-shadow-2xl">{battleName}</h1>
           <div className="bg-white/20 backdrop-blur-md rounded-3xl p-12 border-4 border-white/50">
-            <p className="text-4xl text-white">Ожидание выбора матча...</p>
-            <p className="text-xl text-white/80 mt-4">Оператор скоро выберет следующий баттл</p>
+            <p className="text-4xl text-white">Waiting for match selection...</p>
+            <p className="text-xl text-white/80 mt-4">The operator will select the next battle soon</p>
           </div>
         </div>
       </div>
@@ -297,7 +297,7 @@ export default function BattleScreen() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center p-8">
         <div className="text-center space-y-8 animate-scale-in">
-          <h1 className="text-8xl font-bold text-white drop-shadow-2xl">🏆 ПОБЕДИТЕЛЬ 🏆</h1>
+          <h1 className="text-8xl font-bold text-white drop-shadow-2xl">🏆 WINNER 🏆</h1>
           <div className="bg-white/20 backdrop-blur-md rounded-3xl p-12 border-4 border-white/50">
             <h2 className="text-6xl font-bold text-white mb-4">{winner?.name}</h2>
             {winner?.city && (
@@ -306,7 +306,7 @@ export default function BattleScreen() {
           </div>
           {screenState.show_score && (
             <div className="text-5xl font-bold text-white">
-              Счёт: {screenState.votes_left} - {screenState.votes_right}
+              Score: {screenState.votes_left} - {screenState.votes_right}
             </div>
           )}
         </div>
@@ -344,7 +344,7 @@ export default function BattleScreen() {
                 )}
               </div>
             ) : (
-              <div className="text-center text-2xl text-muted-foreground">Ожидание...</div>
+              <div className="text-center text-2xl text-muted-foreground">Waiting...</div>
             )}
           </Card>
 
@@ -360,10 +360,10 @@ export default function BattleScreen() {
               </div>
             )}
             <Badge variant="secondary" className="text-2xl px-6 py-3">
-              Раунд {screenState.current_round}
+              Round {screenState.current_round}
             </Badge>
             <div className="text-xl text-muted-foreground">
-              До {screenState.rounds_to_win} побед
+              First to {screenState.rounds_to_win} wins
             </div>
           </div>
 
@@ -383,7 +383,7 @@ export default function BattleScreen() {
                 )}
               </div>
             ) : (
-              <div className="text-center text-2xl text-muted-foreground">Ожидание...</div>
+              <div className="text-center text-2xl text-muted-foreground">Waiting...</div>
             )}
           </Card>
         </div>
