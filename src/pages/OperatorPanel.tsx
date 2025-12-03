@@ -363,7 +363,7 @@ export default function OperatorPanel() {
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate(`/battle/${id}`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад к баттлу
+            Back to Battle
           </Button>
           <div className="flex gap-2">
             <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -444,22 +444,22 @@ export default function OperatorPanel() {
             </Dialog>
             <Button onClick={openScreen} className="gap-2">
               <Monitor className="h-4 w-4" />
-              Открыть экран
+              Open Screen
             </Button>
           </div>
         </div>
 
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Панель оператора
+          Operator Panel
         </h1>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6 space-y-4">
-            <h2 className="text-2xl font-bold">Настройки экрана</h2>
+            <h2 className="text-2xl font-bold">Screen Settings</h2>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="show-judges">Показывать судей</Label>
+                <Label htmlFor="show-judges">Show Judges</Label>
                 <Switch
                   id="show-judges"
                   checked={showJudges}
@@ -468,7 +468,7 @@ export default function OperatorPanel() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="show-timer">Показывать таймер</Label>
+                <Label htmlFor="show-timer">Show Timer</Label>
                 <Switch
                   id="show-timer"
                   checked={showTimer}
@@ -478,7 +478,7 @@ export default function OperatorPanel() {
 
               {showTimer && (
                 <div>
-                  <Label htmlFor="timer-minutes">Время (минуты)</Label>
+                  <Label htmlFor="timer-minutes">Time (minutes)</Label>
                   <Input
                     id="timer-minutes"
                     type="number"
@@ -491,7 +491,7 @@ export default function OperatorPanel() {
               )}
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="show-score">Показывать счёт</Label>
+                <Label htmlFor="show-score">Show Score</Label>
                 <Switch
                   id="show-score"
                   checked={showScore}
@@ -500,7 +500,7 @@ export default function OperatorPanel() {
               </div>
 
               <div>
-                <Label htmlFor="rounds-to-win">Раундов до победы</Label>
+                <Label htmlFor="rounds-to-win">Rounds to Win</Label>
                 <Input
                   id="rounds-to-win"
                   type="number"
@@ -512,7 +512,7 @@ export default function OperatorPanel() {
               </div>
 
               <Button onClick={applySettings} className="w-full">
-                Применить настройки
+                Apply Settings
               </Button>
             </div>
           </Card>
@@ -532,7 +532,7 @@ export default function OperatorPanel() {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="current-round">Текущий раунд</Label>
+                <Label htmlFor="current-round">Current Round</Label>
                 <Input
                   id="current-round"
                   type="number"
@@ -544,7 +544,7 @@ export default function OperatorPanel() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="votes-left">Счёт слева</Label>
+                  <Label htmlFor="votes-left">Score Left</Label>
                   <Input
                     id="votes-left"
                     type="number"
@@ -554,7 +554,7 @@ export default function OperatorPanel() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="votes-right">Счёт справа</Label>
+                  <Label htmlFor="votes-right">Score Right</Label>
                   <Input
                     id="votes-right"
                     type="number"
@@ -568,11 +568,11 @@ export default function OperatorPanel() {
               <div className="grid grid-cols-2 gap-2">
                 <Button onClick={resetMatch} variant="outline" className="gap-2">
                   <RotateCcw className="h-4 w-4" />
-                  Сбросить
+                  Reset
                 </Button>
                 <Button onClick={showWinnerScreen} className="gap-2">
                   <Trophy className="h-4 w-4" />
-                  Победитель
+                  Winner
                 </Button>
                 <Button 
                   onClick={toggleBracket} 
@@ -626,7 +626,7 @@ export default function OperatorPanel() {
                     </div>
                     <Button size="sm" className="gap-2">
                       <Play className="h-4 w-4" />
-                      Показать
+                      Show
                     </Button>
                   </div>
                 </Card>

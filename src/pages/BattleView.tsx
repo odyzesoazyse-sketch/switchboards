@@ -255,7 +255,7 @@ export default function BattleView() {
       setMatches(matchesData || []);
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
