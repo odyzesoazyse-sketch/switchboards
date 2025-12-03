@@ -4,33 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, ArrowLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Trophy, Menu, History, LogOut, X, Home } from "lucide-react";
 import SliderVoting from "@/components/SliderVoting";
-
-interface Battle {
-  id: string;
-  name: string;
-  date: string;
-  location: string;
-}
-
-interface JudgeApplication {
-  id: string;
-  battle_id: string;
-  status: string;
-  created_at: string;
-  battles: Battle;
-}
-
-interface Match {
-  id: string;
-  dancer_left_id: string | null;
-  dancer_right_id: string | null;
-  round: string;
-  position: number;
-}
 
 interface Dancer {
   id: string;
@@ -38,7 +13,10 @@ interface Dancer {
   city: string | null;
 }
 
-interface ActiveMatch extends Match {
+interface ActiveMatch {
+  id: string;
+  dancer_left_id: string | null;
+  dancer_right_id: string | null;
   dancer_left?: Dancer;
   dancer_right?: Dancer;
   nomination_name?: string;
@@ -47,18 +25,31 @@ interface ActiveMatch extends Match {
   judging_mode?: string;
 }
 
+interface VoteHistory {
+  id: string;
+  match_id: string;
+  round_number: number;
+  vote_for: string | null;
+  slider_technique: number | null;
+  slider_musicality: number | null;
+  slider_performance: number | null;
+  created_at: string;
+  dancer_name?: string;
+}
+
 export default function JudgePanel() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [applications, setApplications] = useState<JudgeApplication[]>([]);
-  const [activeMatches, setActiveMatches] = useState<ActiveMatch[]>([]);
-  const [availableBattles, setAvailableBattles] = useState<Battle[]>([]);
+  const [activeMatch, setActiveMatch] = useState<ActiveMatch | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [voteHistory, setVoteHistory] = useState<VoteHistory[]>([]);
+  const [hasVotedThisRound, setHasVotedThisRound] = useState(false);
 
   useEffect(() => {
-    loadData();
+    loadActiveMatch();
     
-    // Подписка на изменения screen_state для отслеживания активных матчей
     const channel = supabase
       .channel('judge-panel-updates')
       .on(
@@ -69,7 +60,7 @@ export default function JudgePanel() {
           table: 'screen_state'
         },
         () => {
-          loadActiveMatches();
+          loadActiveMatch();
         }
       )
       .subscribe();
@@ -79,7 +70,7 @@ export default function JudgePanel() {
     };
   }, []);
 
-  const loadData = async () => {
+  const loadActiveMatch = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -87,77 +78,22 @@ export default function JudgePanel() {
         return;
       }
 
-      // Загружаем заявки судьи
-      const { data: appsData } = await supabase
-        .from("judge_applications")
-        .select(`
-          *,
-          battles (
-            id,
-            name,
-            date,
-            location
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      setApplications(appsData || []);
-      
-      await loadActiveMatches();
-      await loadAvailableBattles(user.id);
-      setLoading(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
-
-  const loadAvailableBattles = async (userId: string) => {
-    try {
-      // Получаем все батлы, которые еще не завершены
-      const { data: battlesData } = await supabase
-        .from("battles")
-        .select("*")
-        .neq("phase", "completed")
-        .order("date", { ascending: true });
-
-      if (!battlesData) {
-        setAvailableBattles([]);
-        return;
-      }
-
-      // Фильтруем батлы, на которые пользователь еще не подавал заявку
-      const appliedBattleIds = applications.map(app => app.battle_id);
-      const available = battlesData.filter(battle => !appliedBattleIds.includes(battle.id));
-      
-      setAvailableBattles(available);
-    } catch (error: any) {
-      console.error("Error loading available battles:", error);
-    }
-  };
-
-  const loadActiveMatches = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Проверяем роль судьи
+      // Check judge role
       const { data: roles } = await supabase
         .from("user_roles")
         .select("battle_id")
         .eq("user_id", user.id)
         .eq("role", "judge");
 
-      if (!roles || roles.length === 0) return;
+      if (!roles || roles.length === 0) {
+        setActiveMatch(null);
+        setLoading(false);
+        return;
+      }
 
       const battleIds = roles.map(r => r.battle_id);
 
-      // Загружаем активные матчи для батлов, где пользователь - судья
+      // Load active match from screen_state
       const { data: screenStates } = await supabase
         .from("screen_state")
         .select(`
@@ -170,16 +106,18 @@ export default function JudgePanel() {
           )
         `)
         .in("battle_id", battleIds)
-        .not("current_match_id", "is", null);
+        .not("current_match_id", "is", null)
+        .limit(1)
+        .maybeSingle();
 
-      if (!screenStates || screenStates.length === 0) {
-        setActiveMatches([]);
+      if (!screenStates || !screenStates.current_match_id) {
+        setActiveMatch(null);
+        setLoading(false);
         return;
       }
 
-      // Загружаем информацию о матчах
-      const matchIds = screenStates.map(s => s.current_match_id).filter(Boolean);
-      const { data: matchesData } = await supabase
+      // Load match info
+      const { data: matchData } = await supabase
         .from("matches")
         .select(`
           *,
@@ -188,15 +126,17 @@ export default function JudgePanel() {
             judging_mode
           )
         `)
-        .in("id", matchIds);
+        .eq("id", screenStates.current_match_id)
+        .single();
 
-      if (!matchesData) {
-        setActiveMatches([]);
+      if (!matchData) {
+        setActiveMatch(null);
+        setLoading(false);
         return;
       }
 
-      // Загружаем танцоров
-      const dancerIds = matchesData.flatMap(m => [m.dancer_left_id, m.dancer_right_id]).filter(Boolean);
+      // Load dancers
+      const dancerIds = [matchData.dancer_left_id, matchData.dancer_right_id].filter(Boolean);
       const { data: dancers } = await supabase
         .from("dancers")
         .select("*")
@@ -204,118 +144,90 @@ export default function JudgePanel() {
 
       const dancersMap = new Map(dancers?.map(d => [d.id, d]) || []);
 
-      const matches: ActiveMatch[] = matchesData.map(match => {
-        const screenState = screenStates.find(s => s.current_match_id === match.id);
-        return {
-          ...match,
-          dancer_left: match.dancer_left_id ? dancersMap.get(match.dancer_left_id) : undefined,
-          dancer_right: match.dancer_right_id ? dancersMap.get(match.dancer_right_id) : undefined,
-          nomination_name: match.nominations?.name,
-          current_round: screenState?.current_round || 1,
-          battle_name: screenState?.battles?.name || "",
-          judging_mode: match.nominations?.judging_mode || "simple",
-        };
-      });
+      const match: ActiveMatch = {
+        id: matchData.id,
+        dancer_left_id: matchData.dancer_left_id,
+        dancer_right_id: matchData.dancer_right_id,
+        dancer_left: matchData.dancer_left_id ? dancersMap.get(matchData.dancer_left_id) : undefined,
+        dancer_right: matchData.dancer_right_id ? dancersMap.get(matchData.dancer_right_id) : undefined,
+        nomination_name: matchData.nominations?.name,
+        current_round: screenStates.current_round || 1,
+        battle_name: screenStates.battles?.name || "",
+        judging_mode: matchData.nominations?.judging_mode || "simple",
+      };
 
-      setActiveMatches(matches);
-    } catch (error: any) {
-      console.error("Error loading active matches:", error);
-    }
-  };
+      setActiveMatch(match);
 
-  const applyToBattle = async (battleId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from("judge_applications")
-        .insert({
-          battle_id: battleId,
-          user_id: user.id,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Application submitted",
-        description: "Awaiting organizer approval",
-      });
-
-      await loadData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const cancelApplication = async (applicationId: string) => {
-    try {
-      const { error } = await supabase
-        .from("judge_applications")
-        .delete()
-        .eq("id", applicationId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Application canceled",
-        description: "Your application has been successfully canceled",
-      });
-
-      await loadData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const submitVote = async (matchId: string, votedFor: string, currentRound: number) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Проверяем, не голосовал ли уже судья в этом раунде
+      // Check if already voted this round
       const { data: existingVote } = await supabase
         .from("match_votes")
         .select("id")
-        .eq("match_id", matchId)
+        .eq("match_id", match.id)
         .eq("judge_id", user.id)
-        .eq("round_number", currentRound)
+        .eq("round_number", match.current_round)
         .maybeSingle();
 
-      if (existingVote) {
-        toast({
-          title: "Already voted",
-          description: "You have already voted in this round",
-          variant: "destructive",
-        });
-        return;
+      setHasVotedThisRound(!!existingVote);
+      setLoading(false);
+    } catch (error: any) {
+      console.error("Error loading active match:", error);
+      setLoading(false);
+    }
+  };
+
+  const loadVoteHistory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: votes } = await supabase
+        .from("match_votes")
+        .select(`
+          *,
+          dancers:vote_for (
+            name
+          )
+        `)
+        .eq("judge_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (votes) {
+        const history: VoteHistory[] = votes.map(v => ({
+          ...v,
+          dancer_name: v.dancers?.name
+        }));
+        setVoteHistory(history);
       }
+    } catch (error) {
+      console.error("Error loading vote history:", error);
+    }
+  };
+
+  const submitVote = async (votedFor: string) => {
+    if (!activeMatch) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { error } = await supabase
         .from("match_votes")
         .insert({
-          match_id: matchId,
+          match_id: activeMatch.id,
           judge_id: user.id,
           vote_for: votedFor,
-          round_number: currentRound,
+          round_number: activeMatch.current_round,
         });
 
       if (error) throw error;
 
       toast({
         title: "Vote accepted",
-        description: "Your vote has been successfully registered",
+        description: "Your vote has been registered",
       });
 
-      await loadActiveMatches();
+      setHasVotedThisRound(true);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -326,36 +238,17 @@ export default function JudgePanel() {
   };
 
   const submitSliderVote = async (matchId: string, technique: number, musicality: number, performance: number, currentRound: number) => {
+    if (!activeMatch) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Проверяем, не голосовал ли уже судья в этом раунде
-      const { data: existingVote } = await supabase
-        .from("match_votes")
-        .select("id")
-        .eq("match_id", matchId)
-        .eq("judge_id", user.id)
-        .eq("round_number", currentRound)
-        .maybeSingle();
-
-      if (existingVote) {
-        toast({
-          title: "Already voted",
-          description: "You have already voted in this round",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Определяем победителя на основе суммы
       const total = technique + musicality + performance;
       let votedFor = null;
       
-      // Если total > 0, победил правый (синий), если < 0 - левый (красный)
-      const match = activeMatches.find(m => m.id === matchId);
-      if (match) {
-        votedFor = total > 0 ? match.dancer_right_id : match.dancer_left_id;
+      if (total !== 0) {
+        votedFor = total > 0 ? activeMatch.dancer_right_id : activeMatch.dancer_left_id;
       }
 
       const { error } = await supabase
@@ -374,10 +267,10 @@ export default function JudgePanel() {
 
       toast({
         title: "Vote accepted",
-        description: "Your slider scores have been registered",
+        description: "Your scores have been registered",
       });
 
-      await loadActiveMatches();
+      setHasVotedThisRound(true);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -387,178 +280,245 @@ export default function JudgePanel() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <Badge className="bg-green-500">Approved</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="secondary">Pending</Badge>;
-    }
+  const openHistory = async () => {
+    await loadVoteHistory();
+    setShowHistory(true);
+    setMenuOpen(false);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+        <div className="animate-pulse text-xl">Loading...</div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+  // History view
+  if (showHistory) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Vote History</h1>
+            <Button variant="ghost" size="icon" onClick={() => setShowHistory(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {voteHistory.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No votes yet</p>
+            ) : (
+              voteHistory.map((vote) => (
+                <Card key={vote.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {vote.dancer_name || "Draw"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Round {vote.round_number}
+                      </p>
+                    </div>
+                    {vote.slider_technique !== null && (
+                      <div className="text-right text-sm">
+                        <p>T: {vote.slider_technique}</p>
+                        <p>M: {vote.slider_musicality}</p>
+                        <p>P: {vote.slider_performance}</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No active match
+  if (!activeMatch) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <div className="w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center">
+            <Trophy className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold">Waiting for Battle</h1>
+          <p className="text-muted-foreground">
+            The operator will start the match soon
+          </p>
         </div>
 
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Judge Panel
-        </h1>
+        {/* Menu Button */}
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+          <Button
+            size="lg"
+            className="rounded-full w-16 h-16 shadow-lg"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
 
-        {/* Активные матчи для голосования */}
-        {activeMatches.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Active Matches</h2>
-            {activeMatches.map((match) => (
-              <Card key={match.id} className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold">{match.battle_name}</h3>
-                      <p className="text-muted-foreground">{match.nomination_name} - Round {match.current_round}</p>
-                    </div>
-                  </div>
-
-                  {match.judging_mode === "simple" ? (
-                    <div className="grid md:grid-cols-3 gap-4 items-center">
-                      <Card className="p-6 text-center border-opponent-left/50 hover:border-opponent-left transition-colors">
-                        <div className="space-y-3">
-                          <div className="text-2xl font-bold text-opponent-left">
-                            {match.dancer_left?.name || "Waiting"}
-                          </div>
-                          {match.dancer_left?.city && (
-                            <div className="text-sm text-muted-foreground">{match.dancer_left.city}</div>
-                          )}
-                          <Button
-                            onClick={() => match.dancer_left_id && submitVote(match.id, match.dancer_left_id, match.current_round)}
-                            className="w-full bg-opponent-left hover:bg-opponent-left/90"
-                            disabled={!match.dancer_left_id}
-                          >
-                            <Trophy className="mr-2 h-4 w-4" />
-                            Vote
-                          </Button>
-                        </div>
-                      </Card>
-
-                      <div className="text-center text-3xl font-bold text-muted-foreground">
-                        VS
-                      </div>
-
-                      <Card className="p-6 text-center border-opponent-right/50 hover:border-opponent-right transition-colors">
-                        <div className="space-y-3">
-                          <div className="text-2xl font-bold text-opponent-right">
-                            {match.dancer_right?.name || "Waiting"}
-                          </div>
-                          {match.dancer_right?.city && (
-                            <div className="text-sm text-muted-foreground">{match.dancer_right.city}</div>
-                          )}
-                          <Button
-                            onClick={() => match.dancer_right_id && submitVote(match.id, match.dancer_right_id, match.current_round)}
-                            className="w-full bg-opponent-right hover:bg-opponent-right/90"
-                            disabled={!match.dancer_right_id}
-                          >
-                            <Trophy className="mr-2 h-4 w-4" />
-                            Vote
-                          </Button>
-                        </div>
-                      </Card>
-                    </div>
-                  ) : (
-                    <SliderVoting
-                      matchId={match.id}
-                      dancerLeft={{
-                        name: match.dancer_left?.name || "Waiting",
-                        city: match.dancer_left?.city
-                      }}
-                      dancerRight={{
-                        name: match.dancer_right?.name || "Waiting",
-                        city: match.dancer_right?.city
-                      }}
-                      currentRound={match.current_round}
-                      onSubmit={submitSliderVote}
-                    />
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Доступные батлы */}
-        {availableBattles.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Available Battles</h2>
-            <div className="grid gap-4">
-              {availableBattles.map((battle) => (
-                <Card key={battle.id} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold">{battle.name}</h3>
-                      <p className="text-muted-foreground">
-                        {new Date(battle.date).toLocaleDateString("ru-RU")} • {battle.location}
-                      </p>
-                    </div>
-                    <Button onClick={() => applyToBattle(battle.id)}>
-                      Submit Application
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Мои заявки */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">My Judge Applications</h2>
-          {applications.length === 0 ? (
-            <Card className="p-6 text-center text-muted-foreground">
-              No judge applications yet
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {applications.map((app) => (
-                <Card key={app.id} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold">{app.battles.name}</h3>
-                      <p className="text-muted-foreground">
-                        {new Date(app.battles.date).toLocaleDateString("ru-RU")} • {app.battles.location}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(app.status)}
-                      {app.status === "pending" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => cancelApplication(app.id)}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
+          {menuOpen && (
+            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card border rounded-2xl shadow-xl p-2 min-w-[200px]">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3"
+                onClick={openHistory}
+              >
+                <History className="h-5 w-5" />
+                Vote History
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3"
+                onClick={() => navigate("/dashboard")}
+              >
+                <Home className="h-5 w-5" />
+                Dashboard
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 text-destructive"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/auth");
+                }}
+              >
+                <LogOut className="h-5 w-5" />
+                Logout
+              </Button>
             </div>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // Active match - voting screen
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <div className="p-4 text-center border-b">
+        <h1 className="text-lg font-bold">{activeMatch.battle_name}</h1>
+        <p className="text-sm text-muted-foreground">
+          {activeMatch.nomination_name} • Round {activeMatch.current_round}
+        </p>
+      </div>
+
+      {/* Voting Area */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        {hasVotedThisRound ? (
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+              <Trophy className="w-10 h-10 text-green-500" />
+            </div>
+            <h2 className="text-xl font-bold">Vote Submitted</h2>
+            <p className="text-muted-foreground">Waiting for next round...</p>
+          </div>
+        ) : activeMatch.judging_mode === "simple" ? (
+          <div className="w-full max-w-4xl grid grid-cols-3 gap-4 items-center">
+            <Card 
+              className="p-6 text-center border-2 border-opponent-left/30 hover:border-opponent-left cursor-pointer transition-all active:scale-95"
+              onClick={() => activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id)}
+            >
+              <div className="space-y-3">
+                <div className="w-20 h-20 mx-auto rounded-full bg-opponent-left/20 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-opponent-left">L</span>
+                </div>
+                <div className="text-xl font-bold text-opponent-left">
+                  {activeMatch.dancer_left?.name || "Waiting"}
+                </div>
+                {activeMatch.dancer_left?.city && (
+                  <div className="text-sm text-muted-foreground">{activeMatch.dancer_left.city}</div>
+                )}
+              </div>
+            </Card>
+
+            <div className="text-center text-4xl font-bold text-muted-foreground">
+              VS
+            </div>
+
+            <Card 
+              className="p-6 text-center border-2 border-opponent-right/30 hover:border-opponent-right cursor-pointer transition-all active:scale-95"
+              onClick={() => activeMatch.dancer_right_id && submitVote(activeMatch.dancer_right_id)}
+            >
+              <div className="space-y-3">
+                <div className="w-20 h-20 mx-auto rounded-full bg-opponent-right/20 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-opponent-right">R</span>
+                </div>
+                <div className="text-xl font-bold text-opponent-right">
+                  {activeMatch.dancer_right?.name || "Waiting"}
+                </div>
+                {activeMatch.dancer_right?.city && (
+                  <div className="text-sm text-muted-foreground">{activeMatch.dancer_right.city}</div>
+                )}
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <div className="w-full max-w-2xl">
+            <SliderVoting
+              matchId={activeMatch.id}
+              dancerLeft={{
+                name: activeMatch.dancer_left?.name || "Waiting",
+                city: activeMatch.dancer_left?.city
+              }}
+              dancerRight={{
+                name: activeMatch.dancer_right?.name || "Waiting",
+                city: activeMatch.dancer_right?.city
+              }}
+              currentRound={activeMatch.current_round}
+              onSubmit={submitSliderVote}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Floating Menu Button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <Button
+          size="lg"
+          className="rounded-full w-16 h-16 shadow-lg"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+
+        {menuOpen && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card border rounded-2xl shadow-xl p-2 min-w-[200px]">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3"
+              onClick={openHistory}
+            >
+              <History className="h-5 w-5" />
+              Vote History
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3"
+              onClick={() => navigate("/dashboard")}
+            >
+              <Home className="h-5 w-5" />
+              Dashboard
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-destructive"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/auth");
+              }}
+            >
+              <LogOut className="h-5 w-5" />
+              Logout
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
