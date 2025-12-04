@@ -97,38 +97,50 @@ export type Database = {
         Row: {
           age: number | null
           average_score: number | null
+          battles_count: number | null
+          bio: string | null
           city: string | null
           created_at: string
           id: string
+          instagram: string | null
           is_qualified: boolean | null
           name: string
           nomination_id: string
           photo_url: string | null
           position: number | null
+          wins_count: number | null
         }
         Insert: {
           age?: number | null
           average_score?: number | null
+          battles_count?: number | null
+          bio?: string | null
           city?: string | null
           created_at?: string
           id?: string
+          instagram?: string | null
           is_qualified?: boolean | null
           name: string
           nomination_id: string
           photo_url?: string | null
           position?: number | null
+          wins_count?: number | null
         }
         Update: {
           age?: number | null
           average_score?: number | null
+          battles_count?: number | null
+          bio?: string | null
           city?: string | null
           created_at?: string
           id?: string
+          instagram?: string | null
           is_qualified?: boolean | null
           name?: string
           nomination_id?: string
           photo_url?: string | null
           position?: number | null
+          wins_count?: number | null
         }
         Relationships: [
           {
@@ -171,6 +183,58 @@ export type Database = {
             columns: ["battle_id"]
             isOneToOne: false
             referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      judge_ratings: {
+        Row: {
+          battle_id: string
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          judge_id: string
+          rating: number | null
+        }
+        Insert: {
+          battle_id: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          judge_id: string
+          rating?: number | null
+        }
+        Update: {
+          battle_id?: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          judge_id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judge_ratings_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_ratings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_ratings_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -356,6 +420,8 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          judge_avg_rating: number | null
+          judge_battles_count: number | null
           phone: string | null
           updated_at: string
         }
@@ -366,6 +432,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          judge_avg_rating?: number | null
+          judge_battles_count?: number | null
           phone?: string | null
           updated_at?: string
         }
@@ -376,6 +444,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          judge_avg_rating?: number | null
+          judge_battles_count?: number | null
           phone?: string | null
           updated_at?: string
         }

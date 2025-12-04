@@ -2,9 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trophy, Users, Timer, Sparkles, CheckCircle, TrendingUp, Zap, Shield, ArrowRight } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,15 +21,16 @@ const Index = () => {
             SWITCHBOARD
           </h1>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Button 
               variant="ghost" 
               onClick={() => navigate("/battles")}
               className="hidden sm:inline-flex"
             >
-              Find Battles
+              {t("nav.battles")}
             </Button>
             <Button onClick={() => navigate("/auth")}>
-              Sign In
+              {t("nav.signin")}
             </Button>
           </div>
         </div>
@@ -55,14 +59,13 @@ const Index = () => {
 
             {/* Main heading */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold mb-6 animate-fade-in-up">
-              <span className="text-gradient-red">Fair.</span>{" "}
-              <span className="text-gradient-blue">Fast.</span>{" "}
-              <span className="text-foreground">Flawless.</span>
+              <span className="text-gradient-red">{t("hero.title1")}</span>{" "}
+              <span className="text-gradient-blue">{t("hero.title2")}</span>{" "}
+              <span className="text-foreground">{t("hero.title3")}</span>
             </h1>
 
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              The modern judging system for breakdance battles. Real-time voting, 
-              live visualization, and transparent scoring.
+              {t("hero.subtitle")}
             </p>
 
             {/* CTA Buttons */}
@@ -72,7 +75,7 @@ const Index = () => {
                 size="lg"
                 className="text-lg px-8 h-14 bg-primary hover:bg-primary/90 glow-red hover-lift"
               >
-                Find a Battle
+                {t("hero.findBattle")}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
@@ -81,7 +84,7 @@ const Index = () => {
                 variant="outline"
                 className="text-lg px-8 h-14 border-2 hover-lift"
               >
-                Organize Event
+                {t("hero.organize")}
               </Button>
             </div>
 
