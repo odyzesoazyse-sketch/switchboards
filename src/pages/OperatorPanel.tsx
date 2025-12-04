@@ -7,16 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye, 
-  Palette, Type, MessageSquare, Sparkles, Timer, 
-  PlayCircle, PauseCircle, SkipForward, Volume2
+  Palette, Type, MessageSquare, Timer, 
+  PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
+  Keyboard, Layout, CheckCircle2
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SliderVoting from "@/components/SliderVoting";
+import ScreenTemplates from "@/components/ScreenTemplates";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
 
 interface Match {
   id: string;
@@ -62,6 +68,10 @@ interface ScreenState {
   timer_running: boolean;
   timer_end_time: string | null;
   theme_preset: string;
+  // Template fields
+  sound_enabled: boolean;
+  show_template: boolean;
+  active_template_id: string | null;
 }
 
 const THEME_PRESETS = {
@@ -113,6 +123,13 @@ export default function OperatorPanel() {
   const [showRoundInfo, setShowRoundInfo] = useState(true);
   const [timerRunning, setTimerRunning] = useState(false);
   const [themePreset, setThemePreset] = useState("dark");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  const { playSound, preloadAll } = useSoundEffects(soundEnabled);
+
+  useEffect(() => {
+    preloadAll();
+  }, [preloadAll]);
 
   useEffect(() => {
     if (id) {
@@ -433,6 +450,7 @@ export default function OperatorPanel() {
   const startTimer = async () => {
     const endTime = new Date(Date.now() + timerMinutes * 60 * 1000).toISOString();
     setTimerRunning(true);
+    playSound("timerStart");
     await updateScreenState({
       timer_running: true,
       timer_end_time: endTime,
@@ -442,6 +460,7 @@ export default function OperatorPanel() {
 
   const stopTimer = async () => {
     setTimerRunning(false);
+    playSound("timerEnd");
     await updateScreenState({
       timer_running: false,
       timer_end_time: null,
@@ -451,12 +470,14 @@ export default function OperatorPanel() {
   const nextRound = async () => {
     const newRound = currentRound + 1;
     setCurrentRound(newRound);
+    playSound("roundStart");
     await updateScreenState({
       current_round: newRound,
     });
   };
 
   const addScore = async (side: 'left' | 'right') => {
+    playSound("vote");
     if (side === 'left') {
       const newScore = votesLeft + 1;
       setVotesLeft(newScore);
@@ -468,14 +489,49 @@ export default function OperatorPanel() {
     }
   };
 
-  const getDancerName = (dancerId: string | null) => {
-    if (!dancerId) return "Waiting";
-    const dancer = dancers.find(d => d.id === dancerId);
-    return dancer ? dancer.name : "?";
+  const declareWinner = async () => {
+    playSound("winner");
+    await updateScreenState({ show_winner: true });
+  };
+
+  const showTemplate = async (template: any) => {
+    await updateScreenState({
+      show_template: true,
+      active_template_id: template.id,
+      custom_message: template.title,
+      show_custom_message: true,
+    });
+  };
+
+  const hideTemplate = async () => {
+    await updateScreenState({
+      show_template: false,
+      active_template_id: null,
+      show_custom_message: false,
+    });
   };
 
   const openScreen = () => {
     window.open(`/battle/${id}/screen`, '_blank');
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onStartTimer: () => !timerRunning && startTimer(),
+    onStopTimer: stopTimer,
+    onNextRound: nextRound,
+    onAddScoreLeft: () => addScore('left'),
+    onAddScoreRight: () => addScore('right'),
+    onShowWinner: declareWinner,
+    onToggleBracket: toggleBracket,
+    onResetMatch: resetMatch,
+    onOpenScreen: openScreen,
+  });
+
+  const getDancerName = (dancerId: string | null) => {
+    if (!dancerId) return "Waiting";
+    const dancer = dancers.find(d => d.id === dancerId);
+    return dancer ? dancer.name : "?";
   };
 
   const getCurrentMatch = () => {
@@ -494,6 +550,36 @@ export default function OperatorPanel() {
             Back
           </Button>
           <div className="flex gap-2 flex-wrap">
+            {/* Sound toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={soundEnabled ? "" : "text-muted-foreground"}
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            
+            {/* Keyboard shortcuts popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Keyboard className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">Keyboard Shortcuts</h4>
+                  {SHORTCUT_HINTS.map((hint) => (
+                    <div key={hint.key} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{hint.action}</span>
+                      <Badge variant="outline" className="font-mono text-xs">{hint.key}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
@@ -609,10 +695,14 @@ export default function OperatorPanel() {
         )}
 
         <Tabs defaultValue="controls" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
             <TabsTrigger value="controls" className="gap-2">
               <Play className="h-4 w-4" />
               Controls
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2">
+              <Layout className="h-4 w-4" />
+              Templates
             </TabsTrigger>
             <TabsTrigger value="design" className="gap-2">
               <Palette className="h-4 w-4" />
@@ -746,6 +836,24 @@ export default function OperatorPanel() {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Templates Tab */}
+          <TabsContent value="templates" className="space-y-6">
+            <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
+            {screenState?.show_template && (
+              <Card className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <span className="font-medium">Template Active</span>
+                  </div>
+                  <Button variant="outline" onClick={hideTemplate}>
+                    Hide Template
+                  </Button>
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Design Tab */}

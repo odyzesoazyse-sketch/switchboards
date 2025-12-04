@@ -93,8 +93,44 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          battle_id: string
+          created_at: string
+          id: string
+          message: string
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          id?: string
+          message: string
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dancers: {
         Row: {
+          achievements: Json | null
           age: number | null
           average_score: number | null
           battles_count: number | null
@@ -108,9 +144,11 @@ export type Database = {
           nomination_id: string
           photo_url: string | null
           position: number | null
+          video_url: string | null
           wins_count: number | null
         }
         Insert: {
+          achievements?: Json | null
           age?: number | null
           average_score?: number | null
           battles_count?: number | null
@@ -124,9 +162,11 @@ export type Database = {
           nomination_id: string
           photo_url?: string | null
           position?: number | null
+          video_url?: string | null
           wins_count?: number | null
         }
         Update: {
+          achievements?: Json | null
           age?: number | null
           average_score?: number | null
           battles_count?: number | null
@@ -140,6 +180,7 @@ export type Database = {
           nomination_id?: string
           photo_url?: string | null
           position?: number | null
+          video_url?: string | null
           wins_count?: number | null
         }
         Relationships: [
@@ -501,6 +542,7 @@ export type Database = {
       }
       screen_state: {
         Row: {
+          active_template_id: string | null
           animation_style: string | null
           background_color: string | null
           background_gradient_from: string | null
@@ -523,8 +565,10 @@ export type Database = {
           show_judges: boolean | null
           show_round_info: boolean | null
           show_score: boolean | null
+          show_template: boolean | null
           show_timer: boolean | null
           show_winner: boolean | null
+          sound_enabled: boolean | null
           theme_preset: string | null
           timer_end_time: string | null
           timer_running: boolean | null
@@ -534,6 +578,7 @@ export type Database = {
           votes_right: number | null
         }
         Insert: {
+          active_template_id?: string | null
           animation_style?: string | null
           background_color?: string | null
           background_gradient_from?: string | null
@@ -556,8 +601,10 @@ export type Database = {
           show_judges?: boolean | null
           show_round_info?: boolean | null
           show_score?: boolean | null
+          show_template?: boolean | null
           show_timer?: boolean | null
           show_winner?: boolean | null
+          sound_enabled?: boolean | null
           theme_preset?: string | null
           timer_end_time?: string | null
           timer_running?: boolean | null
@@ -567,6 +614,7 @@ export type Database = {
           votes_right?: number | null
         }
         Update: {
+          active_template_id?: string | null
           animation_style?: string | null
           background_color?: string | null
           background_gradient_from?: string | null
@@ -589,8 +637,10 @@ export type Database = {
           show_judges?: boolean | null
           show_round_info?: boolean | null
           show_score?: boolean | null
+          show_template?: boolean | null
           show_timer?: boolean | null
           show_winner?: boolean | null
+          sound_enabled?: boolean | null
           theme_preset?: string | null
           timer_end_time?: string | null
           timer_running?: boolean | null
@@ -600,6 +650,13 @@ export type Database = {
           votes_right?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "screen_state_active_template_id_fkey"
+            columns: ["active_template_id"]
+            isOneToOne: false
+            referencedRelation: "screen_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "screen_state_battle_id_fkey"
             columns: ["battle_id"]
@@ -619,6 +676,59 @@ export type Database = {
             columns: ["nomination_id"]
             isOneToOne: false
             referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screen_templates: {
+        Row: {
+          background_color: string | null
+          background_gradient_from: string | null
+          background_gradient_to: string | null
+          battle_id: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          image_url: string | null
+          name: string
+          subtitle: string | null
+          template_type: string
+          title: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          background_gradient_from?: string | null
+          background_gradient_to?: string | null
+          battle_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          image_url?: string | null
+          name: string
+          subtitle?: string | null
+          template_type?: string
+          title?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          background_gradient_from?: string | null
+          background_gradient_to?: string | null
+          battle_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          subtitle?: string | null
+          template_type?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_templates_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
             referencedColumns: ["id"]
           },
         ]
@@ -660,6 +770,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_winner_to_next_match: {
+        Args: { p_match_id: string; p_winner_id: string }
+        Returns: undefined
+      }
       create_activity_log: {
         Args: {
           p_battle_id: string
