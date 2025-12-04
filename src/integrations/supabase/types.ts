@@ -501,57 +501,99 @@ export type Database = {
       }
       screen_state: {
         Row: {
+          animation_style: string | null
+          background_color: string | null
+          background_gradient_from: string | null
+          background_gradient_to: string | null
+          background_image_url: string | null
+          background_type: string | null
           battle_id: string
           created_at: string
           current_match_id: string | null
           current_round: number | null
+          custom_message: string | null
+          font_size: string | null
           id: string
           match_status: string | null
           nomination_id: string | null
           rounds_to_win: number | null
+          show_battle_name: boolean | null
           show_bracket: boolean | null
+          show_custom_message: boolean | null
           show_judges: boolean | null
+          show_round_info: boolean | null
           show_score: boolean | null
           show_timer: boolean | null
           show_winner: boolean | null
+          theme_preset: string | null
+          timer_end_time: string | null
+          timer_running: boolean | null
           timer_seconds: number | null
           updated_at: string
           votes_left: number | null
           votes_right: number | null
         }
         Insert: {
+          animation_style?: string | null
+          background_color?: string | null
+          background_gradient_from?: string | null
+          background_gradient_to?: string | null
+          background_image_url?: string | null
+          background_type?: string | null
           battle_id: string
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null
+          custom_message?: string | null
+          font_size?: string | null
           id?: string
           match_status?: string | null
           nomination_id?: string | null
           rounds_to_win?: number | null
+          show_battle_name?: boolean | null
           show_bracket?: boolean | null
+          show_custom_message?: boolean | null
           show_judges?: boolean | null
+          show_round_info?: boolean | null
           show_score?: boolean | null
           show_timer?: boolean | null
           show_winner?: boolean | null
+          theme_preset?: string | null
+          timer_end_time?: string | null
+          timer_running?: boolean | null
           timer_seconds?: number | null
           updated_at?: string
           votes_left?: number | null
           votes_right?: number | null
         }
         Update: {
+          animation_style?: string | null
+          background_color?: string | null
+          background_gradient_from?: string | null
+          background_gradient_to?: string | null
+          background_image_url?: string | null
+          background_type?: string | null
           battle_id?: string
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null
+          custom_message?: string | null
+          font_size?: string | null
           id?: string
           match_status?: string | null
           nomination_id?: string | null
           rounds_to_win?: number | null
+          show_battle_name?: boolean | null
           show_bracket?: boolean | null
+          show_custom_message?: boolean | null
           show_judges?: boolean | null
+          show_round_info?: boolean | null
           show_score?: boolean | null
           show_timer?: boolean | null
           show_winner?: boolean | null
+          theme_preset?: string | null
+          timer_end_time?: string | null
+          timer_running?: boolean | null
           timer_seconds?: number | null
           updated_at?: string
           votes_left?: number | null
