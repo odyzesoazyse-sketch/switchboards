@@ -2,61 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    /* Light breakdance theme with white background */
+    /* Clean white background theme */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 220 20% 10%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 222 47% 11%;
+    --card: 220 20% 97%;
+    --card-foreground: 220 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 20% 10%;
 
-    /* Red for left opponent */
-    --primary: 0 84% 60%;
+    /* Red for left opponent - vibrant */
+    --primary: 0 85% 55%;
     --primary-foreground: 0 0% 100%;
 
-    /* Blue for right opponent */
-    --secondary: 221 83% 53%;
+    /* Blue for right opponent - electric */
+    --secondary: 217 91% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 220 15% 94%;
+    --accent-foreground: 220 20% 10%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 217 91% 55%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Battle opponent colors */
-    --opponent-left: 0 84% 60%;
-    --opponent-right: 221 83% 53%;
+    --opponent-left: 0 85% 55%;
+    --opponent-right: 217 91% 55%;
     
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 84% 60%), hsl(0 72% 51%));
-    --gradient-secondary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 70% 45%));
-    --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    /* Success color */
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
     
-    /* Glow effects */
-    --glow-primary: 0 0 40px hsla(0, 84%, 60%, 0.3);
-    --glow-secondary: 0 0 40px hsla(221, 83%, 53%, 0.3);
-
+    /* Surface variations */
+    --surface: 220 15% 98%;
+    --surface-elevated: 0 0% 100%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 75% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 80% 45%));
+    --gradient-hero: linear-gradient(180deg, hsl(220 20% 98%) 0%, hsl(0 0% 100%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsla(0, 0%, 100%, 0.9) 0%, hsla(0, 0%, 100%, 0.7) 100%);
+    --gradient-red-glow: radial-gradient(circle at center, hsla(0, 85%, 55%, 0.15) 0%, transparent 70%);
+    --gradient-blue-glow: radial-gradient(circle at center, hsla(217, 91%, 55%, 0.15) 0%, transparent 70%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px hsla(220, 20%, 10%, 0.05);
+    --shadow-md: 0 4px 12px hsla(220, 20%, 10%, 0.08);
+    --shadow-lg: 0 8px 30px hsla(220, 20%, 10%, 0.12);
+    --shadow-xl: 0 20px 50px hsla(220, 20%, 10%, 0.15);
+    --shadow-glow-red: 0 0 40px hsla(0, 85%, 55%, 0.25);
+    --shadow-glow-blue: 0 0 40px hsla(217, 91%, 55%, 0.25);
+    
     /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -66,51 +79,231 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
   }
 }
 
 @layer utilities {
-  .glow-primary {
-    box-shadow: var(--glow-primary);
-  }
-  
-  .glow-secondary {
-    box-shadow: var(--glow-secondary);
+  /* Glass effect */
+  .glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsla(220, 15%, 90%, 0.5);
   }
 
-  .text-gradient-primary {
+  .glass-dark {
+    background: hsla(220, 20%, 10%, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsla(220, 15%, 90%, 0.1);
+    color: white;
+  }
+
+  /* Glows */
+  .glow-red {
+    box-shadow: var(--shadow-glow-red);
+  }
+  
+  .glow-blue {
+    box-shadow: var(--shadow-glow-blue);
+  }
+
+  .glow-red-intense {
+    box-shadow: 0 0 60px hsla(0, 85%, 55%, 0.4), 0 0 100px hsla(0, 85%, 55%, 0.2);
+  }
+
+  .glow-blue-intense {
+    box-shadow: 0 0 60px hsla(217, 91%, 55%, 0.4), 0 0 100px hsla(217, 91%, 55%, 0.2);
+  }
+
+  /* Text gradients */
+  .text-gradient-red {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .text-gradient-secondary {
+  .text-gradient-blue {
     background: var(--gradient-secondary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .animate-pulse-glow {
-    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .text-gradient-mixed {
+    background: linear-gradient(135deg, hsl(0 85% 55%), hsl(217 91% 55%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  @keyframes pulse-glow {
-    0%, 100% {
-      opacity: 1;
-      box-shadow: var(--glow-primary);
+  /* Background patterns */
+  .bg-grid {
+    background-image: 
+      linear-gradient(to right, hsla(220, 15%, 90%, 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, hsla(220, 15%, 90%, 0.4) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(circle, hsla(220, 15%, 70%, 0.3) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.4), transparent);
+    background-size: 200% 100%;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-glow-red:hover {
+    box-shadow: var(--shadow-glow-red);
+  }
+
+  .hover-glow-blue:hover {
+    box-shadow: var(--shadow-glow-blue);
+  }
+
+  /* Card variants */
+  .card-red {
+    @apply border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent;
+  }
+
+  .card-blue {
+    @apply border-2 border-secondary/30 bg-gradient-to-br from-secondary/5 to-transparent;
+  }
+
+  .card-elevated {
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Battle screen specific */
+  .battle-vs {
+    text-shadow: 0 0 40px hsla(220, 20%, 10%, 0.3);
+  }
+
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50;
+  }
+
+  .fab-button {
+    @apply w-16 h-16 rounded-full shadow-xl transition-all duration-300;
+    background: linear-gradient(135deg, hsl(220 20% 15%), hsl(220 20% 25%));
+  }
+
+  .fab-button:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .fab-button:active {
+    transform: scale(0.95);
+  }
+
+  /* Menu popup */
+  .fab-menu {
+    @apply absolute bottom-20 left-1/2 -translate-x-1/2;
+    @apply bg-surface-elevated rounded-2xl shadow-xl border border-border/50;
+    @apply p-3 min-w-[220px];
+    animation: menu-appear 0.2s ease-out;
+  }
+
+  @keyframes menu-appear {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px) scale(0.95);
     }
-    50% {
-      opacity: 0.8;
-      box-shadow: 0 0 60px hsla(25, 95%, 53%, 0.5);
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
     }
   }
+
+  /* Status indicators */
+  .status-pulse {
+    @apply relative;
+  }
+
+  .status-pulse::after {
+    content: '';
+    @apply absolute top-0 right-0 w-3 h-3 rounded-full bg-success;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes status-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
 }
