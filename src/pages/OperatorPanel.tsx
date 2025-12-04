@@ -542,10 +542,11 @@ export default function OperatorPanel() {
   const currentMatch = getCurrentMatch();
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <Button variant="ghost" onClick={() => navigate(`/battle/${id}`)}>
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/battle/${id}`)} className="self-start">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -555,15 +556,15 @@ export default function OperatorPanel() {
               variant="outline"
               size="icon"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={soundEnabled ? "" : "text-muted-foreground"}
+              className={`h-9 w-9 ${soundEnabled ? "" : "text-muted-foreground"}`}
             >
               {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
             
-            {/* Keyboard shortcuts popover */}
+            {/* Keyboard shortcuts popover - hidden on mobile */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="h-9 w-9 hidden sm:flex">
                   <Keyboard className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -582,12 +583,12 @@ export default function OperatorPanel() {
 
             <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 h-9">
                   <Eye className="h-4 w-4" />
-                  Preview
+                  <span className="hidden sm:inline">Preview</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Judge Screen Preview</DialogTitle>
                 </DialogHeader>
@@ -597,10 +598,10 @@ export default function OperatorPanel() {
                       <p className="text-muted-foreground">Round {currentRound}</p>
                     </div>
                     {judgingMode === "simple" ? (
-                      <div className="grid md:grid-cols-3 gap-4 items-center">
-                        <Card className="p-6 text-center border-primary/50">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                        <Card className="p-4 md:p-6 text-center border-primary/50">
                           <div className="space-y-3">
-                            <div className="text-2xl font-bold text-primary">
+                            <div className="text-xl md:text-2xl font-bold text-primary">
                               {getDancerName(currentMatch.dancer_left_id)}
                             </div>
                             <Button disabled className="w-full bg-primary hover:bg-primary/90">
@@ -609,10 +610,10 @@ export default function OperatorPanel() {
                             </Button>
                           </div>
                         </Card>
-                        <div className="text-center text-3xl font-bold text-muted-foreground">VS</div>
-                        <Card className="p-6 text-center border-secondary/50">
+                        <div className="text-center text-2xl md:text-3xl font-bold text-muted-foreground py-2 md:py-0">VS</div>
+                        <Card className="p-4 md:p-6 text-center border-secondary/50">
                           <div className="space-y-3">
-                            <div className="text-2xl font-bold text-secondary">
+                            <div className="text-xl md:text-2xl font-bold text-secondary">
                               {getDancerName(currentMatch.dancer_right_id)}
                             </div>
                             <Button disabled className="w-full bg-secondary hover:bg-secondary/90">
@@ -640,90 +641,104 @@ export default function OperatorPanel() {
                 )}
               </DialogContent>
             </Dialog>
-            <Button onClick={openScreen} className="gap-2">
+            <Button onClick={openScreen} size="sm" className="gap-2 h-9">
               <Monitor className="h-4 w-4" />
-              Open Screen
+              <span className="hidden sm:inline">Open Screen</span>
             </Button>
           </div>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold">Operator Panel</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Operator Panel</h1>
 
         {/* Quick Actions Bar */}
         {currentMatch && (
-          <Card className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="text-lg font-semibold text-primary">{getDancerName(currentMatch.dancer_left_id)}</div>
-                <div className="text-2xl font-bold">{votesLeft} — {votesRight}</div>
-                <div className="text-lg font-semibold text-secondary">{getDancerName(currentMatch.dancer_right_id)}</div>
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+            {/* Score display */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 text-center sm:text-left">
+                <div className="text-sm sm:text-base md:text-lg font-semibold text-primary truncate max-w-[100px] sm:max-w-none">
+                  {getDancerName(currentMatch.dancer_left_id)}
+                </div>
+                <div className="text-xl sm:text-2xl font-bold whitespace-nowrap">{votesLeft} — {votesRight}</div>
+                <div className="text-sm sm:text-base md:text-lg font-semibold text-secondary truncate max-w-[100px] sm:max-w-none">
+                  {getDancerName(currentMatch.dancer_right_id)}
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button size="sm" variant="outline" onClick={() => addScore('left')} className="border-primary/50 text-primary">
-                  +1 Red
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => addScore('right')} className="border-secondary/50 text-secondary">
-                  +1 Blue
-                </Button>
-                <Button size="sm" variant="outline" onClick={nextRound} className="gap-1">
-                  <SkipForward className="h-3 w-3" />
-                  Next Round
-                </Button>
-                {!timerRunning ? (
-                  <Button size="sm" onClick={startTimer} className="gap-1">
-                    <PlayCircle className="h-3 w-3" />
-                    Start Timer
+              
+              {/* Action buttons - scrollable on mobile */}
+              <div className="w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                <div className="flex items-center gap-2 min-w-max">
+                  <Button size="sm" variant="outline" onClick={() => addScore('left')} className="border-primary/50 text-primary h-8 px-2 sm:px-3">
+                    <span className="hidden xs:inline">+1</span> Red
                   </Button>
-                ) : (
-                  <Button size="sm" variant="destructive" onClick={stopTimer} className="gap-1">
-                    <PauseCircle className="h-3 w-3" />
-                    Stop
+                  <Button size="sm" variant="outline" onClick={() => addScore('right')} className="border-secondary/50 text-secondary h-8 px-2 sm:px-3">
+                    <span className="hidden xs:inline">+1</span> Blue
                   </Button>
-                )}
-                <Button size="sm" onClick={showWinnerScreen} className="gap-1 bg-gradient-to-r from-primary to-secondary">
-                  <Trophy className="h-3 w-3" />
-                  Winner
-                </Button>
+                  <Button size="sm" variant="outline" onClick={nextRound} className="gap-1 h-8 px-2 sm:px-3">
+                    <SkipForward className="h-3 w-3" />
+                    <span className="hidden sm:inline">Next</span>
+                  </Button>
+                  {!timerRunning ? (
+                    <Button size="sm" onClick={startTimer} className="gap-1 h-8 px-2 sm:px-3">
+                      <PlayCircle className="h-3 w-3" />
+                      <span className="hidden sm:inline">Timer</span>
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="destructive" onClick={stopTimer} className="gap-1 h-8 px-2 sm:px-3">
+                      <PauseCircle className="h-3 w-3" />
+                      Stop
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={showWinnerScreen} className="gap-1 bg-gradient-to-r from-primary to-secondary h-8 px-2 sm:px-3">
+                    <Trophy className="h-3 w-3" />
+                    <span className="hidden sm:inline">Winner</span>
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-3">
+            
+            {/* Vote status */}
+            <div className="flex items-center gap-2 mt-2 sm:mt-3 text-xs sm:text-sm">
               <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-              <span className="text-sm">Votes: {voteCount}/{totalJudges} judges</span>
-              <span className="text-sm text-muted-foreground">• Round {currentRound}</span>
+              <span>Votes: {voteCount}/{totalJudges}</span>
+              <span className="text-muted-foreground">• Round {currentRound}</span>
             </div>
           </Card>
         )}
 
-        <Tabs defaultValue="controls" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
-            <TabsTrigger value="controls" className="gap-2">
-              <Play className="h-4 w-4" />
-              Controls
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
-              <Layout className="h-4 w-4" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="design" className="gap-2">
-              <Palette className="h-4 w-4" />
-              Design
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Messages
-            </TabsTrigger>
-            <TabsTrigger value="matches" className="gap-2">
-              <Trophy className="h-4 w-4" />
-              Matches
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="controls" className="space-y-4 md:space-y-6">
+          {/* Scrollable tabs on mobile */}
+          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 lg:w-auto lg:inline-flex">
+              <TabsTrigger value="controls" className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <Play className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Controls</span>
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <Layout className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Templates</span>
+              </TabsTrigger>
+              <TabsTrigger value="design" className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Design</span>
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Messages</span>
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Matches</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Controls Tab */}
-          <TabsContent value="controls" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="p-6 space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
+          <TabsContent value="controls" className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <Card className="p-4 md:p-6 space-y-4">
+                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <Monitor className="h-4 w-4 md:h-5 md:w-5" />
                   Display Settings
                 </h2>
                 <div className="space-y-4">
@@ -775,9 +790,9 @@ export default function OperatorPanel() {
                 </div>
               </Card>
 
-              <Card className="p-6 space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Timer className="h-5 w-5" />
+              <Card className="p-4 md:p-6 space-y-4">
+                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <Timer className="h-4 w-4 md:h-5 md:w-5" />
                   Match Control
                 </h2>
                 <div className="space-y-4">
@@ -857,11 +872,11 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* Design Tab */}
-          <TabsContent value="design" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="p-6 space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
+          <TabsContent value="design" className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <Card className="p-4 md:p-6 space-y-4">
+                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <Palette className="h-4 w-4 md:h-5 md:w-5" />
                   Theme & Colors
                 </h2>
                 <div className="space-y-4">
@@ -945,9 +960,9 @@ export default function OperatorPanel() {
                 </div>
               </Card>
 
-              <Card className="p-6 space-y-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Type className="h-5 w-5" />
+              <Card className="p-4 md:p-6 space-y-4">
+                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                  <Type className="h-4 w-4 md:h-5 md:w-5" />
                   Typography & Effects
                 </h2>
                 <div className="space-y-4">
@@ -999,10 +1014,10 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* Messages Tab */}
-          <TabsContent value="messages" className="space-y-6">
-            <Card className="p-6 space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
+          <TabsContent value="messages" className="space-y-4 md:space-y-6">
+            <Card className="p-4 md:p-6 space-y-4">
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 md:h-5 md:w-5" />
                 Custom Screen Message
               </h2>
               <div className="space-y-4">
@@ -1038,10 +1053,10 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* Matches Tab */}
-          <TabsContent value="matches" className="space-y-6">
+          <TabsContent value="matches" className="space-y-4 md:space-y-6">
             {nominations.length > 0 && (
-              <Card className="p-6 space-y-4">
-                <h2 className="text-xl font-bold">Select Match to Display</h2>
+              <Card className="p-4 md:p-6 space-y-4">
+                <h2 className="text-lg md:text-xl font-bold">Select Match to Display</h2>
                 
                 <div>
                   <Label>Category</Label>
@@ -1059,27 +1074,29 @@ export default function OperatorPanel() {
                   </Select>
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-2 sm:gap-3">
                   {matches.map((match) => (
                     <Card
                       key={match.id}
-                      className={`p-4 hover:border-primary/50 transition-all cursor-pointer ${
+                      className={`p-3 sm:p-4 hover:border-primary/50 transition-all cursor-pointer ${
                         screenState?.current_match_id === match.id ? 'border-primary bg-primary/5' : ''
                       }`}
                       onClick={() => showMatch(match.id)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <span className="text-xs text-muted-foreground uppercase">{match.round}</span>
-                          <div className="text-lg font-semibold text-primary">
-                            {getDancerName(match.dancer_left_id)}
-                          </div>
-                          <div className="text-xl font-bold text-muted-foreground">VS</div>
-                          <div className="text-lg font-semibold text-secondary">
-                            {getDancerName(match.dancer_right_id)}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                          <span className="text-xs text-muted-foreground uppercase shrink-0">{match.round}</span>
+                          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                            <div className="text-sm sm:text-base md:text-lg font-semibold text-primary truncate">
+                              {getDancerName(match.dancer_left_id)}
+                            </div>
+                            <div className="text-base sm:text-lg md:text-xl font-bold text-muted-foreground shrink-0">VS</div>
+                            <div className="text-sm sm:text-base md:text-lg font-semibold text-secondary truncate">
+                              {getDancerName(match.dancer_right_id)}
+                            </div>
                           </div>
                         </div>
-                        <Button size="sm" className="gap-2">
+                        <Button size="sm" className="gap-2 w-full sm:w-auto shrink-0">
                           <Play className="h-4 w-4" />
                           Show
                         </Button>
