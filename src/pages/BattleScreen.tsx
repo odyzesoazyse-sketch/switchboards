@@ -22,6 +22,21 @@ interface ScreenState {
   votes_left: number;
   votes_right: number;
   show_bracket: boolean;
+  // Customization fields
+  background_type: string;
+  background_color: string;
+  background_gradient_from: string;
+  background_gradient_to: string;
+  background_image_url: string | null;
+  font_size: string;
+  custom_message: string | null;
+  show_custom_message: boolean;
+  animation_style: string;
+  show_battle_name: boolean;
+  show_round_info: boolean;
+  timer_running: boolean;
+  timer_end_time: string | null;
+  theme_preset: string;
 }
 
 interface Dancer {
@@ -52,6 +67,13 @@ interface Judge {
   full_name: string;
 }
 
+const FONT_SIZES = {
+  small: { name: '0.8', score: '4rem', vs: '5rem' },
+  normal: { name: '1', score: '5rem', vs: '6rem' },
+  large: { name: '1.2', score: '6rem', vs: '7rem' },
+  xlarge: { name: '1.4', score: '7rem', vs: '8rem' },
+};
+
 export default function BattleScreen() {
   const { id } = useParams();
   const [screenState, setScreenState] = useState<ScreenState | null>(null);
@@ -64,6 +86,7 @@ export default function BattleScreen() {
   const [loading, setLoading] = useState(true);
   const [allMatches, setAllMatches] = useState<BracketMatch[]>([]);
   const [allDancers, setAllDancers] = useState<Dancer[]>([]);
+  const [animationClass, setAnimationClass] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -88,20 +111,31 @@ export default function BattleScreen() {
     };
   }, [id]);
 
+  // Timer logic with server-synced end time
   useEffect(() => {
-    if (screenState?.show_timer && screenState.timer_seconds > 0) {
+    if (!screenState?.timer_running || !screenState?.timer_end_time) {
+      if (!screenState?.show_timer) setTimeLeft(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const endTime = new Date(screenState.timer_end_time!).getTime();
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [screenState?.timer_running, screenState?.timer_end_time, screenState?.show_timer]);
+
+  // Fallback static timer
+  useEffect(() => {
+    if (screenState?.show_timer && !screenState?.timer_running && screenState.timer_seconds > 0) {
       setTimeLeft(screenState.timer_seconds);
     }
-  }, [screenState?.timer_seconds, screenState?.show_timer]);
-
-  useEffect(() => {
-    if (timeLeft > 0 && screenState?.show_timer) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => Math.max(0, prev - 1));
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [timeLeft, screenState?.show_timer]);
+  }, [screenState?.timer_seconds, screenState?.show_timer, screenState?.timer_running]);
 
   const loadScreenState = async () => {
     try {
@@ -147,7 +181,11 @@ export default function BattleScreen() {
         stateData = newState;
       }
 
-      setScreenState(stateData);
+      // Trigger animation
+      const animStyle = stateData.animation_style || 'fade';
+      setAnimationClass(`animate-${animStyle}-in`);
+      
+      setScreenState(stateData as ScreenState);
 
       if (stateData.current_match_id) {
         const { data: matchData } = await supabase
@@ -229,13 +267,40 @@ export default function BattleScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getBackgroundStyle = () => {
+    if (!screenState) return { background: '#1a1a2e' };
+    
+    const { background_type, background_color, background_gradient_from, background_gradient_to, background_image_url } = screenState;
+    
+    if (background_type === 'gradient') {
+      return { background: `linear-gradient(135deg, ${background_gradient_from || '#1a1a2e'}, ${background_gradient_to || '#16213e'})` };
+    }
+    if (background_type === 'image' && background_image_url) {
+      return { 
+        backgroundImage: `url(${background_image_url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+    }
+    return { background: background_color || '#1a1a2e' };
+  };
+
+  const getFontScale = () => {
+    return FONT_SIZES[screenState?.font_size as keyof typeof FONT_SIZES] || FONT_SIZES.normal;
+  };
+
+  const fontScale = getFontScale();
+  const isLightTheme = screenState?.theme_preset === 'light';
+  const textColor = isLightTheme ? 'text-gray-900' : 'text-white';
+  const mutedTextColor = isLightTheme ? 'text-gray-600' : 'text-white/60';
+
   // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-foreground flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={getBackgroundStyle()}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-background/30 border-t-background rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-xl text-background/60">Loading...</p>
+          <div className={`w-16 h-16 border-4 ${isLightTheme ? 'border-gray-300 border-t-gray-900' : 'border-white/30 border-t-white'} rounded-full animate-spin mx-auto mb-4`} />
+          <p className={`text-xl ${mutedTextColor}`}>Loading...</p>
         </div>
       </div>
     );
@@ -243,10 +308,31 @@ export default function BattleScreen() {
 
   if (!screenState) {
     return (
-      <div className="min-h-screen bg-foreground flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={getBackgroundStyle()}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-background/30 border-t-background rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-xl text-background/60">Initializing...</p>
+          <div className={`w-16 h-16 border-4 ${isLightTheme ? 'border-gray-300 border-t-gray-900' : 'border-white/30 border-t-white'} rounded-full animate-spin mx-auto mb-4`} />
+          <p className={`text-xl ${mutedTextColor}`}>Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Custom message overlay
+  if (screenState.show_custom_message && screenState.custom_message) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8" style={getBackgroundStyle()}>
+        <div className={`text-center space-y-8 animate-scale-in ${animationClass}`}>
+          {screenState.show_battle_name && (
+            <h1 className={`text-4xl font-display font-bold ${textColor}`}>{battleName}</h1>
+          )}
+          <div className={`${isLightTheme ? 'bg-white/80' : 'bg-black/40'} backdrop-blur-xl rounded-3xl p-12 max-w-4xl`}>
+            <p 
+              className={`font-display font-bold ${textColor}`}
+              style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
+            >
+              {screenState.custom_message}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -255,15 +341,20 @@ export default function BattleScreen() {
   // Bracket view
   if (screenState.show_bracket) {
     return (
-      <div className="min-h-screen bg-foreground p-8">
-        <div className="max-w-[1600px] mx-auto space-y-8">
-          <div className="text-center">
-            <h1 className="text-5xl font-display font-bold text-background mb-2">
-              {battleName}
-            </h1>
-            <p className="text-xl text-background/60">Tournament Bracket</p>
-          </div>
-          <Card className="p-8 bg-background/5 border-background/10 backdrop-blur">
+      <div className="min-h-screen p-8" style={getBackgroundStyle()}>
+        <div className={`max-w-[1600px] mx-auto space-y-8 ${animationClass}`}>
+          {screenState.show_battle_name && (
+            <div className="text-center">
+              <h1 
+                className={`font-display font-bold ${textColor} mb-2`}
+                style={{ fontSize: `calc(3rem * ${fontScale.name})` }}
+              >
+                {battleName}
+              </h1>
+              <p className={`text-xl ${mutedTextColor}`}>Tournament Bracket</p>
+            </div>
+          )}
+          <Card className={`p-8 ${isLightTheme ? 'bg-gray-100/80' : 'bg-white/5'} border-white/10 backdrop-blur`}>
             <TournamentBracket matches={allMatches} dancers={allDancers} />
           </Card>
         </div>
@@ -274,15 +365,27 @@ export default function BattleScreen() {
   // Waiting for match
   if (!currentMatch && !screenState.show_winner) {
     return (
-      <div className="min-h-screen bg-foreground flex items-center justify-center p-8">
-        <div className="text-center space-y-8 max-w-2xl">
-          <h1 className="text-6xl font-display font-bold text-background">{battleName}</h1>
-          <div className="glass-dark rounded-3xl p-12">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-background/10 flex items-center justify-center mb-6">
-              <Trophy className="w-10 h-10 text-background/60" />
+      <div className="min-h-screen flex items-center justify-center p-8" style={getBackgroundStyle()}>
+        <div className={`text-center space-y-8 max-w-2xl ${animationClass}`}>
+          {screenState.show_battle_name && (
+            <h1 
+              className={`font-display font-bold ${textColor}`}
+              style={{ fontSize: `calc(3.5rem * ${fontScale.name})` }}
+            >
+              {battleName}
+            </h1>
+          )}
+          <div className={`${isLightTheme ? 'bg-white/80' : 'bg-black/40'} backdrop-blur-xl rounded-3xl p-12`}>
+            <div className={`w-20 h-20 mx-auto rounded-2xl ${isLightTheme ? 'bg-gray-200' : 'bg-white/10'} flex items-center justify-center mb-6`}>
+              <Trophy className={`w-10 h-10 ${mutedTextColor}`} />
             </div>
-            <p className="text-3xl text-background/80 font-display">Waiting for next battle...</p>
-            <p className="text-lg text-background/50 mt-2">The operator will select the match soon</p>
+            <p 
+              className={`${isLightTheme ? 'text-gray-800' : 'text-white/80'} font-display`}
+              style={{ fontSize: `calc(1.875rem * ${fontScale.name})` }}
+            >
+              Waiting for next battle...
+            </p>
+            <p className={`text-lg ${mutedTextColor} mt-2`}>The operator will select the match soon</p>
           </div>
         </div>
       </div>
@@ -295,30 +398,50 @@ export default function BattleScreen() {
     const isRed = currentMatch.winner_id === leftDancer?.id;
     
     return (
-      <div className={`min-h-screen flex items-center justify-center p-8 ${isRed ? 'bg-primary' : 'bg-secondary'}`}>
-        <div className="text-center space-y-8 animate-scale-in">
-          <div className="flex items-center justify-center gap-4 text-background">
+      <div 
+        className={`min-h-screen flex items-center justify-center p-8`}
+        style={{ 
+          background: isRed 
+            ? 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)/0.8))' 
+            : 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary)/0.8))'
+        }}
+      >
+        <div className={`text-center space-y-8 animate-scale-in ${animationClass}`}>
+          <div className="flex items-center justify-center gap-4 text-white">
             <Trophy className="w-16 h-16" />
-            <h1 className="text-7xl font-display font-bold">WINNER</h1>
+            <h1 
+              className="font-display font-bold"
+              style={{ fontSize: fontScale.vs }}
+            >
+              WINNER
+            </h1>
             <Trophy className="w-16 h-16" />
           </div>
           
-          <div className="glass-dark rounded-3xl p-12 min-w-[400px]">
-            <div className="w-32 h-32 mx-auto rounded-2xl bg-background/10 flex items-center justify-center mb-6">
+          <div className="bg-black/30 backdrop-blur-xl rounded-3xl p-12 min-w-[400px]">
+            <div className="w-32 h-32 mx-auto rounded-2xl bg-white/10 flex items-center justify-center mb-6 overflow-hidden">
               {winner?.photo_url ? (
-                <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover rounded-2xl" />
+                <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover" />
               ) : (
-                <User className="w-16 h-16 text-background" />
+                <User className="w-16 h-16 text-white" />
               )}
             </div>
-            <h2 className="text-5xl font-display font-bold text-background mb-2">{winner?.name}</h2>
+            <h2 
+              className="font-display font-bold text-white mb-2"
+              style={{ fontSize: `calc(3rem * ${fontScale.name})` }}
+            >
+              {winner?.name}
+            </h2>
             {winner?.city && (
-              <p className="text-2xl text-background/70">{winner.city}</p>
+              <p className="text-2xl text-white/70">{winner.city}</p>
             )}
           </div>
           
           {screenState.show_score && (
-            <div className="text-5xl font-display font-bold text-background/90">
+            <div 
+              className="font-display font-bold text-white/90"
+              style={{ fontSize: `calc(3rem * ${fontScale.name})` }}
+            >
               {screenState.votes_left} — {screenState.votes_right}
             </div>
           )}
@@ -329,13 +452,28 @@ export default function BattleScreen() {
 
   // Active match view
   return (
-    <div className="min-h-screen bg-foreground p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen p-8" style={getBackgroundStyle()}>
+      <div className={`max-w-7xl mx-auto space-y-8 ${animationClass}`}>
+        {/* Battle name */}
+        {screenState.show_battle_name && (
+          <div className="text-center">
+            <h1 
+              className={`font-display font-bold ${textColor}`}
+              style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
+            >
+              {battleName}
+            </h1>
+          </div>
+        )}
+
         {/* Timer */}
         {screenState.show_timer && (
           <div className="text-center">
-            <div className="inline-block glass-dark rounded-2xl px-12 py-6">
-              <div className="text-7xl font-display font-bold text-background tabular-nums">
+            <div className={`inline-block ${isLightTheme ? 'bg-white/80' : 'bg-black/40'} backdrop-blur-xl rounded-2xl px-12 py-6`}>
+              <div 
+                className={`font-display font-bold ${textColor} tabular-nums ${screenState.timer_running && timeLeft <= 10 ? 'text-red-500 animate-pulse' : ''}`}
+                style={{ fontSize: fontScale.score }}
+              >
                 {formatTime(timeLeft)}
               </div>
             </div>
@@ -345,19 +483,24 @@ export default function BattleScreen() {
         {/* Main battle display */}
         <div className="grid grid-cols-3 gap-8 items-center">
           {/* Left dancer - Red */}
-          <Card className="p-8 bg-primary/10 border-2 border-primary/30 backdrop-blur">
+          <Card className={`p-8 ${isLightTheme ? 'bg-white/80' : 'bg-primary/10'} border-2 border-primary/30 backdrop-blur`}>
             <div className="text-center space-y-6">
-              <div className="w-48 h-48 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+              <div className="w-48 h-48 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 overflow-hidden">
                 {leftDancer?.photo_url ? (
-                  <img src={leftDancer.photo_url} alt={leftDancer.name} className="w-full h-full object-cover rounded-3xl" />
+                  <img src={leftDancer.photo_url} alt={leftDancer.name} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-24 h-24 text-primary" />
                 )}
               </div>
               <div>
-                <h2 className="text-4xl font-display font-bold text-primary">{leftDancer?.name || "Waiting"}</h2>
+                <h2 
+                  className="font-display font-bold text-primary"
+                  style={{ fontSize: `calc(2.25rem * ${fontScale.name})` }}
+                >
+                  {leftDancer?.name || "Waiting"}
+                </h2>
                 {leftDancer?.city && (
-                  <p className="text-xl text-muted-foreground mt-2">{leftDancer.city}</p>
+                  <p className={`text-xl ${mutedTextColor} mt-2`}>{leftDancer.city}</p>
                 )}
               </div>
             </div>
@@ -365,39 +508,66 @@ export default function BattleScreen() {
 
           {/* Center - VS and score */}
           <div className="text-center space-y-8">
-            <div className="text-8xl font-display font-bold text-background/20">VS</div>
+            <div 
+              className={`font-display font-bold ${isLightTheme ? 'text-gray-300' : 'text-white/20'}`}
+              style={{ fontSize: fontScale.vs }}
+            >
+              VS
+            </div>
             
             {screenState.show_score && (
               <div className="flex items-center justify-center gap-8">
-                <div className="text-7xl font-display font-bold text-primary glow-red">{screenState.votes_left}</div>
-                <div className="text-4xl text-background/30">—</div>
-                <div className="text-7xl font-display font-bold text-secondary glow-blue">{screenState.votes_right}</div>
+                <div 
+                  className="font-display font-bold text-primary"
+                  style={{ fontSize: fontScale.score, textShadow: '0 0 30px hsl(var(--primary)/0.5)' }}
+                >
+                  {screenState.votes_left}
+                </div>
+                <div className={`text-4xl ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`}>—</div>
+                <div 
+                  className="font-display font-bold text-secondary"
+                  style={{ fontSize: fontScale.score, textShadow: '0 0 30px hsl(var(--secondary)/0.5)' }}
+                >
+                  {screenState.votes_right}
+                </div>
               </div>
             )}
             
-            <Badge className="text-2xl px-6 py-3 bg-background/10 text-background border-background/20">
-              Round {screenState.current_round}
-            </Badge>
-            
-            <div className="text-lg text-background/50">
-              First to {screenState.rounds_to_win} rounds wins
-            </div>
+            {screenState.show_round_info && (
+              <>
+                <Badge 
+                  className={`px-6 py-3 ${isLightTheme ? 'bg-gray-200 text-gray-900' : 'bg-white/10 text-white'} border-white/20`}
+                  style={{ fontSize: `calc(1.5rem * ${fontScale.name})` }}
+                >
+                  Round {screenState.current_round}
+                </Badge>
+                
+                <div className={`text-lg ${mutedTextColor}`}>
+                  First to {screenState.rounds_to_win} rounds wins
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right dancer - Blue */}
-          <Card className="p-8 bg-secondary/10 border-2 border-secondary/30 backdrop-blur">
+          <Card className={`p-8 ${isLightTheme ? 'bg-white/80' : 'bg-secondary/10'} border-2 border-secondary/30 backdrop-blur`}>
             <div className="text-center space-y-6">
-              <div className="w-48 h-48 mx-auto rounded-3xl bg-secondary/10 flex items-center justify-center border-2 border-secondary/20">
+              <div className="w-48 h-48 mx-auto rounded-3xl bg-secondary/10 flex items-center justify-center border-2 border-secondary/20 overflow-hidden">
                 {rightDancer?.photo_url ? (
-                  <img src={rightDancer.photo_url} alt={rightDancer.name} className="w-full h-full object-cover rounded-3xl" />
+                  <img src={rightDancer.photo_url} alt={rightDancer.name} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-24 h-24 text-secondary" />
                 )}
               </div>
               <div>
-                <h2 className="text-4xl font-display font-bold text-secondary">{rightDancer?.name || "Waiting"}</h2>
+                <h2 
+                  className="font-display font-bold text-secondary"
+                  style={{ fontSize: `calc(2.25rem * ${fontScale.name})` }}
+                >
+                  {rightDancer?.name || "Waiting"}
+                </h2>
                 {rightDancer?.city && (
-                  <p className="text-xl text-muted-foreground mt-2">{rightDancer.city}</p>
+                  <p className={`text-xl ${mutedTextColor} mt-2`}>{rightDancer.city}</p>
                 )}
               </div>
             </div>
@@ -406,11 +576,14 @@ export default function BattleScreen() {
 
         {/* Judges */}
         {screenState.show_judges && judges.length > 0 && (
-          <Card className="p-6 bg-background/5 border-background/10 backdrop-blur">
-            <h3 className="text-xl font-display font-bold mb-4 text-center text-background/60">Judges</h3>
+          <Card className={`p-6 ${isLightTheme ? 'bg-white/80' : 'bg-white/5'} border-white/10 backdrop-blur`}>
+            <h3 className={`text-xl font-display font-bold mb-4 text-center ${mutedTextColor}`}>Judges</h3>
             <div className="flex justify-center gap-4 flex-wrap">
               {judges.map((judge) => (
-                <Badge key={judge.id} className="text-lg px-4 py-2 bg-background/10 text-background border-background/20">
+                <Badge 
+                  key={judge.id} 
+                  className={`text-lg px-4 py-2 ${isLightTheme ? 'bg-gray-200 text-gray-900' : 'bg-white/10 text-white'} border-white/20`}
+                >
                   {judge.full_name || "Judge"}
                 </Badge>
               ))}
