@@ -6,16 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import JudgingModeSelector, { JudgingConfig } from "@/components/JudgingModeSelector";
 
 interface Nomination {
   id: string;
   name: string;
   description: string;
-  judging_mode: 'simple' | 'sliders';
+  judgingConfig: JudgingConfig;
+  isOpen: boolean;
 }
+
+const defaultJudgingConfig: JudgingConfig = {
+  mode: 'simple',
+  criteria: [],
+  roundsToWin: 2,
+  allowTies: false,
+};
 
 const CreateBattle = () => {
   const navigate = useNavigate();
@@ -25,7 +34,13 @@ const CreateBattle = () => {
   const [battleTime, setBattleTime] = useState("");
   const [location, setLocation] = useState("");
   const [nominations, setNominations] = useState<Nomination[]>([
-    { id: "1", name: "", description: "", judging_mode: "simple" }
+    { 
+      id: "1", 
+      name: "", 
+      description: "", 
+      judgingConfig: { ...defaultJudgingConfig },
+      isOpen: true 
+    }
   ]);
 
   const addNomination = () => {
@@ -33,12 +48,17 @@ const CreateBattle = () => {
       toast.error("Maximum 5 categories");
       return;
     }
-    setNominations([...nominations, { 
-      id: Date.now().toString(), 
-      name: "", 
-      description: "",
-      judging_mode: "simple"
-    }]);
+    // Close all existing nominations and add new one open
+    setNominations([
+      ...nominations.map(n => ({ ...n, isOpen: false })),
+      { 
+        id: Date.now().toString(), 
+        name: "", 
+        description: "",
+        judgingConfig: { ...defaultJudgingConfig },
+        isOpen: true
+      }
+    ]);
   };
 
   const removeNomination = (id: string) => {
@@ -49,10 +69,27 @@ const CreateBattle = () => {
     setNominations(nominations.filter(n => n.id !== id));
   };
 
-  const updateNomination = (id: string, field: 'name' | 'description' | 'judging_mode', value: string) => {
+  const updateNomination = (id: string, field: keyof Nomination, value: any) => {
     setNominations(nominations.map(n => 
       n.id === id ? { ...n, [field]: value } : n
     ));
+  };
+
+  const toggleNomination = (id: string) => {
+    setNominations(nominations.map(n => 
+      n.id === id ? { ...n, isOpen: !n.isOpen } : n
+    ));
+  };
+
+  const getModeLabel = (mode: JudgingConfig['mode']) => {
+    const labels = {
+      simple: 'Pick Winner',
+      sliders: '3 Sliders',
+      points_5: '5-Point',
+      points_10: '10-Point',
+      custom: 'Custom',
+    };
+    return labels[mode];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +111,21 @@ const CreateBattle = () => {
       return;
     }
 
+    // Validate custom criteria
+    for (const nom of nominations) {
+      if (nom.judgingConfig.mode === 'custom' && nom.judgingConfig.criteria.length === 0) {
+        toast.error(`Category "${nom.name}" has custom judging but no criteria defined`);
+        return;
+      }
+      if (nom.judgingConfig.mode === 'custom') {
+        const emptyCriteria = nom.judgingConfig.criteria.filter(c => !c.name.trim());
+        if (emptyCriteria.length > 0) {
+          toast.error(`All criteria in "${nom.name}" must have names`);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -84,10 +136,8 @@ const CreateBattle = () => {
         return;
       }
 
-      // Combine date and time
       const dateTime = new Date(`${battleDate}T${battleTime}`);
       
-      // Create battle
       const { data: battle, error: battleError } = await supabase
         .from("battles")
         .insert({
@@ -102,13 +152,15 @@ const CreateBattle = () => {
 
       if (battleError) throw battleError;
 
-      // Create nominations
       const nominationsToInsert = nominations.map(n => ({
         battle_id: battle.id,
         name: n.name,
         description: n.description || null,
         phase: "registration" as const,
-        judging_mode: n.judging_mode
+        judging_mode: n.judgingConfig.mode,
+        judging_criteria: JSON.parse(JSON.stringify(n.judgingConfig.criteria)),
+        rounds_to_win: n.judgingConfig.roundsToWin,
+        allow_ties: n.judgingConfig.allowTies,
       }));
 
       const { error: nominationsError } = await supabase
@@ -128,8 +180,8 @@ const CreateBattle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card">
-      <header className="border-b border-border/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <Button 
             variant="ghost" 
@@ -139,18 +191,21 @@ const CreateBattle = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to dashboard
           </Button>
-          <h1 className="text-2xl font-bold text-gradient-primary">
-            Create new battle
+          <h1 className="text-2xl font-bold">
+            Create New Battle
           </h1>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-3xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Battle Info */}
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle>Battle Information</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Battle Information
+              </CardTitle>
               <CardDescription>
                 Basic event details
               </CardDescription>
@@ -160,9 +215,10 @@ const CreateBattle = () => {
                 <Label htmlFor="name">Battle Name *</Label>
                 <Input
                   id="name"
-                  placeholder="Moscow Break 2025"
+                  placeholder="Street Battle 2025"
                   value={battleName}
                   onChange={(e) => setBattleName(e.target.value)}
+                  className="text-lg h-12"
                   required
                 />
               </div>
@@ -175,6 +231,7 @@ const CreateBattle = () => {
                     type="date"
                     value={battleDate}
                     onChange={(e) => setBattleDate(e.target.value)}
+                    className="h-11"
                     required
                   />
                 </div>
@@ -185,6 +242,7 @@ const CreateBattle = () => {
                     type="time"
                     value={battleTime}
                     onChange={(e) => setBattleTime(e.target.value)}
+                    className="h-11"
                     required
                   />
                 </div>
@@ -194,7 +252,7 @@ const CreateBattle = () => {
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  placeholder="Moscow, Lenin St. 1"
+                  placeholder="City, Address"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                 />
@@ -203,13 +261,13 @@ const CreateBattle = () => {
           </Card>
 
           {/* Nominations */}
-          <Card className="border-border/50">
-            <CardHeader>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Categories</CardTitle>
                   <CardDescription>
-                    Add up to 5 categories (Solo, Doubles, Power Moves, etc.)
+                    Add categories with custom judging systems
                   </CardDescription>
                 </div>
                 <Button
@@ -221,95 +279,115 @@ const CreateBattle = () => {
                   className="border-primary text-primary hover:bg-primary/10"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add
+                  Add Category
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {nominations.map((nomination, index) => (
-                <div 
+                <Collapsible
                   key={nomination.id}
-                  className="p-4 border border-border/50 rounded-lg space-y-3"
+                  open={nomination.isOpen}
+                  onOpenChange={() => toggleNomination(nomination.id)}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Category {index + 1}
-                    </span>
-                    {nominations.length > 1 && (
-                      <Button
+                  <div className="border border-border/50 rounded-xl overflow-hidden bg-card">
+                    {/* Header */}
+                    <CollapsibleTrigger asChild>
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeNomination(nomination.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor={`nom-name-${nomination.id}`}>
-                      Name *
-                    </Label>
-                    <Input
-                      id={`nom-name-${nomination.id}`}
-                      placeholder="Solo, Doubles, Power Moves..."
-                      value={nomination.name}
-                      onChange={(e) => updateNomination(nomination.id, 'name', e.target.value)}
-                      required
-                    />
-                  </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-semibold text-primary">
+                            {index + 1}
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold">
+                              {nomination.name || `Category ${index + 1}`}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {getModeLabel(nomination.judgingConfig.mode)} • {nomination.judgingConfig.roundsToWin} rounds to win
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {nominations.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeNomination(nomination.id);
+                              }}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {nomination.isOpen ? (
+                            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+                      </button>
+                    </CollapsibleTrigger>
 
-                  <div className="space-y-2">
-                    <Label htmlFor={`nom-desc-${nomination.id}`}>
-                      Description
-                    </Label>
-                    <Textarea
-                      id={`nom-desc-${nomination.id}`}
-                      placeholder="Brief category description..."
-                      value={nomination.description}
-                      onChange={(e) => updateNomination(nomination.id, 'description', e.target.value)}
-                      rows={2}
-                    />
-                  </div>
+                    {/* Content */}
+                    <CollapsibleContent>
+                      <div className="p-4 pt-0 space-y-6 border-t border-border/50">
+                        {/* Basic Info */}
+                        <div className="grid gap-4 sm:grid-cols-2 pt-4">
+                          <div className="space-y-2">
+                            <Label>Category Name *</Label>
+                            <Input
+                              placeholder="Solo, Doubles, Power Moves..."
+                              value={nomination.name}
+                              onChange={(e) => updateNomination(nomination.id, 'name', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Description</Label>
+                            <Input
+                              placeholder="Brief description..."
+                              value={nomination.description}
+                              onChange={(e) => updateNomination(nomination.id, 'description', e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor={`nom-mode-${nomination.id}`}>
-                      Judging Mode
-                    </Label>
-                    <Select
-                      value={nomination.judging_mode}
-                      onValueChange={(value) => updateNomination(nomination.id, 'judging_mode', value)}
-                    >
-                      <SelectTrigger id={`nom-mode-${nomination.id}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="simple">Simple Vote (Pick Winner)</SelectItem>
-                        <SelectItem value="sliders">3 Sliders (-5 to +5)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                        {/* Judging System */}
+                        <div className="space-y-3">
+                          <Label className="text-base font-semibold">Judging System</Label>
+                          <JudgingModeSelector
+                            value={nomination.judgingConfig}
+                            onChange={(config) => updateNomination(nomination.id, 'judgingConfig', config)}
+                          />
+                        </div>
+                      </div>
+                    </CollapsibleContent>
                   </div>
-                </div>
+                </Collapsible>
               ))}
             </CardContent>
           </Card>
 
           {/* Submit */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate("/dashboard")}
-              className="flex-1"
+              className="flex-1 h-12"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-primary hover:bg-primary/90 glow-primary"
+              className="flex-1 h-12 bg-primary hover:bg-primary/90"
             >
               {loading ? "Creating..." : "Create Battle"}
             </Button>

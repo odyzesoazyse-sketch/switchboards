@@ -411,36 +411,45 @@ export type Database = {
       }
       nominations: {
         Row: {
+          allow_ties: boolean | null
           battle_id: string
           created_at: string
           description: string | null
           id: string
+          judging_criteria: Json | null
           judging_mode: string
           max_dancers: number | null
           name: string
           phase: Database["public"]["Enums"]["battle_phase"]
+          rounds_to_win: number | null
           top_count: number | null
         }
         Insert: {
+          allow_ties?: boolean | null
           battle_id: string
           created_at?: string
           description?: string | null
           id?: string
+          judging_criteria?: Json | null
           judging_mode?: string
           max_dancers?: number | null
           name: string
           phase?: Database["public"]["Enums"]["battle_phase"]
+          rounds_to_win?: number | null
           top_count?: number | null
         }
         Update: {
+          allow_ties?: boolean | null
           battle_id?: string
           created_at?: string
           description?: string | null
           id?: string
+          judging_criteria?: Json | null
           judging_mode?: string
           max_dancers?: number | null
           name?: string
           phase?: Database["public"]["Enums"]["battle_phase"]
+          rounds_to_win?: number | null
           top_count?: number | null
         }
         Relationships: [
