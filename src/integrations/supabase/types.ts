@@ -559,6 +559,7 @@ export type Database = {
           background_image_url: string | null
           background_type: string | null
           battle_id: string
+          bracket_layout: string | null
           created_at: string
           current_match_id: string | null
           current_round: number | null
@@ -595,6 +596,7 @@ export type Database = {
           background_image_url?: string | null
           background_type?: string | null
           battle_id: string
+          bracket_layout?: string | null
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null
@@ -631,6 +633,7 @@ export type Database = {
           background_image_url?: string | null
           background_type?: string | null
           battle_id?: string
+          bracket_layout?: string | null
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null

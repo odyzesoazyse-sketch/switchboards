@@ -22,6 +22,7 @@ interface ScreenState {
   votes_left: number;
   votes_right: number;
   show_bracket: boolean;
+  bracket_layout: "symmetric" | "linear";
   // Customization fields
   background_type: string;
   background_color: string;
@@ -355,7 +356,13 @@ export default function BattleScreen() {
             </div>
           )}
           <Card className={`p-4 sm:p-6 md:p-8 ${isLightTheme ? 'bg-gray-100/80' : 'bg-white/5'} border-white/10 backdrop-blur overflow-x-auto`}>
-            <TournamentBracket matches={allMatches} dancers={allDancers} />
+            <TournamentBracket 
+              matches={allMatches} 
+              dancers={allDancers} 
+              layout={screenState.bracket_layout || "symmetric"}
+              activeMatchId={screenState.current_match_id}
+              isLightTheme={isLightTheme}
+            />
           </Card>
         </div>
       </div>

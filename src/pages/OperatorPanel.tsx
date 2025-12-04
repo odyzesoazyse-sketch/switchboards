@@ -54,6 +54,7 @@ interface ScreenState {
   votes_left: number;
   votes_right: number;
   show_bracket: boolean;
+  bracket_layout: "symmetric" | "linear";
   background_type: string;
   background_color: string;
   background_gradient_from: string;
@@ -103,6 +104,7 @@ export default function OperatorPanel() {
   const [votesLeft, setVotesLeft] = useState(0);
   const [votesRight, setVotesRight] = useState(0);
   const [showBracket, setShowBracket] = useState(false);
+  const [bracketLayout, setBracketLayout] = useState<"symmetric" | "linear">("symmetric");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [judgingMode, setJudgingMode] = useState<string>("simple");
   const [voteCount, setVoteCount] = useState(0);
@@ -222,6 +224,7 @@ export default function OperatorPanel() {
         setVotesLeft(stateData.votes_left);
         setVotesRight(stateData.votes_right);
         setShowBracket(stateData.show_bracket || false);
+        setBracketLayout((stateData as any).bracket_layout || "symmetric");
         setBackgroundType(stateData.background_type || "solid");
         setBackgroundColor(stateData.background_color || "#1a1a2e");
         setGradientFrom(stateData.background_gradient_from || "#1a1a2e");
@@ -433,13 +436,33 @@ export default function OperatorPanel() {
     });
   };
 
-  const toggleBracket = async () => {
-    const newValue = !showBracket;
-    setShowBracket(newValue);
-    await updateScreenState({
-      show_bracket: newValue,
-      current_match_id: newValue ? null : screenState?.current_match_id,
-    });
+  const toggleBracket = async (layout?: "symmetric" | "linear") => {
+    if (layout) {
+      // If clicking same layout that's already showing, hide it
+      if (showBracket && bracketLayout === layout) {
+        setShowBracket(false);
+        await updateScreenState({
+          show_bracket: false,
+        } as any);
+      } else {
+        // Show bracket with selected layout
+        setShowBracket(true);
+        setBracketLayout(layout);
+        await updateScreenState({
+          show_bracket: true,
+          bracket_layout: layout,
+          current_match_id: null,
+        } as any);
+      }
+    } else {
+      const newValue = !showBracket;
+      setShowBracket(newValue);
+      await updateScreenState({
+        show_bracket: newValue,
+        bracket_layout: bracketLayout,
+        current_match_id: newValue ? null : screenState?.current_match_id,
+      } as any);
+    }
   };
 
   const startTimer = async () => {
@@ -953,14 +976,26 @@ export default function OperatorPanel() {
                   <Trophy className="h-4 w-4" />
                   Winner
                 </Button>
-                <Button 
-                  variant={showBracket ? "default" : "outline"} 
-                  onClick={toggleBracket}
-                  className="gap-1"
-                >
-                  <Layout className="h-4 w-4" />
-                  Bracket
-                </Button>
+                <div className="flex gap-1">
+                  <Button 
+                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"} 
+                    onClick={() => toggleBracket("symmetric")}
+                    className="gap-1 flex-1"
+                    size="sm"
+                  >
+                    <Layout className="h-3 w-3" />
+                    <span className="text-[10px]">←|→</span>
+                  </Button>
+                  <Button 
+                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"} 
+                    onClick={() => toggleBracket("linear")}
+                    className="gap-1 flex-1"
+                    size="sm"
+                  >
+                    <Layout className="h-3 w-3" />
+                    <span className="text-[10px]">→→→</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>
