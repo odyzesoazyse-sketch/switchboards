@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import LiveChat from "@/components/LiveChat";
 
 interface Battle {
   id: string;
@@ -43,6 +44,7 @@ export default function BattlePublic() {
   const [formData, setFormData] = useState({ name: "", city: "", age: "" });
   const [submitting, setSubmitting] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     if (id) loadBattle();
@@ -349,6 +351,20 @@ export default function BattlePublic() {
               </form>
             </CardContent>
           </Card>
+        )}
+      </div>
+
+      {/* Live Chat */}
+      <div className="fixed bottom-4 right-4 z-50">
+        {chatOpen ? (
+          <LiveChat battleId={id!} isOpen={chatOpen} onToggle={() => setChatOpen(false)} />
+        ) : (
+          <Button
+            onClick={() => setChatOpen(true)}
+            className="rounded-full w-14 h-14 shadow-lg"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
         )}
       </div>
     </div>
