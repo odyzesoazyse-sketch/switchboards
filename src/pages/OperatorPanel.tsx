@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,17 @@ import {
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye, 
   Palette, MessageSquare, Timer, 
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, Settings, ChevronDown, Users
+  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import SliderVoting from "@/components/SliderVoting";
 import ScreenTemplates from "@/components/ScreenTemplates";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
+import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 
 interface Match {
   id: string;
@@ -535,6 +535,24 @@ export default function OperatorPanel() {
 
   const currentMatch = getCurrentMatch();
   const currentNomination = nominations.find(n => n.id === selectedNomination);
+  const currentNominationIndex = nominations.findIndex(n => n.id === selectedNomination);
+
+  const goToNextNomination = useCallback(() => {
+    if (nominations.length <= 1) return;
+    const nextIndex = (currentNominationIndex + 1) % nominations.length;
+    setSelectedNomination(nominations[nextIndex].id);
+  }, [nominations, currentNominationIndex]);
+
+  const goToPrevNomination = useCallback(() => {
+    if (nominations.length <= 1) return;
+    const prevIndex = currentNominationIndex <= 0 ? nominations.length - 1 : currentNominationIndex - 1;
+    setSelectedNomination(nominations[prevIndex].id);
+  }, [nominations, currentNominationIndex]);
+
+  const swipeHandlers = useSwipeGesture({
+    onSwipeLeft: goToNextNomination,
+    onSwipeRight: goToPrevNomination,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -796,21 +814,58 @@ export default function OperatorPanel() {
         </div>
       </div>
 
-      <div className="px-3 py-4 space-y-4 max-w-4xl mx-auto">
-        {/* Nomination Tabs */}
+      <div 
+        className="px-3 py-4 space-y-4 max-w-4xl mx-auto"
+        {...swipeHandlers}
+      >
+        {/* Nomination Tabs with swipe hint */}
         {nominations.length > 1 && (
-          <div className="overflow-x-auto -mx-3 px-3">
-            <div className="flex gap-2 min-w-max pb-2">
-              {nominations.map((nom) => (
-                <Button
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToPrevNomination}
+                className="h-8 w-8"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex-1 overflow-x-auto mx-2">
+                <div className="flex gap-2 justify-center min-w-max">
+                  {nominations.map((nom, index) => (
+                    <Button
+                      key={nom.id}
+                      variant={selectedNomination === nom.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedNomination(nom.id)}
+                      className="shrink-0"
+                    >
+                      {nom.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={goToNextNomination}
+                className="h-8 w-8"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Swipe indicator */}
+            <div className="flex justify-center gap-1">
+              {nominations.map((nom, index) => (
+                <div 
                   key={nom.id}
-                  variant={selectedNomination === nom.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedNomination(nom.id)}
-                  className="shrink-0"
-                >
-                  {nom.name}
-                </Button>
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    selectedNomination === nom.id ? 'bg-primary w-4' : 'bg-muted-foreground/30'
+                  }`}
+                />
               ))}
             </div>
           </div>
