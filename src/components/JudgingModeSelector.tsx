@@ -14,7 +14,8 @@ import {
   Plus, 
   Trash2,
   Check,
-  Info
+  Info,
+  Eye
 } from "lucide-react";
 import {
   Tooltip,
@@ -22,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import JudgingPreview from "./JudgingPreview";
 
 export interface JudgingCriterion {
   id: string;
@@ -91,6 +93,7 @@ const PRESET_MODES = [
 
 export default function JudgingModeSelector({ value, onChange }: JudgingModeSelectorProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleModeSelect = (modeId: JudgingConfig['mode']) => {
     const preset = PRESET_MODES.find(m => m.id === modeId);
@@ -309,6 +312,24 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
             />
           </div>
         </Card>
+      )}
+
+      {/* Preview Toggle */}
+      <button
+        type="button"
+        onClick={() => setShowPreview(!showPreview)}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Eye className="w-4 h-4" />
+        Judge View Preview
+        <Badge variant="outline" className="text-xs">
+          {showPreview ? 'Hide' : 'Show'}
+        </Badge>
+      </button>
+
+      {/* Preview */}
+      {showPreview && (
+        <JudgingPreview config={value} />
       )}
     </div>
   );
