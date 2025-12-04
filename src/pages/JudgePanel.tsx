@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Menu, History, LogOut, X, Home } from "lucide-react";
+import { Trophy, Menu, History, LogOut, X, Home, Check, User } from "lucide-react";
 import SliderVoting from "@/components/SliderVoting";
 
 interface Dancer {
@@ -78,7 +78,6 @@ export default function JudgePanel() {
         return;
       }
 
-      // Check judge role
       const { data: roles } = await supabase
         .from("user_roles")
         .select("battle_id")
@@ -93,7 +92,6 @@ export default function JudgePanel() {
 
       const battleIds = roles.map(r => r.battle_id);
 
-      // Load active match from screen_state
       const { data: screenStates } = await supabase
         .from("screen_state")
         .select(`
@@ -116,7 +114,6 @@ export default function JudgePanel() {
         return;
       }
 
-      // Load match info
       const { data: matchData } = await supabase
         .from("matches")
         .select(`
@@ -135,7 +132,6 @@ export default function JudgePanel() {
         return;
       }
 
-      // Load dancers
       const dancerIds = [matchData.dancer_left_id, matchData.dancer_right_id].filter(Boolean);
       const { data: dancers } = await supabase
         .from("dancers")
@@ -158,7 +154,6 @@ export default function JudgePanel() {
 
       setActiveMatch(match);
 
-      // Check if already voted this round
       const { data: existingVote } = await supabase
         .from("match_votes")
         .select("id")
@@ -223,8 +218,8 @@ export default function JudgePanel() {
       if (error) throw error;
 
       toast({
-        title: "Vote accepted",
-        description: "Your vote has been registered",
+        title: "Vote Submitted",
+        description: "Your vote has been recorded",
       });
 
       setHasVotedThisRound(true);
@@ -266,8 +261,8 @@ export default function JudgePanel() {
       if (error) throw error;
 
       toast({
-        title: "Vote accepted",
-        description: "Your scores have been registered",
+        title: "Vote Submitted",
+        description: "Your scores have been recorded",
       });
 
       setHasVotedThisRound(true);
@@ -286,10 +281,14 @@ export default function JudgePanel() {
     setMenuOpen(false);
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-xl">Loading...</div>
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -297,10 +296,10 @@ export default function JudgePanel() {
   // History view
   if (showHistory) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Vote History</h1>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-lg mx-auto p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-display font-bold">Vote History</h1>
             <Button variant="ghost" size="icon" onClick={() => setShowHistory(false)}>
               <X className="h-5 w-5" />
             </Button>
@@ -308,24 +307,23 @@ export default function JudgePanel() {
 
           <div className="space-y-3">
             {voteHistory.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No votes yet</p>
+              <div className="text-center py-16">
+                <History className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">No votes yet</p>
+              </div>
             ) : (
               voteHistory.map((vote) => (
                 <Card key={vote.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">
-                        {vote.dancer_name || "Draw"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Round {vote.round_number}
-                      </p>
+                      <p className="font-semibold">{vote.dancer_name || "Draw"}</p>
+                      <p className="text-sm text-muted-foreground">Round {vote.round_number}</p>
                     </div>
                     {vote.slider_technique !== null && (
-                      <div className="text-right text-sm">
-                        <p>T: {vote.slider_technique}</p>
-                        <p>M: {vote.slider_musicality}</p>
-                        <p>P: {vote.slider_performance}</p>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <p>T: {vote.slider_technique > 0 ? '+' : ''}{vote.slider_technique}</p>
+                        <p>M: {vote.slider_musicality > 0 ? '+' : ''}{vote.slider_musicality}</p>
+                        <p>P: {vote.slider_performance > 0 ? '+' : ''}{vote.slider_performance}</p>
                       </div>
                     )}
                   </div>
@@ -338,43 +336,46 @@ export default function JudgePanel() {
     );
   }
 
-  // No active match
+  // No active match - waiting screen
   if (!activeMatch) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <Trophy className="w-12 h-12 text-muted-foreground" />
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="text-center space-y-6 max-w-sm">
+            <div className="w-24 h-24 mx-auto rounded-3xl bg-muted flex items-center justify-center animate-pulse-soft">
+              <Trophy className="w-12 h-12 text-muted-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold mb-2">Waiting for Battle</h1>
+              <p className="text-muted-foreground">
+                The operator will start the match soon. Stay ready!
+              </p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold">Waiting for Battle</h1>
-          <p className="text-muted-foreground">
-            The operator will start the match soon
-          </p>
         </div>
 
-        {/* Menu Button */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-          <Button
-            size="lg"
-            className="rounded-full w-16 h-16 shadow-lg"
+        {/* Floating Menu */}
+        <div className="fab">
+          <button
+            className="fab-button flex items-center justify-center text-white"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          </button>
 
           {menuOpen && (
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card border rounded-2xl shadow-xl p-2 min-w-[200px]">
+            <div className="fab-menu">
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3"
+                className="w-full justify-start gap-3 h-12"
                 onClick={openHistory}
               >
                 <History className="h-5 w-5" />
                 Vote History
               </Button>
-            <Button
+              <Button
                 variant="ghost"
-                className="w-full justify-start gap-3"
+                className="w-full justify-start gap-3 h-12"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-5 w-5" />
@@ -382,14 +383,85 @@ export default function JudgePanel() {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 text-destructive"
+                className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive"
                 onClick={async () => {
                   await supabase.auth.signOut();
                   navigate("/auth");
                 }}
               >
                 <LogOut className="h-5 w-5" />
-                Logout
+                Sign Out
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Vote submitted - confirmation screen
+  if (hasVotedThisRound) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <div className="p-6 text-center border-b border-border/50">
+          <h1 className="text-lg font-display font-bold">{activeMatch.battle_name}</h1>
+          <p className="text-sm text-muted-foreground">
+            {activeMatch.nomination_name} • Round {activeMatch.current_round}
+          </p>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="text-center space-y-6 max-w-sm animate-scale-in">
+            <div className="w-24 h-24 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+              <Check className="w-12 h-12 text-success" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-display font-bold mb-2">Vote Submitted</h2>
+              <p className="text-muted-foreground">
+                Waiting for the next round...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Menu */}
+        <div className="fab">
+          <button
+            className="fab-button flex items-center justify-center text-white"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+
+          {menuOpen && (
+            <div className="fab-menu">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12"
+                onClick={openHistory}
+              >
+                <History className="h-5 w-5" />
+                Vote History
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12"
+                onClick={() => navigate("/")}
+              >
+                <Home className="h-5 w-5" />
+                Home
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate("/auth");
+                }}
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
               </Button>
             </div>
           )}
@@ -402,65 +474,85 @@ export default function JudgePanel() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="p-4 text-center border-b">
-        <h1 className="text-lg font-bold">{activeMatch.battle_name}</h1>
+      <div className="p-6 text-center border-b border-border/50">
+        <h1 className="text-lg font-display font-bold">{activeMatch.battle_name}</h1>
         <p className="text-sm text-muted-foreground">
           {activeMatch.nomination_name} • Round {activeMatch.current_round}
         </p>
       </div>
 
       {/* Voting Area */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        {hasVotedThisRound ? (
-          <div className="text-center space-y-4">
-            <div className="w-20 h-20 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
-              <Trophy className="w-10 h-10 text-green-500" />
-            </div>
-            <h2 className="text-xl font-bold">Vote Submitted</h2>
-            <p className="text-muted-foreground">Waiting for next round...</p>
-          </div>
-        ) : activeMatch.judging_mode === "simple" ? (
-          <div className="w-full max-w-4xl grid grid-cols-3 gap-4 items-center">
-            <Card 
-              className="p-6 text-center border-2 border-opponent-left/30 hover:border-opponent-left cursor-pointer transition-all active:scale-95"
-              onClick={() => activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id)}
-            >
-              <div className="space-y-3">
-                <div className="w-20 h-20 mx-auto rounded-full bg-opponent-left/20 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-opponent-left">L</span>
-                </div>
-                <div className="text-xl font-bold text-opponent-left">
-                  {activeMatch.dancer_left?.name || "Waiting"}
-                </div>
-                {activeMatch.dancer_left?.city && (
-                  <div className="text-sm text-muted-foreground">{activeMatch.dancer_left.city}</div>
-                )}
-              </div>
-            </Card>
-
-            <div className="text-center text-4xl font-bold text-muted-foreground">
-              VS
+      <div className="flex-1 flex items-center justify-center p-6">
+        {activeMatch.judging_mode === "simple" ? (
+          <div className="w-full max-w-4xl">
+            {/* VS Header */}
+            <div className="text-center mb-8">
+              <span className="text-4xl font-display font-bold text-muted-foreground/50">VS</span>
             </div>
 
-            <Card 
-              className="p-6 text-center border-2 border-opponent-right/30 hover:border-opponent-right cursor-pointer transition-all active:scale-95"
-              onClick={() => activeMatch.dancer_right_id && submitVote(activeMatch.dancer_right_id)}
-            >
-              <div className="space-y-3">
-                <div className="w-20 h-20 mx-auto rounded-full bg-opponent-right/20 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-opponent-right">R</span>
-                </div>
-                <div className="text-xl font-bold text-opponent-right">
-                  {activeMatch.dancer_right?.name || "Waiting"}
-                </div>
-                {activeMatch.dancer_right?.city && (
-                  <div className="text-sm text-muted-foreground">{activeMatch.dancer_right.city}</div>
-                )}
-              </div>
-            </Card>
+            {/* Dancer Cards */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              {/* Left Dancer - Red */}
+              <button
+                className="group"
+                onClick={() => activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id)}
+              >
+                <Card className="p-6 sm:p-8 text-center card-red hover:border-primary transition-all active:scale-95 hover:shadow-glow-red">
+                  <div className="space-y-4">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-xl sm:text-2xl font-display font-bold text-primary truncate">
+                        {activeMatch.dancer_left?.name || "Waiting"}
+                      </div>
+                      {activeMatch.dancer_left?.city && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {activeMatch.dancer_left.city}
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-2">
+                      <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                        Tap to Vote
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </button>
+
+              {/* Right Dancer - Blue */}
+              <button
+                className="group"
+                onClick={() => activeMatch.dancer_right_id && submitVote(activeMatch.dancer_right_id)}
+              >
+                <Card className="p-6 sm:p-8 text-center card-blue hover:border-secondary transition-all active:scale-95 hover:shadow-glow-blue">
+                  <div className="space-y-4">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                      <User className="w-10 h-10 sm:w-12 sm:h-12 text-secondary" />
+                    </div>
+                    <div>
+                      <div className="text-xl sm:text-2xl font-display font-bold text-secondary truncate">
+                        {activeMatch.dancer_right?.name || "Waiting"}
+                      </div>
+                      {activeMatch.dancer_right?.city && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {activeMatch.dancer_right.city}
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-2">
+                      <span className="inline-block px-4 py-2 rounded-full bg-secondary/10 text-secondary font-semibold text-sm">
+                        Tap to Vote
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="w-full max-w-2xl">
+          <div className="w-full max-w-lg">
             <SliderVoting
               matchId={activeMatch.id}
               dancerLeft={{
@@ -478,21 +570,20 @@ export default function JudgePanel() {
         )}
       </div>
 
-      {/* Floating Menu Button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-        <Button
-          size="lg"
-          className="rounded-full w-16 h-16 shadow-lg"
+      {/* Floating Menu */}
+      <div className="fab">
+        <button
+          className="fab-button flex items-center justify-center text-white"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+        </button>
 
         {menuOpen && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card border rounded-2xl shadow-xl p-2 min-w-[200px]">
+          <div className="fab-menu">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3"
+              className="w-full justify-start gap-3 h-12"
               onClick={openHistory}
             >
               <History className="h-5 w-5" />
@@ -500,7 +591,7 @@ export default function JudgePanel() {
             </Button>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3"
+              className="w-full justify-start gap-3 h-12"
               onClick={() => navigate("/")}
             >
               <Home className="h-5 w-5" />
@@ -508,14 +599,14 @@ export default function JudgePanel() {
             </Button>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 text-destructive"
+              className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive"
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate("/auth");
               }}
             >
               <LogOut className="h-5 w-5" />
-              Logout
+              Sign Out
             </Button>
           </div>
         )}

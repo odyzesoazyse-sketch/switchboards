@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -65,7 +65,6 @@ export default function BattlePublic() {
         .eq("battle_id", id);
 
       if (nominationsData) {
-        // Get dancer counts for each nomination
         const nominationsWithCounts = await Promise.all(
           nominationsData.map(async (nom) => {
             const { count } = await supabase
@@ -105,7 +104,6 @@ export default function BattlePublic() {
 
     setSubmitting(true);
     try {
-      // Check if registration is still open
       const nomination = nominations.find(n => n.id === selectedNomination);
       if (!nomination || nomination.phase !== "registration") {
         toast.error("Registration is closed for this category");
@@ -117,7 +115,6 @@ export default function BattlePublic() {
         return;
       }
 
-      // Get next position
       const { count } = await supabase
         .from("dancers")
         .select("*", { count: "exact", head: true })
@@ -147,7 +144,7 @@ export default function BattlePublic() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -160,21 +157,28 @@ export default function BattlePublic() {
     );
   }
 
+  // Success state
   if (registered) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-card flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8">
-            <div className="w-20 h-20 mx-auto rounded-full bg-green-500/20 flex items-center justify-center mb-6">
-              <CheckCircle className="w-10 h-10 text-green-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="max-w-md w-full text-center animate-scale-in">
+          <CardContent className="pt-10 pb-8">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-success/10 flex items-center justify-center mb-6">
+              <CheckCircle className="w-10 h-10 text-success" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">You're Registered!</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-2xl font-display font-bold mb-2">You're In!</h2>
+            <p className="text-muted-foreground mb-8">
               Good luck at {battle.name}! Show up on time and bring your best moves.
             </p>
-            <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => navigate("/battles")}>Browse More Battles</Button>
-              <Button onClick={() => { setRegistered(false); setFormData({ name: "", city: "", age: "" }); setSelectedNomination(null); }}>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button variant="outline" onClick={() => navigate("/battles")}>
+                Browse More
+              </Button>
+              <Button onClick={() => { 
+                setRegistered(false); 
+                setFormData({ name: "", city: "", age: "" }); 
+                setSelectedNomination(null); 
+              }}>
                 Register Another
               </Button>
             </div>
@@ -187,19 +191,27 @@ export default function BattlePublic() {
   const openNominations = nominations.filter(n => n.phase === "registration");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card">
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <Button variant="ghost" onClick={() => navigate("/battles")} className="mb-6">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-6 py-8 max-w-2xl">
+        <Button variant="ghost" onClick={() => navigate("/battles")} className="mb-8 -ml-2">
           <ArrowLeft className="mr-2 h-4 w-4" />
           All Battles
         </Button>
 
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-3 text-gradient-primary">{battle.name}</h1>
+        {/* Battle Info */}
+        <div className="mb-10">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold mb-4 text-gradient-mixed">
+            {battle.name}
+          </h1>
           <div className="flex flex-wrap gap-4 text-muted-foreground">
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {new Date(battle.date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              {new Date(battle.date).toLocaleDateString("en-US", { 
+                weekday: "long", 
+                year: "numeric", 
+                month: "long", 
+                day: "numeric" 
+              })}
             </span>
             {battle.location && (
               <span className="flex items-center gap-2">
@@ -210,72 +222,89 @@ export default function BattlePublic() {
           </div>
         </div>
 
+        {/* Registration closed */}
         {openNominations.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
-              <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Registration Closed</h3>
+            <CardContent className="py-16 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-muted flex items-center justify-center mb-6">
+                <Trophy className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-display font-semibold mb-2">Registration Closed</h3>
               <p className="text-muted-foreground">This battle is no longer accepting registrations.</p>
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card className="border-border/50">
             <CardHeader>
-              <CardTitle>Register as Dancer</CardTitle>
-              <CardDescription>Fill out the form to register for this battle</CardDescription>
+              <CardTitle className="font-display">Register as Dancer</CardTitle>
+              <CardDescription>Fill out the form to join this battle</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-base font-semibold mb-3 block">Select Category *</Label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {openNominations.map((nom) => (
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Category Selection */}
+                <div>
+                  <Label className="text-base font-semibold mb-4 block">
+                    Select Category <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {openNominations.map((nom) => {
+                      const isFull = nom.dancer_count >= nom.max_dancers;
+                      const isSelected = selectedNomination === nom.id;
+                      
+                      return (
                         <Card
                           key={nom.id}
                           className={`cursor-pointer transition-all ${
-                            selectedNomination === nom.id
-                              ? "border-primary ring-2 ring-primary/20"
+                            isSelected
+                              ? "border-primary ring-2 ring-primary/20 bg-primary/5"
                               : "hover:border-primary/50"
-                          } ${nom.dancer_count >= nom.max_dancers ? "opacity-50 cursor-not-allowed" : ""}`}
-                          onClick={() => nom.dancer_count < nom.max_dancers && setSelectedNomination(nom.id)}
+                          } ${isFull ? "opacity-50 cursor-not-allowed" : ""}`}
+                          onClick={() => !isFull && setSelectedNomination(nom.id)}
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center justify-between mb-2">
                               <span className="font-semibold">{nom.name}</span>
-                              {selectedNomination === nom.id && (
+                              {isSelected && (
                                 <CheckCircle className="w-5 h-5 text-primary" />
                               )}
                             </div>
                             {nom.description && (
-                              <p className="text-sm text-muted-foreground mb-2">{nom.description}</p>
+                              <p className="text-sm text-muted-foreground mb-3">{nom.description}</p>
                             )}
                             <div className="flex items-center gap-2 text-sm">
-                              <Users className="w-4 h-4" />
-                              <span>{nom.dancer_count} / {nom.max_dancers}</span>
-                              {nom.dancer_count >= nom.max_dancers && (
-                                <Badge variant="destructive" className="ml-auto">Full</Badge>
+                              <Users className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">
+                                {nom.dancer_count} / {nom.max_dancers}
+                              </span>
+                              {isFull && (
+                                <Badge variant="destructive" className="ml-auto text-xs">Full</Badge>
                               )}
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
+                </div>
 
+                {/* Form Fields */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">
+                      Dancer Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      placeholder="Your stage name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      maxLength={50}
+                      required
+                      className="mt-2 h-12"
+                    />
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="name">Dancer Name *</Label>
-                      <Input
-                        id="name"
-                        placeholder="Your stage name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        maxLength={50}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
+                    <div>
                       <Label htmlFor="city">City</Label>
                       <Input
                         id="city"
@@ -283,9 +312,10 @@ export default function BattlePublic() {
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                         maxLength={50}
+                        className="mt-2 h-12"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div>
                       <Label htmlFor="age">Age</Label>
                       <Input
                         id="age"
@@ -295,13 +325,26 @@ export default function BattlePublic() {
                         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                         min={5}
                         max={99}
+                        className="mt-2 h-12"
                       />
                     </div>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={submitting || !selectedNomination}>
-                  {submitting ? "Registering..." : "Register"}
+                <Button 
+                  type="submit" 
+                  className="w-full h-14 text-lg" 
+                  size="lg" 
+                  disabled={submitting || !selectedNomination}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Register Now"
+                  )}
                 </Button>
               </form>
             </CardContent>

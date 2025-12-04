@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TournamentBracket from "@/components/TournamentBracket";
+import { Trophy, User } from "lucide-react";
 
 interface ScreenState {
   id: string;
@@ -66,7 +67,6 @@ export default function BattleScreen() {
 
   useEffect(() => {
     if (!id) return;
-
     loadScreenState();
 
     const channel = supabase
@@ -79,10 +79,7 @@ export default function BattleScreen() {
           table: 'screen_state',
           filter: `battle_id=eq.${id}`
         },
-        (payload) => {
-          console.log('Screen state updated:', payload);
-          loadScreenState();
-        }
+        () => loadScreenState()
       )
       .subscribe();
 
@@ -110,18 +107,13 @@ export default function BattleScreen() {
     try {
       setLoading(true);
       
-      // Загружаем название баттла
       const { data: battleData } = await supabase
         .from("battles")
         .select("name")
         .eq("id", id)
         .single();
       
-      if (battleData) {
-        setBattleName(battleData.name);
-      }
-      
-      let stateData = null;
+      if (battleData) setBattleName(battleData.name);
       
       const { data: existingState, error: stateError } = await supabase
         .from("screen_state")
@@ -131,8 +123,9 @@ export default function BattleScreen() {
 
       if (stateError) throw stateError;
 
+      let stateData = existingState;
+
       if (!existingState) {
-        // Создаём screen_state автоматически, если его нет
         const { data: newState, error: createError } = await supabase
           .from("screen_state")
           .insert({
@@ -152,42 +145,40 @@ export default function BattleScreen() {
 
         if (createError) throw createError;
         stateData = newState;
-      } else {
-        stateData = existingState;
       }
 
       setScreenState(stateData);
 
       if (stateData.current_match_id) {
-        const { data: matchData, error: matchError } = await supabase
+        const { data: matchData } = await supabase
           .from("matches")
           .select("*")
           .eq("id", stateData.current_match_id)
           .single();
 
-        if (matchError) throw matchError;
-        setCurrentMatch(matchData);
+        if (matchData) {
+          setCurrentMatch(matchData);
 
-        if (matchData.dancer_left_id) {
-          const { data: leftData } = await supabase
-            .from("dancers")
-            .select("*")
-            .eq("id", matchData.dancer_left_id)
-            .single();
-          setLeftDancer(leftData);
-        }
+          if (matchData.dancer_left_id) {
+            const { data: leftData } = await supabase
+              .from("dancers")
+              .select("*")
+              .eq("id", matchData.dancer_left_id)
+              .single();
+            setLeftDancer(leftData);
+          }
 
-        if (matchData.dancer_right_id) {
-          const { data: rightData } = await supabase
-            .from("dancers")
-            .select("*")
-            .eq("id", matchData.dancer_right_id)
-            .single();
-          setRightDancer(rightData);
+          if (matchData.dancer_right_id) {
+            const { data: rightData } = await supabase
+              .from("dancers")
+              .select("*")
+              .eq("id", matchData.dancer_right_id)
+              .single();
+            setRightDancer(rightData);
+          }
         }
       }
 
-      // Загружаем все матчи и танцоров для турнирной сетки
       if (stateData.nomination_id) {
         const { data: allMatchesData } = await supabase
           .from("matches")
@@ -238,12 +229,13 @@ export default function BattleScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen bg-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-          <p className="text-xl text-muted-foreground">Loading...</p>
+          <div className="w-16 h-16 border-4 border-background/30 border-t-background rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xl text-background/60">Loading...</p>
         </div>
       </div>
     );
@@ -251,26 +243,27 @@ export default function BattleScreen() {
 
   if (!screenState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen bg-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-          <p className="text-xl text-muted-foreground">Initializing screen...</p>
+          <div className="w-16 h-16 border-4 border-background/30 border-t-background rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xl text-background/60">Initializing...</p>
         </div>
       </div>
     );
   }
 
+  // Bracket view
   if (screenState.show_bracket) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 p-8">
+      <div className="min-h-screen bg-foreground p-8">
         <div className="max-w-[1600px] mx-auto space-y-8">
           <div className="text-center">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+            <h1 className="text-5xl font-display font-bold text-background mb-2">
               {battleName}
             </h1>
-            <p className="text-2xl text-muted-foreground">Tournament Bracket</p>
+            <p className="text-xl text-background/60">Tournament Bracket</p>
           </div>
-          <Card className="p-8 bg-card/50 backdrop-blur-sm">
+          <Card className="p-8 bg-background/5 border-background/10 backdrop-blur">
             <TournamentBracket matches={allMatches} dancers={allDancers} />
           </Card>
         </div>
@@ -278,35 +271,55 @@ export default function BattleScreen() {
     );
   }
 
+  // Waiting for match
   if (!currentMatch && !screenState.show_winner) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center p-8">
-        <div className="text-center space-y-8">
-          <h1 className="text-6xl font-bold text-white drop-shadow-2xl">{battleName}</h1>
-          <div className="bg-white/20 backdrop-blur-md rounded-3xl p-12 border-4 border-white/50">
-            <p className="text-4xl text-white">Waiting for match selection...</p>
-            <p className="text-xl text-white/80 mt-4">The operator will select the next battle soon</p>
+      <div className="min-h-screen bg-foreground flex items-center justify-center p-8">
+        <div className="text-center space-y-8 max-w-2xl">
+          <h1 className="text-6xl font-display font-bold text-background">{battleName}</h1>
+          <div className="glass-dark rounded-3xl p-12">
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-background/10 flex items-center justify-center mb-6">
+              <Trophy className="w-10 h-10 text-background/60" />
+            </div>
+            <p className="text-3xl text-background/80 font-display">Waiting for next battle...</p>
+            <p className="text-lg text-background/50 mt-2">The operator will select the match soon</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Winner screen
   if (screenState.show_winner && currentMatch?.winner_id) {
     const winner = currentMatch.winner_id === leftDancer?.id ? leftDancer : rightDancer;
+    const isRed = currentMatch.winner_id === leftDancer?.id;
+    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center p-8">
+      <div className={`min-h-screen flex items-center justify-center p-8 ${isRed ? 'bg-primary' : 'bg-secondary'}`}>
         <div className="text-center space-y-8 animate-scale-in">
-          <h1 className="text-8xl font-bold text-white drop-shadow-2xl">🏆 WINNER 🏆</h1>
-          <div className="bg-white/20 backdrop-blur-md rounded-3xl p-12 border-4 border-white/50">
-            <h2 className="text-6xl font-bold text-white mb-4">{winner?.name}</h2>
+          <div className="flex items-center justify-center gap-4 text-background">
+            <Trophy className="w-16 h-16" />
+            <h1 className="text-7xl font-display font-bold">WINNER</h1>
+            <Trophy className="w-16 h-16" />
+          </div>
+          
+          <div className="glass-dark rounded-3xl p-12 min-w-[400px]">
+            <div className="w-32 h-32 mx-auto rounded-2xl bg-background/10 flex items-center justify-center mb-6">
+              {winner?.photo_url ? (
+                <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover rounded-2xl" />
+              ) : (
+                <User className="w-16 h-16 text-background" />
+              )}
+            </div>
+            <h2 className="text-5xl font-display font-bold text-background mb-2">{winner?.name}</h2>
             {winner?.city && (
-              <p className="text-3xl text-white/90">{winner.city}</p>
+              <p className="text-2xl text-background/70">{winner.city}</p>
             )}
           </div>
+          
           {screenState.show_score && (
-            <div className="text-5xl font-bold text-white">
-              Score: {screenState.votes_left} - {screenState.votes_right}
+            <div className="text-5xl font-display font-bold text-background/90">
+              {screenState.votes_left} — {screenState.votes_right}
             </div>
           )}
         </div>
@@ -314,86 +327,90 @@ export default function BattleScreen() {
     );
   }
 
+  // Active match view
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 p-8">
+    <div className="min-h-screen bg-foreground p-8">
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Timer */}
         {screenState.show_timer && (
           <div className="text-center">
-            <div className="inline-block bg-gradient-to-r from-primary to-accent p-8 rounded-3xl shadow-2xl">
-              <div className="text-7xl font-bold text-white tabular-nums">
+            <div className="inline-block glass-dark rounded-2xl px-12 py-6">
+              <div className="text-7xl font-display font-bold text-background tabular-nums">
                 {formatTime(timeLeft)}
               </div>
             </div>
           </div>
         )}
 
+        {/* Main battle display */}
         <div className="grid grid-cols-3 gap-8 items-center">
-          <Card className="p-8 bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 backdrop-blur-sm">
-            {leftDancer ? (
-              <div className="text-center space-y-4">
-                {leftDancer.photo_url && (
-                  <img
-                    src={leftDancer.photo_url}
-                    alt={leftDancer.name}
-                    className="w-48 h-48 mx-auto rounded-full object-cover border-4 border-primary shadow-xl"
-                  />
-                )}
-                <h2 className="text-4xl font-bold">{leftDancer.name}</h2>
-                {leftDancer.city && (
-                  <p className="text-xl text-muted-foreground">{leftDancer.city}</p>
+          {/* Left dancer - Red */}
+          <Card className="p-8 bg-primary/10 border-2 border-primary/30 backdrop-blur">
+            <div className="text-center space-y-6">
+              <div className="w-48 h-48 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+                {leftDancer?.photo_url ? (
+                  <img src={leftDancer.photo_url} alt={leftDancer.name} className="w-full h-full object-cover rounded-3xl" />
+                ) : (
+                  <User className="w-24 h-24 text-primary" />
                 )}
               </div>
-            ) : (
-              <div className="text-center text-2xl text-muted-foreground">Waiting...</div>
-            )}
+              <div>
+                <h2 className="text-4xl font-display font-bold text-primary">{leftDancer?.name || "Waiting"}</h2>
+                {leftDancer?.city && (
+                  <p className="text-xl text-muted-foreground mt-2">{leftDancer.city}</p>
+                )}
+              </div>
+            </div>
           </Card>
 
-          <div className="text-center space-y-6">
-            <div className="text-8xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              VS
-            </div>
+          {/* Center - VS and score */}
+          <div className="text-center space-y-8">
+            <div className="text-8xl font-display font-bold text-background/20">VS</div>
+            
             {screenState.show_score && (
               <div className="flex items-center justify-center gap-8">
-                <div className="text-6xl font-bold text-primary">{screenState.votes_left}</div>
-                <div className="text-4xl text-muted-foreground">-</div>
-                <div className="text-6xl font-bold text-accent">{screenState.votes_right}</div>
+                <div className="text-7xl font-display font-bold text-primary glow-red">{screenState.votes_left}</div>
+                <div className="text-4xl text-background/30">—</div>
+                <div className="text-7xl font-display font-bold text-secondary glow-blue">{screenState.votes_right}</div>
               </div>
             )}
-            <Badge variant="secondary" className="text-2xl px-6 py-3">
+            
+            <Badge className="text-2xl px-6 py-3 bg-background/10 text-background border-background/20">
               Round {screenState.current_round}
             </Badge>
-            <div className="text-xl text-muted-foreground">
-              First to {screenState.rounds_to_win} wins
+            
+            <div className="text-lg text-background/50">
+              First to {screenState.rounds_to_win} rounds wins
             </div>
           </div>
 
-          <Card className="p-8 bg-gradient-to-br from-accent/20 to-accent/5 border-2 border-accent/30 backdrop-blur-sm">
-            {rightDancer ? (
-              <div className="text-center space-y-4">
-                {rightDancer.photo_url && (
-                  <img
-                    src={rightDancer.photo_url}
-                    alt={rightDancer.name}
-                    className="w-48 h-48 mx-auto rounded-full object-cover border-4 border-accent shadow-xl"
-                  />
-                )}
-                <h2 className="text-4xl font-bold">{rightDancer.name}</h2>
-                {rightDancer.city && (
-                  <p className="text-xl text-muted-foreground">{rightDancer.city}</p>
+          {/* Right dancer - Blue */}
+          <Card className="p-8 bg-secondary/10 border-2 border-secondary/30 backdrop-blur">
+            <div className="text-center space-y-6">
+              <div className="w-48 h-48 mx-auto rounded-3xl bg-secondary/10 flex items-center justify-center border-2 border-secondary/20">
+                {rightDancer?.photo_url ? (
+                  <img src={rightDancer.photo_url} alt={rightDancer.name} className="w-full h-full object-cover rounded-3xl" />
+                ) : (
+                  <User className="w-24 h-24 text-secondary" />
                 )}
               </div>
-            ) : (
-              <div className="text-center text-2xl text-muted-foreground">Waiting...</div>
-            )}
+              <div>
+                <h2 className="text-4xl font-display font-bold text-secondary">{rightDancer?.name || "Waiting"}</h2>
+                {rightDancer?.city && (
+                  <p className="text-xl text-muted-foreground mt-2">{rightDancer.city}</p>
+                )}
+              </div>
+            </div>
           </Card>
         </div>
 
+        {/* Judges */}
         {screenState.show_judges && judges.length > 0 && (
-          <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-            <h3 className="text-2xl font-bold mb-4 text-center">Judges</h3>
-            <div className="flex justify-center gap-6 flex-wrap">
+          <Card className="p-6 bg-background/5 border-background/10 backdrop-blur">
+            <h3 className="text-xl font-display font-bold mb-4 text-center text-background/60">Judges</h3>
+            <div className="flex justify-center gap-4 flex-wrap">
               {judges.map((judge) => (
-                <Badge key={judge.id} variant="secondary" className="text-lg px-4 py-2">
+                <Badge key={judge.id} className="text-lg px-4 py-2 bg-background/10 text-background border-background/20">
                   {judge.full_name || "Judge"}
                 </Badge>
               ))}
