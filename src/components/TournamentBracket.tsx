@@ -33,6 +33,14 @@ const ROUND_LABELS: Record<string, string> = {
   final: "FINAL",
 };
 
+// Generate expected matches per round for a 16-dancer bracket
+const EXPECTED_MATCHES: Record<string, number> = {
+  round_of_16: 8,
+  quarterfinal: 4,
+  semifinal: 2,
+  final: 1,
+};
+
 export default function TournamentBracket({ 
   matches, 
   dancers, 
@@ -47,7 +55,7 @@ export default function TournamentBracket({
 
   const getDancerName = (dancerId: string | null) => {
     const dancer = getDancer(dancerId);
-    return dancer ? dancer.name : "TBD";
+    return dancer ? dancer.name : "—";
   };
 
   const getMatchesByRound = (round: string) => {
@@ -56,29 +64,109 @@ export default function TournamentBracket({
       .sort((a, b) => a.position - b.position);
   };
 
-  const roundsData = ROUND_ORDER.map(round => ({
-    key: round,
-    label: ROUND_LABELS[round],
-    matches: getMatchesByRound(round),
-  })).filter(r => r.matches.length > 0);
+  // Create rounds with empty placeholder slots
+  const createRoundsWithPlaceholders = () => {
+    return ROUND_ORDER.map(round => {
+      const existingMatches = getMatchesByRound(round);
+      const expectedCount = EXPECTED_MATCHES[round];
+      
+      // Fill in placeholders for missing matches
+      const allMatches: (BracketMatch | null)[] = [];
+      for (let i = 1; i <= expectedCount; i++) {
+        const existingMatch = existingMatches.find(m => m.position === i);
+        allMatches.push(existingMatch || null);
+      }
+      
+      return {
+        key: round,
+        label: ROUND_LABELS[round],
+        matches: allMatches,
+        hasMatches: existingMatches.length > 0,
+      };
+    });
+  };
+
+  const roundsData = createRoundsWithPlaceholders();
+  
+  // Check if we have any matches at all
+  const hasAnyMatches = roundsData.some(r => r.hasMatches);
 
   const textColor = isLightTheme ? "text-gray-900" : "text-white";
   const mutedColor = isLightTheme ? "text-gray-500" : "text-white/50";
   const cardBg = isLightTheme ? "bg-white/90" : "bg-white/5";
   const cardBorder = isLightTheme ? "border-gray-200" : "border-white/10";
   const winnerBg = isLightTheme ? "bg-green-50" : "bg-green-500/20";
+  const emptyBg = isLightTheme ? "bg-gray-50" : "bg-white/[0.02]";
+  const emptyBorder = isLightTheme ? "border-dashed border-gray-300" : "border-dashed border-white/10";
 
-  const renderMatchCard = (match: BracketMatch, compact = false) => {
+  const renderMatchCard = (match: BracketMatch | null, compact = false) => {
+    // Empty placeholder slot
+    if (!match) {
+      return (
+        <Card
+          className={`
+            ${compact ? 'p-2' : 'p-3'} 
+            ${emptyBg}
+            ${emptyBorder}
+            backdrop-blur transition-all
+            ${compact ? 'min-w-[120px]' : 'min-w-[160px]'}
+          `}
+        >
+          <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} opacity-30`}>
+            <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-gray-500/20 flex items-center justify-center`}>
+              <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500`} />
+            </div>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} ${mutedColor}`}>TBD</span>
+          </div>
+          <div className={`border-t ${cardBorder} my-1 opacity-30`} />
+          <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} opacity-30`}>
+            <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-gray-500/20 flex items-center justify-center`}>
+              <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500`} />
+            </div>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} ${mutedColor}`}>TBD</span>
+          </div>
+        </Card>
+      );
+    }
+
     const leftDancer = getDancer(match.dancer_left_id);
     const rightDancer = getDancer(match.dancer_right_id);
     const isActive = match.id === activeMatchId;
     const hasWinner = match.winner_id !== null;
     const leftWon = match.winner_id === match.dancer_left_id;
     const rightWon = match.winner_id === match.dancer_right_id;
+    const isEmpty = !match.dancer_left_id && !match.dancer_right_id;
+
+    if (isEmpty) {
+      return (
+        <Card
+          className={`
+            ${compact ? 'p-2' : 'p-3'} 
+            ${emptyBg}
+            ${emptyBorder}
+            backdrop-blur transition-all
+            ${compact ? 'min-w-[120px]' : 'min-w-[160px]'}
+          `}
+        >
+          <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} opacity-40`}>
+            <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-primary/10 flex items-center justify-center`}>
+              <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-primary/50`} />
+            </div>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} ${mutedColor}`}>Waiting...</span>
+          </div>
+          <div className={`border-t ${cardBorder} my-1 opacity-30`} />
+          <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} opacity-40`}>
+            <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-secondary/10 flex items-center justify-center`}>
+              <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-secondary/50`} />
+            </div>
+            <span className={`${compact ? 'text-xs' : 'text-sm'} ${mutedColor}`}>Waiting...</span>
+          </div>
+        </Card>
+      );
+    }
 
     return (
       <Card
-        key={match.id}
         className={`
           ${compact ? 'p-2' : 'p-3'} 
           ${cardBg} 
@@ -129,26 +217,22 @@ export default function TournamentBracket({
       <div className="w-full overflow-x-auto py-4">
         <div className="flex gap-4 md:gap-6 lg:gap-8 min-w-max items-start">
           {roundsData.map((round, roundIndex) => {
-            // Calculate vertical spacing based on round
             const spacing = Math.pow(2, roundIndex) * 16;
             
             return (
               <div key={round.key} className="flex flex-col items-center">
-                {/* Round label */}
-                <div className={`text-xs font-bold ${mutedColor} mb-4 px-3 py-1 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+                <div className={`text-xs font-bold ${round.hasMatches ? mutedColor : 'text-gray-400'} mb-4 px-3 py-1 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
                   {round.label}
                 </div>
                 
-                {/* Matches column */}
                 <div 
-                  className="flex flex-col justify-around h-full"
+                  className="flex flex-col justify-around"
                   style={{ gap: `${spacing}px` }}
                 >
-                  {round.matches.map(match => (
-                    <div key={match.id} className="relative">
+                  {round.matches.map((match, idx) => (
+                    <div key={match?.id || `empty-${round.key}-${idx}`} className="relative">
                       {renderMatchCard(match, true)}
                       
-                      {/* Connector line to next round */}
                       {roundIndex < roundsData.length - 1 && (
                         <div 
                           className={`absolute top-1/2 -right-4 md:-right-6 lg:-right-8 w-4 md:w-6 lg:w-8 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`}
@@ -166,59 +250,81 @@ export default function TournamentBracket({
   }
 
   // Symmetric layout: left side -> final -> right side
-  const halfPoint = Math.ceil(roundsData.length / 2);
-  const leftRounds = roundsData.slice(0, halfPoint);
-  const rightRounds = [...roundsData.slice(0, halfPoint - 1)].reverse();
-  const finalRound = roundsData.find(r => r.key === "final");
-
-  // Split matches for symmetric display
-  const getHalfMatches = (matches: BracketMatch[], isLeft: boolean) => {
-    const half = Math.ceil(matches.length / 2);
-    return isLeft ? matches.slice(0, half) : matches.slice(half);
+  // Split matches: odd positions go left, even positions go right
+  const getSymmetricMatches = (allMatches: (BracketMatch | null)[], isLeft: boolean) => {
+    return allMatches.filter((_, idx) => isLeft ? idx % 2 === 0 : idx % 2 === 1);
   };
+
+  const round16 = roundsData.find(r => r.key === "round_of_16");
+  const quarters = roundsData.find(r => r.key === "quarterfinal");
+  const semis = roundsData.find(r => r.key === "semifinal");
+  const finals = roundsData.find(r => r.key === "final");
 
   return (
     <div className="w-full overflow-x-auto py-4">
       <div className="flex items-center justify-center gap-2 md:gap-4 lg:gap-6 min-w-max">
-        {/* Left side (first half of bracket) */}
-        <div className="flex gap-2 md:gap-4 lg:gap-6 items-center">
-          {leftRounds.filter(r => r.key !== "final").map((round, roundIndex) => {
-            const leftMatches = getHalfMatches(round.matches, true);
-            const spacing = Math.pow(2, roundIndex) * 20;
-            
-            return (
-              <div key={`left-${round.key}`} className="flex flex-col items-center">
-                <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
-                  {round.label}
+        
+        {/* Left 1/8 */}
+        {round16 && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/8
+            </div>
+            <div className="flex flex-col gap-3">
+              {getSymmetricMatches(round16.matches, true).map((match, idx) => (
+                <div key={match?.id || `l16-left-${idx}`} className="relative">
+                  {renderMatchCard(match, true)}
+                  <div className={`absolute top-1/2 -right-2 md:-right-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
                 </div>
-                <div 
-                  className="flex flex-col justify-center"
-                  style={{ gap: `${spacing}px` }}
-                >
-                  {leftMatches.map(match => (
-                    <div key={match.id} className="relative">
-                      {renderMatchCard(match, true)}
-                      {/* Connector */}
-                      <div className={`absolute top-1/2 -right-2 md:-right-4 lg:-right-6 w-2 md:w-4 lg:w-6 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Finals (center) */}
-        {finalRound && finalRound.matches.length > 0 && (
+        {/* Left 1/4 */}
+        {quarters && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/4
+            </div>
+            <div className="flex flex-col gap-[72px]">
+              {getSymmetricMatches(quarters.matches, true).map((match, idx) => (
+                <div key={match?.id || `qf-left-${idx}`} className="relative">
+                  {renderMatchCard(match, true)}
+                  <div className={`absolute top-1/2 -right-2 md:-right-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Left 1/2 */}
+        {semis && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/2
+            </div>
+            <div className="flex flex-col justify-center">
+              {getSymmetricMatches(semis.matches, true).map((match, idx) => (
+                <div key={match?.id || `sf-left-${idx}`} className="relative">
+                  {renderMatchCard(match, true)}
+                  <div className={`absolute top-1/2 -right-2 md:-right-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FINAL (center) */}
+        {finals && (
           <div className="flex flex-col items-center mx-2 md:mx-4">
             <div className={`text-xs md:text-sm font-bold text-primary mb-3 px-3 py-1 rounded-full bg-primary/20`}>
-              {finalRound.label}
+              FINAL
             </div>
             <div className="relative">
-              {renderMatchCard(finalRound.matches[0], false)}
+              {renderMatchCard(finals.matches[0], false)}
               
-              {/* Winner highlight */}
-              {finalRound.matches[0].winner_id && (
+              {finals.matches[0]?.winner_id && (
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2">
                   <Trophy className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
                 </div>
@@ -227,36 +333,56 @@ export default function TournamentBracket({
           </div>
         )}
 
-        {/* Right side (second half of bracket, mirrored) */}
-        <div className="flex gap-2 md:gap-4 lg:gap-6 items-center">
-          {rightRounds.map((round, roundIndex) => {
-            const rightMatches = getHalfMatches(round.matches, false);
-            const actualRoundIndex = rightRounds.length - 1 - roundIndex;
-            const spacing = Math.pow(2, actualRoundIndex) * 20;
-            
-            if (rightMatches.length === 0) return null;
-            
-            return (
-              <div key={`right-${round.key}`} className="flex flex-col items-center">
-                <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
-                  {round.label}
+        {/* Right 1/2 */}
+        {semis && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/2
+            </div>
+            <div className="flex flex-col justify-center">
+              {getSymmetricMatches(semis.matches, false).map((match, idx) => (
+                <div key={match?.id || `sf-right-${idx}`} className="relative">
+                  <div className={`absolute top-1/2 -left-2 md:-left-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
+                  {renderMatchCard(match, true)}
                 </div>
-                <div 
-                  className="flex flex-col justify-center"
-                  style={{ gap: `${spacing}px` }}
-                >
-                  {rightMatches.map(match => (
-                    <div key={match.id} className="relative">
-                      {/* Connector */}
-                      <div className={`absolute top-1/2 -left-2 md:-left-4 lg:-left-6 w-2 md:w-4 lg:w-6 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
-                      {renderMatchCard(match, true)}
-                    </div>
-                  ))}
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Right 1/4 */}
+        {quarters && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/4
+            </div>
+            <div className="flex flex-col gap-[72px]">
+              {getSymmetricMatches(quarters.matches, false).map((match, idx) => (
+                <div key={match?.id || `qf-right-${idx}`} className="relative">
+                  <div className={`absolute top-1/2 -left-2 md:-left-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
+                  {renderMatchCard(match, true)}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Right 1/8 */}
+        {round16 && (
+          <div className="flex flex-col items-center">
+            <div className={`text-[10px] md:text-xs font-bold ${mutedColor} mb-3 px-2 py-0.5 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
+              1/8
+            </div>
+            <div className="flex flex-col gap-3">
+              {getSymmetricMatches(round16.matches, false).map((match, idx) => (
+                <div key={match?.id || `l16-right-${idx}`} className="relative">
+                  <div className={`absolute top-1/2 -left-2 md:-left-4 w-2 md:w-4 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`} />
+                  {renderMatchCard(match, true)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
