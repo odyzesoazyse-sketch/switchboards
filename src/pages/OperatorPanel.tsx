@@ -11,14 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye, 
-  Palette, Type, MessageSquare, Timer, 
+  Palette, MessageSquare, Timer, 
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, CheckCircle2
+  Keyboard, Layout, Settings, ChevronDown, Users
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import SliderVoting from "@/components/SliderVoting";
 import ScreenTemplates from "@/components/ScreenTemplates";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
@@ -53,7 +54,6 @@ interface ScreenState {
   votes_left: number;
   votes_right: number;
   show_bracket: boolean;
-  // New customization fields
   background_type: string;
   background_color: string;
   background_gradient_from: string;
@@ -68,7 +68,6 @@ interface ScreenState {
   timer_running: boolean;
   timer_end_time: string | null;
   theme_preset: string;
-  // Template fields
   sound_enabled: boolean;
   show_template: boolean;
   active_template_id: string | null;
@@ -108,8 +107,9 @@ export default function OperatorPanel() {
   const [judgingMode, setJudgingMode] = useState<string>("simple");
   const [voteCount, setVoteCount] = useState(0);
   const [totalJudges, setTotalJudges] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // New customization settings
+  // Customization settings
   const [backgroundType, setBackgroundType] = useState("solid");
   const [backgroundColor, setBackgroundColor] = useState("#1a1a2e");
   const [gradientFrom, setGradientFrom] = useState("#1a1a2e");
@@ -222,7 +222,6 @@ export default function OperatorPanel() {
         setVotesLeft(stateData.votes_left);
         setVotesRight(stateData.votes_right);
         setShowBracket(stateData.show_bracket || false);
-        // Load customization settings
         setBackgroundType(stateData.background_type || "solid");
         setBackgroundColor(stateData.background_color || "#1a1a2e");
         setGradientFrom(stateData.background_gradient_from || "#1a1a2e");
@@ -324,11 +323,6 @@ export default function OperatorPanel() {
         .eq("id", screenState.id);
 
       if (error) throw error;
-
-      toast({
-        title: "Updated",
-        description: "Screen state updated",
-      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -355,17 +349,21 @@ export default function OperatorPanel() {
           current_match_id: matchId,
           nomination_id: selectedNomination || null,
           show_winner: false,
-          current_round: currentRound,
-          votes_left: votesLeft,
-          votes_right: votesRight,
+          current_round: 1,
+          votes_left: 0,
+          votes_right: 0,
         })
         .eq("id", screenState.id);
 
       if (error) throw error;
-
+      
+      setCurrentRound(1);
+      setVotesLeft(0);
+      setVotesRight(0);
+      
       toast({
-        title: "Match selected",
-        description: "Match is displayed on screen",
+        title: "Match started",
+        description: "Match is now live",
       });
       
       await loadData();
@@ -388,6 +386,7 @@ export default function OperatorPanel() {
       show_battle_name: showBattleName,
       show_round_info: showRoundInfo,
     });
+    toast({ title: "Settings applied" });
   };
 
   const applyDesign = async () => {
@@ -401,6 +400,7 @@ export default function OperatorPanel() {
       animation_style: animationStyle,
       theme_preset: themePreset,
     });
+    toast({ title: "Design applied" });
   };
 
   const applyThemePreset = (preset: string) => {
@@ -418,6 +418,7 @@ export default function OperatorPanel() {
       custom_message: customMessage,
       show_custom_message: showCustomMessage,
     });
+    toast({ title: "Message sent" });
   };
 
   const resetMatch = async () => {
@@ -429,12 +430,6 @@ export default function OperatorPanel() {
       votes_left: 0,
       votes_right: 0,
       show_winner: false,
-    });
-  };
-
-  const showWinnerScreen = async () => {
-    await updateScreenState({
-      show_winner: true,
     });
   };
 
@@ -515,7 +510,6 @@ export default function OperatorPanel() {
     window.open(`/battle/${id}/screen`, '_blank');
   };
 
-  // Keyboard shortcuts
   useKeyboardShortcuts({
     onStartTimer: () => !timerRunning && startTimer(),
     onStopTimer: stopTimer,
@@ -529,7 +523,7 @@ export default function OperatorPanel() {
   });
 
   const getDancerName = (dancerId: string | null) => {
-    if (!dancerId) return "Waiting";
+    if (!dancerId) return "TBD";
     const dancer = dancers.find(d => d.id === dancerId);
     return dancer ? dancer.name : "?";
   };
@@ -540,41 +534,39 @@ export default function OperatorPanel() {
   };
 
   const currentMatch = getCurrentMatch();
+  const currentNomination = nominations.find(n => n.id === selectedNomination);
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/battle/${id}`)} className="self-start">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+        <div className="flex items-center justify-between px-3 py-2 gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)}>
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex gap-2 flex-wrap">
-            {/* Sound toggle */}
+          
+          <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`h-9 w-9 ${soundEnabled ? "" : "text-muted-foreground"}`}
             >
               {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
             
-            {/* Keyboard shortcuts popover - hidden on mobile */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9 hidden sm:flex">
+                <Button variant="ghost" size="icon" className="hidden sm:flex">
                   <Keyboard className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Keyboard Shortcuts</h4>
+                  <h4 className="font-semibold text-sm">Shortcuts</h4>
                   {SHORTCUT_HINTS.map((hint) => (
-                    <div key={hint.key} className="flex justify-between text-sm">
+                    <div key={hint.key} className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{hint.action}</span>
-                      <Badge variant="outline" className="font-mono text-xs">{hint.key}</Badge>
+                      <Badge variant="outline" className="font-mono text-[10px]">{hint.key}</Badge>
                     </div>
                   ))}
                 </div>
@@ -583,14 +575,13 @@ export default function OperatorPanel() {
 
             <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 h-9">
+                <Button variant="ghost" size="icon">
                   <Eye className="h-4 w-4" />
-                  <span className="hidden sm:inline">Preview</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Judge Screen Preview</DialogTitle>
+                  <DialogTitle>Preview</DialogTitle>
                 </DialogHeader>
                 {currentMatch ? (
                   <div className="space-y-4">
@@ -604,19 +595,19 @@ export default function OperatorPanel() {
                             <div className="text-xl md:text-2xl font-bold text-primary">
                               {getDancerName(currentMatch.dancer_left_id)}
                             </div>
-                            <Button disabled className="w-full bg-primary hover:bg-primary/90">
+                            <Button disabled className="w-full bg-primary">
                               <Trophy className="mr-2 h-4 w-4" />
                               Vote
                             </Button>
                           </div>
                         </Card>
-                        <div className="text-center text-2xl md:text-3xl font-bold text-muted-foreground py-2 md:py-0">VS</div>
+                        <div className="text-center text-2xl md:text-3xl font-bold text-muted-foreground">VS</div>
                         <Card className="p-4 md:p-6 text-center border-secondary/50">
                           <div className="space-y-3">
                             <div className="text-xl md:text-2xl font-bold text-secondary">
                               {getDancerName(currentMatch.dancer_right_id)}
                             </div>
-                            <Button disabled className="w-full bg-secondary hover:bg-secondary/90">
+                            <Button disabled className="w-full bg-secondary">
                               <Trophy className="mr-2 h-4 w-4" />
                               Vote
                             </Button>
@@ -636,481 +627,353 @@ export default function OperatorPanel() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No active match. Select a match to preview.
+                    Select a match to preview
                   </div>
                 )}
               </DialogContent>
             </Dialog>
-            <Button onClick={openScreen} size="sm" className="gap-2 h-9">
+
+            <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Settings</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-6 mt-6">
+                  {/* Display Settings */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      Display
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>Show Battle Name</Label>
+                        <Switch checked={showBattleName} onCheckedChange={setShowBattleName} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Show Judges</Label>
+                        <Switch checked={showJudges} onCheckedChange={setShowJudges} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Show Timer</Label>
+                        <Switch checked={showTimer} onCheckedChange={setShowTimer} />
+                      </div>
+                      {showTimer && (
+                        <div className="flex items-center justify-between">
+                          <Label>Timer (min)</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={timerMinutes}
+                            onChange={(e) => setTimerMinutes(parseInt(e.target.value) || 1)}
+                            className="w-20"
+                          />
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <Label>Show Score</Label>
+                        <Switch checked={showScore} onCheckedChange={setShowScore} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Rounds to Win</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="5"
+                          value={roundsToWin}
+                          onChange={(e) => setRoundsToWin(parseInt(e.target.value) || 2)}
+                          className="w-20"
+                        />
+                      </div>
+                      <Button onClick={applySettings} size="sm" className="w-full">Apply Display</Button>
+                    </div>
+                  </div>
+
+                  {/* Design Settings */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Palette className="h-4 w-4" />
+                      Theme
+                    </h3>
+                    <div className="space-y-3">
+                      <Select value={themePreset} onValueChange={applyThemePreset}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="neon">Neon</SelectItem>
+                          <SelectItem value="classic">Classic</SelectItem>
+                          <SelectItem value="fire">Fire</SelectItem>
+                          <SelectItem value="ocean">Ocean</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={backgroundType} onValueChange={setBackgroundType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Background type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="solid">Solid</SelectItem>
+                          <SelectItem value="gradient">Gradient</SelectItem>
+                          <SelectItem value="image">Image</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {backgroundType === "solid" && (
+                        <div className="flex gap-2">
+                          <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-9 p-1" />
+                          <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="flex-1" />
+                        </div>
+                      )}
+                      {backgroundType === "gradient" && (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Input type="color" value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="w-12 h-9 p-1" />
+                            <Input value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="flex-1" />
+                          </div>
+                          <div className="flex gap-2">
+                            <Input type="color" value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="w-12 h-9 p-1" />
+                            <Input value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="flex-1" />
+                          </div>
+                        </div>
+                      )}
+                      {backgroundType === "image" && (
+                        <Input placeholder="Image URL" value={backgroundImageUrl} onChange={(e) => setBackgroundImageUrl(e.target.value)} />
+                      )}
+                      <Button onClick={applyDesign} size="sm" className="w-full">Apply Theme</Button>
+                    </div>
+                  </div>
+
+                  {/* Message */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Message
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>Show Message</Label>
+                        <Switch checked={showCustomMessage} onCheckedChange={setShowCustomMessage} />
+                      </div>
+                      <Textarea
+                        placeholder="Message to display..."
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        rows={2}
+                      />
+                      <Button onClick={sendCustomMessage} size="sm" className="w-full">Send Message</Button>
+                    </div>
+                  </div>
+
+                  {/* Templates */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Layout className="h-4 w-4" />
+                      Templates
+                    </h3>
+                    <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
+                    {screenState?.show_template && (
+                      <Button variant="outline" onClick={hideTemplate} size="sm" className="w-full">
+                        Hide Template
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Button onClick={openScreen} size="sm" className="gap-1">
               <Monitor className="h-4 w-4" />
-              <span className="hidden sm:inline">Open Screen</span>
+              <span className="hidden sm:inline">Screen</span>
             </Button>
           </div>
         </div>
+      </div>
 
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Operator Panel</h1>
-
-        {/* Quick Actions Bar */}
-        {currentMatch && (
-          <Card className="p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-            {/* Score display */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 sm:gap-3 text-center sm:text-left">
-                <div className="text-sm sm:text-base md:text-lg font-semibold text-primary truncate max-w-[100px] sm:max-w-none">
-                  {getDancerName(currentMatch.dancer_left_id)}
-                </div>
-                <div className="text-xl sm:text-2xl font-bold whitespace-nowrap">{votesLeft} — {votesRight}</div>
-                <div className="text-sm sm:text-base md:text-lg font-semibold text-secondary truncate max-w-[100px] sm:max-w-none">
-                  {getDancerName(currentMatch.dancer_right_id)}
-                </div>
-              </div>
-              
-              {/* Action buttons - scrollable on mobile */}
-              <div className="w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-                <div className="flex items-center gap-2 min-w-max">
-                  <Button size="sm" variant="outline" onClick={() => addScore('left')} className="border-primary/50 text-primary h-8 px-2 sm:px-3">
-                    <span className="hidden xs:inline">+1</span> Red
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => addScore('right')} className="border-secondary/50 text-secondary h-8 px-2 sm:px-3">
-                    <span className="hidden xs:inline">+1</span> Blue
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={nextRound} className="gap-1 h-8 px-2 sm:px-3">
-                    <SkipForward className="h-3 w-3" />
-                    <span className="hidden sm:inline">Next</span>
-                  </Button>
-                  {!timerRunning ? (
-                    <Button size="sm" onClick={startTimer} className="gap-1 h-8 px-2 sm:px-3">
-                      <PlayCircle className="h-3 w-3" />
-                      <span className="hidden sm:inline">Timer</span>
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="destructive" onClick={stopTimer} className="gap-1 h-8 px-2 sm:px-3">
-                      <PauseCircle className="h-3 w-3" />
-                      Stop
-                    </Button>
-                  )}
-                  <Button size="sm" onClick={showWinnerScreen} className="gap-1 bg-gradient-to-r from-primary to-secondary h-8 px-2 sm:px-3">
-                    <Trophy className="h-3 w-3" />
-                    <span className="hidden sm:inline">Winner</span>
-                  </Button>
-                </div>
-              </div>
+      <div className="px-3 py-4 space-y-4 max-w-4xl mx-auto">
+        {/* Nomination Tabs */}
+        {nominations.length > 1 && (
+          <div className="overflow-x-auto -mx-3 px-3">
+            <div className="flex gap-2 min-w-max pb-2">
+              {nominations.map((nom) => (
+                <Button
+                  key={nom.id}
+                  variant={selectedNomination === nom.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedNomination(nom.id)}
+                  className="shrink-0"
+                >
+                  {nom.name}
+                </Button>
+              ))}
             </div>
-            
-            {/* Vote status */}
-            <div className="flex items-center gap-2 mt-2 sm:mt-3 text-xs sm:text-sm">
-              <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-              <span>Votes: {voteCount}/{totalJudges}</span>
-              <span className="text-muted-foreground">• Round {currentRound}</span>
+          </div>
+        )}
+
+        {nominations.length === 1 && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-sm">
+              {currentNomination?.name}
+            </Badge>
+          </div>
+        )}
+
+        {/* Active Match Control */}
+        {currentMatch && (
+          <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 border-primary/30">
+            <div className="space-y-3">
+              {/* Match info */}
+              <div className="flex items-center justify-center gap-3 text-center">
+                <div className="flex-1 text-right">
+                  <div className="text-lg sm:text-xl font-bold text-primary truncate">
+                    {getDancerName(currentMatch.dancer_left_id)}
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold shrink-0">
+                  {votesLeft} : {votesRight}
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-lg sm:text-xl font-bold text-secondary truncate">
+                    {getDancerName(currentMatch.dancer_right_id)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center justify-center gap-3 text-sm">
+                <Badge variant="outline">Round {currentRound}</Badge>
+                <div className="flex items-center gap-1">
+                  <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
+                  <span className="text-muted-foreground">{voteCount}/{totalJudges} votes</span>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-4 gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => addScore('left')} 
+                  className="border-primary/50 text-primary h-12 flex-col gap-0.5"
+                >
+                  <span className="text-lg font-bold">+1</span>
+                  <span className="text-[10px] uppercase">Red</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => addScore('right')} 
+                  className="border-secondary/50 text-secondary h-12 flex-col gap-0.5"
+                >
+                  <span className="text-lg font-bold">+1</span>
+                  <span className="text-[10px] uppercase">Blue</span>
+                </Button>
+                {!timerRunning ? (
+                  <Button onClick={startTimer} className="h-12 flex-col gap-0.5">
+                    <PlayCircle className="h-5 w-5" />
+                    <span className="text-[10px] uppercase">Timer</span>
+                  </Button>
+                ) : (
+                  <Button variant="destructive" onClick={stopTimer} className="h-12 flex-col gap-0.5">
+                    <PauseCircle className="h-5 w-5" />
+                    <span className="text-[10px] uppercase">Stop</span>
+                  </Button>
+                )}
+                <Button onClick={nextRound} variant="outline" className="h-12 flex-col gap-0.5">
+                  <SkipForward className="h-5 w-5" />
+                  <span className="text-[10px] uppercase">Next</span>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" onClick={resetMatch} className="gap-1">
+                  <RotateCcw className="h-4 w-4" />
+                  Reset
+                </Button>
+                <Button onClick={declareWinner} className="gap-1 bg-gradient-to-r from-primary to-secondary">
+                  <Trophy className="h-4 w-4" />
+                  Winner
+                </Button>
+                <Button 
+                  variant={showBracket ? "default" : "outline"} 
+                  onClick={toggleBracket}
+                  className="gap-1"
+                >
+                  <Layout className="h-4 w-4" />
+                  Bracket
+                </Button>
+              </div>
             </div>
           </Card>
         )}
 
-        <Tabs defaultValue="controls" className="space-y-4 md:space-y-6">
-          {/* Scrollable tabs on mobile */}
-          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-            <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 lg:w-auto lg:inline-flex">
-              <TabsTrigger value="controls" className="gap-1 sm:gap-2 px-2 sm:px-3">
-                <Play className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">Controls</span>
-              </TabsTrigger>
-              <TabsTrigger value="templates" className="gap-1 sm:gap-2 px-2 sm:px-3">
-                <Layout className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">Templates</span>
-              </TabsTrigger>
-              <TabsTrigger value="design" className="gap-1 sm:gap-2 px-2 sm:px-3">
-                <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">Design</span>
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-1 sm:gap-2 px-2 sm:px-3">
-                <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">Messages</span>
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="gap-1 sm:gap-2 px-2 sm:px-3">
-                <Trophy className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">Matches</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Controls Tab */}
-          <TabsContent value="controls" className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <Card className="p-4 md:p-6 space-y-4">
-                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                  <Monitor className="h-4 w-4 md:h-5 md:w-5" />
-                  Display Settings
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-battle-name">Show Battle Name</Label>
-                    <Switch id="show-battle-name" checked={showBattleName} onCheckedChange={setShowBattleName} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-judges">Show Judges</Label>
-                    <Switch id="show-judges" checked={showJudges} onCheckedChange={setShowJudges} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-timer">Show Timer</Label>
-                    <Switch id="show-timer" checked={showTimer} onCheckedChange={setShowTimer} />
-                  </div>
-                  {showTimer && (
-                    <div>
-                      <Label htmlFor="timer-minutes">Timer (minutes)</Label>
-                      <Input
-                        id="timer-minutes"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={timerMinutes}
-                        onChange={(e) => setTimerMinutes(parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-score">Show Score</Label>
-                    <Switch id="show-score" checked={showScore} onCheckedChange={setShowScore} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-round-info">Show Round Info</Label>
-                    <Switch id="show-round-info" checked={showRoundInfo} onCheckedChange={setShowRoundInfo} />
-                  </div>
-                  <div>
-                    <Label htmlFor="rounds-to-win">Rounds to Win</Label>
-                    <Input
-                      id="rounds-to-win"
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={roundsToWin}
-                      onChange={(e) => setRoundsToWin(parseInt(e.target.value) || 2)}
-                    />
-                  </div>
-                  <Button onClick={applySettings} className="w-full">Apply Display Settings</Button>
-                </div>
-              </Card>
-
-              <Card className="p-4 md:p-6 space-y-4">
-                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                  <Timer className="h-4 w-4 md:h-5 md:w-5" />
-                  Match Control
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="current-round">Current Round</Label>
-                    <Input
-                      id="current-round"
-                      type="number"
-                      min="1"
-                      value={currentRound}
-                      onChange={(e) => setCurrentRound(parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="votes-left" className="text-primary">Score Red</Label>
-                      <Input
-                        id="votes-left"
-                        type="number"
-                        min="0"
-                        value={votesLeft}
-                        onChange={(e) => setVotesLeft(parseInt(e.target.value) || 0)}
-                        className="border-primary/30"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="votes-right" className="text-secondary">Score Blue</Label>
-                      <Input
-                        id="votes-right"
-                        type="number"
-                        min="0"
-                        value={votesRight}
-                        onChange={(e) => setVotesRight(parseInt(e.target.value) || 0)}
-                        className="border-secondary/30"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button onClick={resetMatch} variant="outline" className="gap-2">
-                      <RotateCcw className="h-4 w-4" />
-                      Reset
-                    </Button>
-                    <Button onClick={showWinnerScreen} className="gap-2">
-                      <Trophy className="h-4 w-4" />
-                      Show Winner
-                    </Button>
-                  </div>
-                  <Button 
-                    onClick={toggleBracket} 
-                    variant={showBracket ? "default" : "outline"}
-                    className="w-full gap-2"
-                  >
-                    <Trophy className="h-4 w-4" />
-                    {showBracket ? "Hide Bracket" : "Show Bracket"}
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Templates Tab */}
-          <TabsContent value="templates" className="space-y-6">
-            <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
-            {screenState?.show_template && (
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span className="font-medium">Template Active</span>
-                  </div>
-                  <Button variant="outline" onClick={hideTemplate}>
-                    Hide Template
-                  </Button>
-                </div>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Design Tab */}
-          <TabsContent value="design" className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <Card className="p-4 md:p-6 space-y-4">
-                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                  <Palette className="h-4 w-4 md:h-5 md:w-5" />
-                  Theme & Colors
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Theme Preset</Label>
-                    <Select value={themePreset} onValueChange={applyThemePreset}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="neon">Neon</SelectItem>
-                        <SelectItem value="classic">Classic</SelectItem>
-                        <SelectItem value="fire">Fire</SelectItem>
-                        <SelectItem value="ocean">Ocean</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Background Type</Label>
-                    <Select value={backgroundType} onValueChange={setBackgroundType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="solid">Solid Color</SelectItem>
-                        <SelectItem value="gradient">Gradient</SelectItem>
-                        <SelectItem value="image">Image URL</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {backgroundType === "solid" && (
-                    <div>
-                      <Label htmlFor="bg-color">Background Color</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="bg-color"
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="w-16 h-10 p-1"
-                        />
-                        <Input
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {backgroundType === "gradient" && (
-                    <>
-                      <div>
-                        <Label>Gradient From</Label>
-                        <div className="flex gap-2">
-                          <Input type="color" value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="w-16 h-10 p-1" />
-                          <Input value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="flex-1" />
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Gradient To</Label>
-                        <div className="flex gap-2">
-                          <Input type="color" value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="w-16 h-10 p-1" />
-                          <Input value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="flex-1" />
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  {backgroundType === "image" && (
-                    <div>
-                      <Label htmlFor="bg-image">Background Image URL</Label>
-                      <Input
-                        id="bg-image"
-                        placeholder="https://example.com/image.jpg"
-                        value={backgroundImageUrl}
-                        onChange={(e) => setBackgroundImageUrl(e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
-
-              <Card className="p-4 md:p-6 space-y-4">
-                <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                  <Type className="h-4 w-4 md:h-5 md:w-5" />
-                  Typography & Effects
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Font Size</Label>
-                    <Select value={fontSize} onValueChange={setFontSize}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">Small</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="large">Large</SelectItem>
-                        <SelectItem value="xlarge">Extra Large</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Animation Style</Label>
-                    <Select value={animationStyle} onValueChange={setAnimationStyle}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select animation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="fade">Fade</SelectItem>
-                        <SelectItem value="slide">Slide</SelectItem>
-                        <SelectItem value="scale">Scale</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={applyDesign} className="w-full">Apply Design</Button>
-                </div>
-                {/* Preview */}
-                <div 
-                  className="h-32 rounded-lg flex items-center justify-center text-white font-bold"
-                  style={{
-                    background: backgroundType === 'gradient' 
-                      ? `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`
-                      : backgroundType === 'image' && backgroundImageUrl
-                        ? `url(${backgroundImageUrl}) center/cover`
-                        : backgroundColor
-                  }}
-                >
-                  Preview
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Messages Tab */}
-          <TabsContent value="messages" className="space-y-4 md:space-y-6">
-            <Card className="p-4 md:p-6 space-y-4">
-              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 md:h-5 md:w-5" />
-                Custom Screen Message
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="show-message">Show Message on Screen</Label>
-                  <Switch id="show-message" checked={showCustomMessage} onCheckedChange={setShowCustomMessage} />
-                </div>
-                <div>
-                  <Label htmlFor="custom-message">Message Text</Label>
-                  <Textarea
-                    id="custom-message"
-                    placeholder="Enter a message to display on screen..."
-                    value={customMessage}
-                    onChange={(e) => setCustomMessage(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={sendCustomMessage} className="flex-1">Send to Screen</Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowCustomMessage(false);
-                      setCustomMessage("");
-                      sendCustomMessage();
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              </div>
+        {/* Matches List */}
+        <div className="space-y-2">
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Matches
+          </h2>
+          
+          {matches.length === 0 ? (
+            <Card className="p-8 text-center text-muted-foreground">
+              No matches yet
             </Card>
-          </TabsContent>
-
-          {/* Matches Tab */}
-          <TabsContent value="matches" className="space-y-4 md:space-y-6">
-            {nominations.length > 0 && (
-              <Card className="p-4 md:p-6 space-y-4">
-                <h2 className="text-lg md:text-xl font-bold">Select Match to Display</h2>
+          ) : (
+            <div className="space-y-2">
+              {matches.map((match) => {
+                const isActive = screenState?.current_match_id === match.id;
+                const hasWinner = match.winner_id !== null;
                 
-                <div>
-                  <Label>Category</Label>
-                  <Select value={selectedNomination} onValueChange={setSelectedNomination}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {nominations.map((nom) => (
-                        <SelectItem key={nom.id} value={nom.id}>
-                          {nom.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-2 sm:gap-3">
-                  {matches.map((match) => (
-                    <Card
-                      key={match.id}
-                      className={`p-3 sm:p-4 hover:border-primary/50 transition-all cursor-pointer ${
-                        screenState?.current_match_id === match.id ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => showMatch(match.id)}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-                          <span className="text-xs text-muted-foreground uppercase shrink-0">{match.round}</span>
-                          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-                            <div className="text-sm sm:text-base md:text-lg font-semibold text-primary truncate">
-                              {getDancerName(match.dancer_left_id)}
-                            </div>
-                            <div className="text-base sm:text-lg md:text-xl font-bold text-muted-foreground shrink-0">VS</div>
-                            <div className="text-sm sm:text-base md:text-lg font-semibold text-secondary truncate">
-                              {getDancerName(match.dancer_right_id)}
-                            </div>
-                          </div>
-                        </div>
-                        <Button size="sm" className="gap-2 w-full sm:w-auto shrink-0">
-                          <Play className="h-4 w-4" />
-                          Show
-                        </Button>
+                return (
+                  <Card
+                    key={match.id}
+                    className={`p-3 cursor-pointer transition-all ${
+                      isActive 
+                        ? 'ring-2 ring-primary bg-primary/5' 
+                        : hasWinner 
+                          ? 'opacity-60' 
+                          : 'hover:border-primary/50'
+                    }`}
+                    onClick={() => showMatch(match.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                        {match.round}
+                      </Badge>
+                      
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
+                          {getDancerName(match.dancer_left_id)}
+                        </span>
+                        <span className="text-muted-foreground shrink-0">vs</span>
+                        <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
+                          {getDancerName(match.dancer_right_id)}
+                        </span>
                       </div>
-                    </Card>
-                  ))}
-                  {matches.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">No matches in this category yet.</p>
-                  )}
-                </div>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+
+                      {isActive && (
+                        <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                      )}
+                      {hasWinner && !isActive && (
+                        <Badge variant="secondary" className="shrink-0">Done</Badge>
+                      )}
+                      {!isActive && !hasWinner && (
+                        <Button size="sm" variant="ghost" className="shrink-0 gap-1">
+                          <Play className="h-3 w-3" />
+                          Start
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
