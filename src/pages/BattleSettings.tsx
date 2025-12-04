@@ -4,12 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Plus, Trash2, ChevronDown, ChevronUp, Settings2, Calendar, MapPin } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { 
+  ArrowLeft, ArrowRight, Check, Save, Plus, Trash2, ChevronDown, ChevronUp, 
+  Settings2, Calendar, MapPin, Trophy, Sparkles
+} from "lucide-react";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import JudgingModeSelector, { JudgingConfig, JudgingCriterion } from "@/components/JudgingModeSelector";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
 interface Battle {
   id: string;
@@ -32,6 +35,13 @@ interface Nomination {
   isOpen?: boolean;
 }
 
+const STEPS = [
+  { id: 1, title: "Name", icon: Sparkles, description: "Battle name" },
+  { id: 2, title: "Date & Time", icon: Calendar, description: "When" },
+  { id: 3, title: "Location", icon: MapPin, description: "Where" },
+  { id: 4, title: "Categories", icon: Trophy, description: "Judging" },
+];
+
 export default function BattleSettings() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -39,12 +49,17 @@ export default function BattleSettings() {
   const [saving, setSaving] = useState(false);
   const [battle, setBattle] = useState<Battle | null>(null);
   const [nominations, setNominations] = useState<(Nomination & { isOpen: boolean })[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // Battle form state
   const [battleName, setBattleName] = useState("");
   const [battleDate, setBattleDate] = useState("");
   const [battleTime, setBattleTime] = useState("");
   const [location, setLocation] = useState("");
+
+  const progress = (currentStep / STEPS.length) * 100;
 
   useEffect(() => {
     if (id) loadData();
@@ -100,6 +115,35 @@ export default function BattleSettings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const animateTransition = (newStep: number) => {
+    setDirection(newStep > currentStep ? 'forward' : 'backward');
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentStep(newStep);
+      setIsAnimating(false);
+    }, 150);
+  };
+
+  const nextStep = () => {
+    if (currentStep === 1 && !battleName.trim()) {
+      toast.error("Battle name is required");
+      return;
+    }
+    if (currentStep < STEPS.length) {
+      animateTransition(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      animateTransition(currentStep - 1);
+    }
+  };
+
+  const goToStep = (step: number) => {
+    animateTransition(step);
   };
 
   const getJudgingConfig = (nom: Nomination): JudgingConfig => {
@@ -197,72 +241,61 @@ export default function BattleSettings() {
     return labels[mode] || mode;
   };
 
-  const saveBattleInfo = async () => {
-    if (!battleName.trim()) {
-      toast.error("Battle name is required");
-      return;
-    }
-
+  const saveCurrentStep = async () => {
     setSaving(true);
     try {
-      const dateTime = new Date(`${battleDate}T${battleTime}`);
-
-      const { error } = await supabase
-        .from("battles")
-        .update({
-          name: battleName.trim(),
-          date: dateTime.toISOString(),
-          location: location.trim() || null,
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-      toast.success("Battle info saved");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveNominations = async () => {
-    // Validate
-    for (const nom of nominations) {
-      if (!nom.name.trim()) {
-        toast.error("All categories must have names");
-        return;
-      }
-      if (nom.judging_mode === 'custom' && (!nom.judging_criteria || nom.judging_criteria.length === 0)) {
-        toast.error(`Category "${nom.name}" has custom judging but no criteria`);
-        return;
-      }
-      if (nom.judging_mode === 'custom' && nom.judging_criteria) {
-        const empty = nom.judging_criteria.filter(c => !c.name.trim());
-        if (empty.length > 0) {
-          toast.error(`All criteria in "${nom.name}" must have names`);
+      if (currentStep <= 3) {
+        // Save battle info
+        if (!battleName.trim()) {
+          toast.error("Battle name is required");
+          setSaving(false);
           return;
         }
-      }
-    }
-
-    setSaving(true);
-    try {
-      for (const nom of nominations) {
+        
+        const dateTime = new Date(`${battleDate}T${battleTime}`);
         const { error } = await supabase
-          .from("nominations")
+          .from("battles")
           .update({
-            name: nom.name.trim(),
-            description: nom.description?.trim() || null,
-            judging_mode: nom.judging_mode,
-            judging_criteria: JSON.parse(JSON.stringify(nom.judging_criteria || [])),
-            rounds_to_win: nom.rounds_to_win,
-            allow_ties: nom.allow_ties,
+            name: battleName.trim(),
+            date: dateTime.toISOString(),
+            location: location.trim() || null,
           })
-          .eq("id", nom.id);
+          .eq("id", id);
 
         if (error) throw error;
+        toast.success("Saved!");
+      } else {
+        // Save nominations
+        for (const nom of nominations) {
+          if (!nom.name.trim()) {
+            toast.error("All categories must have names");
+            setSaving(false);
+            return;
+          }
+          if (nom.judging_mode === 'custom' && (!nom.judging_criteria || nom.judging_criteria.length === 0)) {
+            toast.error(`Category "${nom.name}" has custom judging but no criteria`);
+            setSaving(false);
+            return;
+          }
+        }
+
+        for (const nom of nominations) {
+          const { error } = await supabase
+            .from("nominations")
+            .update({
+              name: nom.name.trim(),
+              description: nom.description?.trim() || null,
+              judging_mode: nom.judging_mode,
+              judging_criteria: JSON.parse(JSON.stringify(nom.judging_criteria || [])),
+              rounds_to_win: nom.rounds_to_win,
+              allow_ties: nom.allow_ties,
+            })
+            .eq("id", nom.id);
+
+          if (error) throw error;
+        }
+        toast.success("Categories saved!");
       }
-      toast.success("Categories saved");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -273,7 +306,10 @@ export default function BattleSettings() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
       </div>
     );
   }
@@ -286,161 +322,219 @@ export default function BattleSettings() {
     );
   }
 
+  const CurrentIcon = STEPS[currentStep - 1].icon;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate(`/battle/${id}`)}
-            className="mb-2 -ml-2"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Back to Battle</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Settings2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-                <span className="truncate">Settings</span>
-              </h1>
-              <p className="text-sm text-muted-foreground truncate">{battle.name}</p>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate(`/battle/${id}`)}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Battle
+            </Button>
+            <div className="flex items-center gap-2">
+              <Settings2 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">Settings</span>
             </div>
+          </div>
+          
+          {/* Progress bar */}
+          <Progress value={progress} className="h-1.5" />
+          
+          {/* Step indicators */}
+          <div className="flex justify-between mt-4">
+            {STEPS.map((step) => {
+              const StepIcon = step.icon;
+              const isCurrent = currentStep === step.id;
+              
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => goToStep(step.id)}
+                  className="flex flex-col items-center gap-1 transition-all duration-300 cursor-pointer"
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    isCurrent 
+                      ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20' 
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}>
+                    <StepIcon className="w-5 h-5" />
+                  </div>
+                  <span className={`text-xs font-medium hidden sm:block ${
+                    isCurrent ? 'text-primary' : 'text-muted-foreground'
+                  }`}>
+                    {step.title}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
-        <Tabs defaultValue="info" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 h-auto">
-            <TabsTrigger value="info" className="text-xs sm:text-sm py-2">Battle Info</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs sm:text-sm py-2">Categories</TabsTrigger>
-          </TabsList>
+      {/* Main content */}
+      <main className="container mx-auto px-4 py-8 max-w-2xl">
+        <div 
+          className={`transition-all duration-300 ${
+            isAnimating 
+              ? direction === 'forward' 
+                ? 'opacity-0 translate-x-8' 
+                : 'opacity-0 -translate-x-8'
+              : 'opacity-100 translate-x-0'
+          }`}
+        >
+          {/* Step header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <CurrentIcon className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+              {currentStep === 1 && "Battle Name"}
+              {currentStep === 2 && "Date & Time"}
+              {currentStep === 3 && "Location"}
+              {currentStep === 4 && "Categories & Judging"}
+            </h1>
+          </div>
 
-          {/* Battle Info Tab */}
-          <TabsContent value="info">
-            <Card className="border-border/50 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Battle Information
-                </CardTitle>
-                <CardDescription>
-                  Update basic event details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Battle Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Street Battle 2025"
-                    value={battleName}
-                    onChange={(e) => setBattleName(e.target.value)}
-                    className="text-lg h-12"
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={battleDate}
-                      onChange={(e) => setBattleDate(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time *</Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={battleTime}
-                      onChange={(e) => setBattleTime(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Location
-                  </Label>
-                  <Input
-                    id="location"
-                    placeholder="City, Address"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
-                </div>
-
-                <Button 
-                  onClick={saveBattleInfo} 
-                  disabled={saving}
-                  className="w-full h-12"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? "Saving..." : "Save Battle Info"}
-                </Button>
-              </CardContent>
+          {/* Step 1: Name */}
+          {currentStep === 1 && (
+            <Card className="p-6 sm:p-8 border-border/50 shadow-lg">
+              <div className="space-y-4">
+                <Label htmlFor="name" className="text-lg font-semibold">Battle Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Street Dance Championship 2025"
+                  value={battleName}
+                  onChange={(e) => setBattleName(e.target.value)}
+                  className="text-xl h-14 font-medium"
+                  autoFocus
+                />
+              </div>
             </Card>
-          </TabsContent>
+          )}
 
-          {/* Categories Tab */}
-          <TabsContent value="categories">
-            <Card className="border-border/50 shadow-sm">
-              <CardHeader className="pb-3 sm:pb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-base sm:text-lg">Categories & Judging</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Configure judging modes
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={addNomination}
-                    disabled={nominations.length >= 5}
-                    className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Category
-                  </Button>
+          {/* Step 2: Date & Time */}
+          {currentStep === 2 && (
+            <Card className="p-6 sm:p-8 border-border/50 shadow-lg">
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="date" className="text-lg font-semibold">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={battleDate}
+                    onChange={(e) => setBattleDate(e.target.value)}
+                    className="h-14 text-lg"
+                    autoFocus
+                  />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="time" className="text-lg font-semibold">Start Time</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={battleTime}
+                    onChange={(e) => setBattleTime(e.target.value)}
+                    className="h-14 text-lg"
+                  />
+                </div>
+                {battleDate && battleTime && (
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                    <p className="text-sm font-medium text-primary">
+                      📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Step 3: Location */}
+          {currentStep === 3 && (
+            <Card className="p-6 sm:p-8 border-border/50 shadow-lg">
+              <div className="space-y-4">
+                <Label htmlFor="location" className="text-lg font-semibold">Venue Address</Label>
+                <Input
+                  id="location"
+                  placeholder="Cultural Center, 123 Main Street"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="text-lg h-14"
+                  autoFocus
+                />
+                <p className="text-sm text-muted-foreground">
+                  Optional – helps participants find the venue
+                </p>
+              </div>
+            </Card>
+          )}
+
+          {/* Step 4: Categories */}
+          {currentStep === 4 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {nominations.length}/5 categories
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addNomination}
+                  disabled={nominations.length >= 5}
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Category
+                </Button>
+              </div>
+
+              <div className="space-y-3">
                 {nominations.map((nomination, index) => (
                   <Collapsible
                     key={nomination.id}
                     open={nomination.isOpen}
                     onOpenChange={() => toggleNomination(nomination.id)}
                   >
-                    <div className="border border-border/50 rounded-xl overflow-hidden bg-card">
+                    <Card className={`overflow-hidden transition-all duration-300 ${
+                      nomination.isOpen ? 'ring-2 ring-primary/30' : ''
+                    }`}>
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
-                          className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-muted/50 transition-colors"
+                          className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                         >
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm shrink-0">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${
+                              nomination.isOpen 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
                               {index + 1}
                             </div>
-                            <div className="text-left min-w-0">
-                              <div className="font-semibold text-sm sm:text-base truncate">
+                            <div className="text-left">
+                              <div className="font-semibold">
                                 {nomination.name || `Category ${index + 1}`}
                               </div>
-                              <div className="text-[10px] sm:text-xs text-muted-foreground">
+                              <div className="text-xs text-muted-foreground">
                                 {getModeLabel(nomination.judging_mode)} • {nomination.rounds_to_win} rounds
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                          <div className="flex items-center gap-2">
                             {nominations.length > 1 && (
                               <Button
                                 type="button"
@@ -456,19 +550,19 @@ export default function BattleSettings() {
                               </Button>
                             )}
                             {nomination.isOpen ? (
-                              <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                              <ChevronUp className="w-5 h-5 text-muted-foreground" />
                             ) : (
-                              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                              <ChevronDown className="w-5 h-5 text-muted-foreground" />
                             )}
                           </div>
                         </button>
                       </CollapsibleTrigger>
 
                       <CollapsibleContent>
-                        <div className="p-3 sm:p-4 pt-0 space-y-4 sm:space-y-6 border-t border-border/50">
-                          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 pt-3 sm:pt-4">
+                        <div className="p-4 pt-0 space-y-6 border-t border-border/50">
+                          <div className="grid gap-4 sm:grid-cols-2 pt-4">
                             <div className="space-y-2">
-                              <Label>Category Name *</Label>
+                              <Label>Name *</Label>
                               <Input
                                 placeholder="Solo, Doubles, Power Moves..."
                                 value={nomination.name}
@@ -478,7 +572,7 @@ export default function BattleSettings() {
                             <div className="space-y-2">
                               <Label>Description</Label>
                               <Input
-                                placeholder="Brief description..."
+                                placeholder="Optional description..."
                                 value={nomination.description || ""}
                                 onChange={(e) => updateNomination(nomination.id, 'description', e.target.value)}
                               />
@@ -494,22 +588,63 @@ export default function BattleSettings() {
                           </div>
                         </div>
                       </CollapsibleContent>
-                    </div>
+                    </Card>
                   </Collapsible>
                 ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-                <Button 
-                  onClick={saveNominations} 
-                  disabled={saving}
-                  className="w-full h-12"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? "Saving..." : "Save All Categories"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Navigation and Save buttons */}
+        <div className="flex gap-3 mt-8">
+          {currentStep > 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={prevStep}
+              className="h-12"
+              disabled={isAnimating}
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+          )}
+          
+          <Button
+            type="button"
+            variant="outline"
+            onClick={saveCurrentStep}
+            disabled={saving || isAnimating}
+            className="h-12"
+          >
+            <Save className="w-5 h-5 mr-2" />
+            {saving ? "Saving..." : "Save"}
+          </Button>
+          
+          {currentStep < STEPS.length && (
+            <Button
+              type="button"
+              onClick={nextStep}
+              className="flex-1 h-12 bg-primary hover:bg-primary/90"
+              disabled={isAnimating}
+            >
+              Next
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          )}
+          
+          {currentStep === STEPS.length && (
+            <Button
+              type="button"
+              onClick={() => navigate(`/battle/${id}`)}
+              className="flex-1 h-12 bg-gradient-to-r from-primary to-primary/80"
+            >
+              <Check className="w-5 h-5 mr-2" />
+              Done
+            </Button>
+          )}
+        </div>
       </main>
     </div>
   );
