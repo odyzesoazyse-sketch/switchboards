@@ -18,22 +18,22 @@ export default function JudgingPreview({
 }: JudgingPreviewProps) {
   
   const renderSimplePreview = () => (
-    <div className="space-y-4">
-      <p className="text-center text-sm text-muted-foreground mb-4">
+    <div className="space-y-3 sm:space-y-4">
+      <p className="text-center text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
         Judges tap to select the round winner
       </p>
-      <div className="grid grid-cols-2 gap-3">
-        <button className="p-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-            <User className="w-6 h-6 text-primary" />
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <button className="p-3 sm:p-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-1.5 sm:mb-2">
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </div>
-          <p className="font-semibold text-primary text-sm">{dancerLeftName}</p>
+          <p className="font-semibold text-primary text-xs sm:text-sm truncate">{dancerLeftName}</p>
         </button>
-        <button className="p-4 rounded-xl border-2 border-secondary/30 bg-secondary/5 hover:bg-secondary/10 transition-all">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-secondary/10 flex items-center justify-center mb-2">
-            <User className="w-6 h-6 text-secondary" />
+        <button className="p-3 sm:p-4 rounded-xl border-2 border-secondary/30 bg-secondary/5 hover:bg-secondary/10 transition-all">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl bg-secondary/10 flex items-center justify-center mb-1.5 sm:mb-2">
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
           </div>
-          <p className="font-semibold text-secondary text-sm">{dancerRightName}</p>
+          <p className="font-semibold text-secondary text-xs sm:text-sm truncate">{dancerRightName}</p>
         </button>
       </div>
     </div>
@@ -54,38 +54,38 @@ export default function JudgingPreview({
         }));
 
     return (
-      <div className="space-y-4">
-        <p className="text-center text-sm text-muted-foreground mb-2">
+      <div className="space-y-3 sm:space-y-4">
+        <p className="text-center text-xs sm:text-sm text-muted-foreground mb-2">
           Judges adjust sliders to score each criterion
         </p>
         
         {/* Dancer headers */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-              <User className="w-3 h-3 text-primary" />
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary" />
             </div>
-            <span className="text-xs font-medium text-primary truncate">{dancerLeftName}</span>
+            <span className="text-[10px] sm:text-xs font-medium text-primary truncate">{dancerLeftName}</span>
           </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/5 border border-secondary/20">
-            <div className="w-6 h-6 rounded bg-secondary/10 flex items-center justify-center">
-              <User className="w-3 h-3 text-secondary" />
+          <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-secondary/5 border border-secondary/20">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-secondary/10 flex items-center justify-center shrink-0">
+              <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
             </div>
-            <span className="text-xs font-medium text-secondary truncate">{dancerRightName}</span>
+            <span className="text-[10px] sm:text-xs font-medium text-secondary truncate">{dancerRightName}</span>
           </div>
         </div>
 
         {/* Sliders */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {criteria.map((c, i) => (
             <div key={i} className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium">{c.name}</span>
-                <span className={`font-semibold ${c.value > 0 ? 'text-secondary' : c.value < 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className="flex justify-between text-[10px] sm:text-xs">
+                <span className="font-medium truncate mr-2">{c.name}</span>
+                <span className={`font-semibold shrink-0 ${c.value > 0 ? 'text-secondary' : c.value < 0 ? 'text-primary' : 'text-muted-foreground'}`}>
                   {c.value > 0 ? `+${c.value}` : c.value}
                 </span>
               </div>
-              <div className="p-2 rounded-lg bg-muted/50">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-muted/50">
                 <Slider
                   value={[c.value]}
                   min={c.min ?? -5}
@@ -100,11 +100,11 @@ export default function JudgingPreview({
         </div>
 
         <div className="pt-2 border-t border-border/50">
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between items-center text-xs sm:text-sm">
             <span className="font-medium">Total</span>
             <span className="font-bold text-secondary">+2</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
             {dancerRightName} wins this round
           </p>
         </div>
@@ -116,48 +116,48 @@ export default function JudgingPreview({
     const isStars = maxPoints === 5;
     
     return (
-      <div className="space-y-4">
-        <p className="text-center text-sm text-muted-foreground mb-2">
+      <div className="space-y-3 sm:space-y-4">
+        <p className="text-center text-xs sm:text-sm text-muted-foreground mb-2">
           Judges rate each dancer {isStars ? 'with stars' : 'with points'}
         </p>
 
         {/* Dancer scoring cards */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {[
             { name: dancerLeftName, score: isStars ? 4 : 8, color: 'primary' },
             { name: dancerRightName, score: isStars ? 3 : 7, color: 'secondary' },
           ].map((dancer, i) => (
             <div 
               key={i}
-              className={`p-3 rounded-xl border bg-${dancer.color}/5 border-${dancer.color}/20`}
+              className={`p-2 sm:p-3 rounded-xl border bg-${dancer.color}/5 border-${dancer.color}/20`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-lg bg-${dancer.color}/10 flex items-center justify-center`}>
-                    <User className={`w-4 h-4 text-${dancer.color}`} />
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-${dancer.color}/10 flex items-center justify-center shrink-0`}>
+                    <User className={`w-3 h-3 sm:w-4 sm:h-4 text-${dancer.color}`} />
                   </div>
-                  <span className="font-medium text-sm">{dancer.name}</span>
+                  <span className="font-medium text-xs sm:text-sm truncate">{dancer.name}</span>
                 </div>
-                <Badge variant="secondary" className="font-bold">
+                <Badge variant="secondary" className="font-bold text-[10px] sm:text-xs shrink-0">
                   {dancer.score}/{maxPoints}
                 </Badge>
               </div>
               
               {isStars ? (
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 sm:gap-1">
                   {Array.from({ length: maxPoints }).map((_, j) => (
                     <Star 
                       key={j}
-                      className={`w-5 h-5 ${j < dancer.score ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`}
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${j < dancer.score ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 sm:gap-1 flex-wrap">
                   {Array.from({ length: maxPoints }).map((_, j) => (
                     <div 
                       key={j}
-                      className={`w-6 h-6 rounded text-xs flex items-center justify-center font-medium transition-colors ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded text-[10px] sm:text-xs flex items-center justify-center font-medium transition-colors ${
                         j < dancer.score 
                           ? 'bg-primary text-primary-foreground' 
                           : 'bg-muted text-muted-foreground'
@@ -173,7 +173,7 @@ export default function JudgingPreview({
         </div>
 
         <div className="pt-2 border-t border-border/50 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
             Higher total score wins the round
           </p>
         </div>
@@ -223,26 +223,26 @@ export default function JudgingPreview({
   };
 
   return (
-    <Card className="p-4 border-dashed border-2 border-border/50 bg-muted/30">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-            <ThumbsUp className="w-3 h-3 text-primary" />
+    <Card className="p-3 sm:p-4 border-dashed border-2 border-border/50 bg-muted/30">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
+            <ThumbsUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary" />
           </div>
-          <span className="font-semibold text-sm">Judge View Preview</span>
+          <span className="font-semibold text-xs sm:text-sm truncate">Judge Preview</span>
         </div>
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="text-[10px] sm:text-xs shrink-0">
           {getModeTitle()}
         </Badge>
       </div>
       
-      <div className="bg-background rounded-xl p-4 border border-border/50">
+      <div className="bg-background rounded-xl p-3 sm:p-4 border border-border/50">
         {getPreviewContent()}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-border/30 flex items-center justify-between text-xs text-muted-foreground">
-        <span>Rounds to win: {config.roundsToWin}</span>
-        <span>{config.allowTies ? 'Ties allowed' : 'No ties'}</span>
+      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/30 flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
+        <span>Rounds: {config.roundsToWin}</span>
+        <span>{config.allowTies ? 'Ties OK' : 'No ties'}</span>
       </div>
     </Card>
   );

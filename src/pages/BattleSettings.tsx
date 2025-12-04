@@ -289,32 +289,34 @@ export default function BattleSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <Button 
             variant="ghost" 
+            size="sm"
             onClick={() => navigate(`/battle/${id}`)}
-            className="mb-2"
+            className="mb-2 -ml-2"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Battle
+            <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Back to Battle</span>
+            <span className="sm:hidden">Back</span>
           </Button>
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Settings2 className="w-6 h-6 text-primary" />
-                Battle Settings
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                <Settings2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+                <span className="truncate">Settings</span>
               </h1>
-              <p className="text-muted-foreground">{battle.name}</p>
+              <p className="text-sm text-muted-foreground truncate">{battle.name}</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="info">Battle Info</TabsTrigger>
-            <TabsTrigger value="categories">Categories & Judging</TabsTrigger>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
+        <Tabs defaultValue="info" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="info" className="text-xs sm:text-sm py-2">Battle Info</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs sm:text-sm py-2">Categories</TabsTrigger>
           </TabsList>
 
           {/* Battle Info Tab */}
@@ -392,12 +394,12 @@ export default function BattleSettings() {
           {/* Categories Tab */}
           <TabsContent value="categories">
             <Card className="border-border/50 shadow-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="pb-3 sm:pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <CardTitle>Categories & Judging Systems</CardTitle>
-                    <CardDescription>
-                      Configure judging modes for each category
+                    <CardTitle className="text-base sm:text-lg">Categories & Judging</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Configure judging modes
                     </CardDescription>
                   </div>
                   <Button
@@ -405,14 +407,14 @@ export default function BattleSettings() {
                     size="sm"
                     onClick={addNomination}
                     disabled={nominations.length >= 5}
-                    className="border-primary text-primary hover:bg-primary/10"
+                    className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Category
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 {nominations.map((nomination, index) => (
                   <Collapsible
                     key={nomination.id}
@@ -423,22 +425,22 @@ export default function BattleSettings() {
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
-                          className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                          className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-muted/50 transition-colors"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-semibold text-primary">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm shrink-0">
                               {index + 1}
                             </div>
-                            <div className="text-left">
-                              <div className="font-semibold">
+                            <div className="text-left min-w-0">
+                              <div className="font-semibold text-sm sm:text-base truncate">
                                 {nomination.name || `Category ${index + 1}`}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                {getModeLabel(nomination.judging_mode)} • {nomination.rounds_to_win} rounds to win
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">
+                                {getModeLabel(nomination.judging_mode)} • {nomination.rounds_to_win} rounds
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                             {nominations.length > 1 && (
                               <Button
                                 type="button"
@@ -448,23 +450,23 @@ export default function BattleSettings() {
                                   e.stopPropagation();
                                   deleteNomination(nomination.id);
                                 }}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             )}
                             {nomination.isOpen ? (
-                              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                              <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                             ) : (
-                              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                             )}
                           </div>
                         </button>
                       </CollapsibleTrigger>
 
                       <CollapsibleContent>
-                        <div className="p-4 pt-0 space-y-6 border-t border-border/50">
-                          <div className="grid gap-4 sm:grid-cols-2 pt-4">
+                        <div className="p-3 sm:p-4 pt-0 space-y-4 sm:space-y-6 border-t border-border/50">
+                          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 pt-3 sm:pt-4">
                             <div className="space-y-2">
                               <Label>Category Name *</Label>
                               <Input
