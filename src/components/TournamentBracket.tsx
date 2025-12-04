@@ -211,13 +211,20 @@ export default function TournamentBracket({
     );
   };
 
-  // Linear layout: all rounds left to right
+  // Linear layout: all rounds left to right with proper bracket alignment
   if (layout === "linear") {
+    const baseMatchHeight = 80; // Height of one match card
+    const baseGap = 8; // Base gap between matches in first round
+    
     return (
       <div className="w-full overflow-x-auto py-4">
-        <div className="flex gap-4 md:gap-6 lg:gap-8 min-w-max items-start">
+        <div className="flex gap-6 md:gap-8 lg:gap-12 min-w-max items-center">
           {roundsData.map((round, roundIndex) => {
-            const spacing = Math.pow(2, roundIndex) * 16;
+            // Calculate spacing to center matches relative to previous round
+            const matchCount = round.matches.length;
+            const multiplier = Math.pow(2, roundIndex);
+            const totalHeight = EXPECTED_MATCHES.round_of_16 * (baseMatchHeight + baseGap) - baseGap;
+            const matchSpacing = matchCount > 1 ? (totalHeight - matchCount * baseMatchHeight) / (matchCount - 1) : 0;
             
             return (
               <div key={round.key} className="flex flex-col items-center">
@@ -226,16 +233,22 @@ export default function TournamentBracket({
                 </div>
                 
                 <div 
-                  className="flex flex-col justify-around"
-                  style={{ gap: `${spacing}px` }}
+                  className="flex flex-col"
+                  style={{ 
+                    gap: `${matchSpacing}px`,
+                    height: round.key === 'final' ? 'auto' : `${totalHeight}px`,
+                    justifyContent: 'space-around'
+                  }}
                 >
                   {round.matches.map((match, idx) => (
-                    <div key={match?.id || `empty-${round.key}-${idx}`} className="relative">
+                    <div key={match?.id || `empty-${round.key}-${idx}`} className="relative flex items-center">
                       {renderMatchCard(match, true)}
                       
+                      {/* Connector line to next round */}
                       {roundIndex < roundsData.length - 1 && (
                         <div 
-                          className={`absolute top-1/2 -right-4 md:-right-6 lg:-right-8 w-4 md:w-6 lg:w-8 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`}
+                          className={`absolute top-1/2 -right-6 md:-right-8 lg:-right-12 w-6 md:w-8 lg:w-12 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`}
+                          style={{ transform: 'translateY(-50%)' }}
                         />
                       )}
                     </div>
