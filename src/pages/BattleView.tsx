@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus, BarChart3, Medal } from "lucide-react";
+import { ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus, BarChart3, Medal, Settings2 } from "lucide-react";
 import QRCodeShare from "@/components/QRCodeShare";
 import SocialShare from "@/components/SocialShare";
 import { useToast } from "@/hooks/use-toast";
@@ -498,6 +498,10 @@ export default function BattleView() {
             <div className="flex gap-2 flex-wrap">
               <Button onClick={() => navigate(`/battle/${id}/operator`)} variant="default">
                 Operator Panel
+              </Button>
+              <Button onClick={() => navigate(`/battle/${id}/settings`)} variant="outline" className="gap-2">
+                <Settings2 className="h-4 w-4" />
+                Settings
               </Button>
               <Button onClick={() => navigate(`/battle/${id}/analytics`)} variant="outline" className="gap-2">
                 <BarChart3 className="h-4 w-4" />

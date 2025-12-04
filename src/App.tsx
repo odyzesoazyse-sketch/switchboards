@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateBattle from "./pages/CreateBattle";
 import BattleView from "./pages/BattleView";
 import BattleScreen from "./pages/BattleScreen";
+import BattleSettings from "./pages/BattleSettings";
 import OperatorPanel from "./pages/OperatorPanel";
 import JudgePanel from "./pages/JudgePanel";
 import ActivityLogs from "./pages/ActivityLogs";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/battles/:id/leaderboard" element={<Leaderboard />} />
             <Route path="/battle/create" element={<CreateBattle />} />
             <Route path="/battle/:id" element={<BattleView />} />
+            <Route path="/battle/:id/settings" element={<BattleSettings />} />
             <Route path="/battle/:id/screen" element={<BattleScreen />} />
             <Route path="/battle/:id/operator" element={<OperatorPanel />} />
             <Route path="/battle/:id/logs" element={<ActivityLogs />} />
