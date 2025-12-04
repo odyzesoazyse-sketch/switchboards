@@ -138,8 +138,8 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
 
   return (
     <div className="space-y-6">
-      {/* Mode Selection Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* Mode Selection Grid - responsive */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
         {PRESET_MODES.map((mode) => {
           const Icon = mode.icon;
           const isSelected = value.mode === mode.id;
@@ -150,7 +150,7 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
               type="button"
               onClick={() => handleModeSelect(mode.id)}
               className={`
-                relative p-4 rounded-xl border-2 transition-all text-left
+                relative p-3 sm:p-4 rounded-xl border-2 transition-all text-left
                 ${isSelected 
                   ? 'border-primary bg-primary/5 shadow-md' 
                   : 'border-border/50 hover:border-border hover:bg-muted/50'
@@ -158,15 +158,15 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
               `}
             >
               {isSelected && (
-                <div className="absolute top-2 right-2">
-                  <Check className="w-4 h-4 text-primary" />
+                <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2">
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 </div>
               )}
-              <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-              <div className={`font-semibold text-sm ${isSelected ? 'text-primary' : ''}`}>
+              <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-1.5 sm:mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+              <div className={`font-semibold text-xs sm:text-sm ${isSelected ? 'text-primary' : ''}`}>
                 {mode.name}
               </div>
-              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+              <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2 hidden sm:block">
                 {mode.description}
               </div>
             </button>
@@ -202,41 +202,46 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
               {value.criteria.map((criterion, index) => (
                 <div 
                   key={criterion.id}
-                  className="flex items-center gap-2 p-3 bg-background rounded-lg border border-border/50"
+                  className="p-3 bg-background rounded-lg border border-border/50 space-y-3"
                 >
-                  <Badge variant="secondary" className="shrink-0 w-6 h-6 p-0 justify-center">
-                    {index + 1}
-                  </Badge>
-                  <Input
-                    placeholder="Criterion name"
-                    value={criterion.name}
-                    onChange={(e) => updateCriterion(criterion.id, 'name', e.target.value)}
-                    className="flex-1 h-9"
-                  />
-                  <div className="flex items-center gap-1 shrink-0">
+                  {/* Mobile: stacked layout */}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="shrink-0 w-6 h-6 p-0 justify-center">
+                      {index + 1}
+                    </Badge>
+                    <Input
+                      placeholder="Criterion name"
+                      value={criterion.name}
+                      onChange={(e) => updateCriterion(criterion.id, 'name', e.target.value)}
+                      className="flex-1 h-9"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeCriterion(criterion.id)}
+                      className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10 h-9 w-9"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {/* Range inputs - responsive */}
+                  <div className="flex items-center gap-2 pl-8">
+                    <span className="text-xs text-muted-foreground shrink-0">Range:</span>
                     <Input
                       type="number"
                       value={criterion.min}
                       onChange={(e) => updateCriterion(criterion.id, 'min', Number(e.target.value))}
-                      className="w-16 h-9 text-center"
+                      className="w-16 h-8 text-center text-sm"
                     />
-                    <span className="text-muted-foreground">to</span>
+                    <span className="text-muted-foreground text-sm">to</span>
                     <Input
                       type="number"
                       value={criterion.max}
                       onChange={(e) => updateCriterion(criterion.id, 'max', Number(e.target.value))}
-                      className="w-16 h-9 text-center"
+                      className="w-16 h-8 text-center text-sm"
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeCriterion(criterion.id)}
-                    className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
                 </div>
               ))}
             </div>
