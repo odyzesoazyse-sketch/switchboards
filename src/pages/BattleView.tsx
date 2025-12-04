@@ -6,10 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus, 
-  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp
+  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User
 } from "lucide-react";
 import QRCodeShare from "@/components/QRCodeShare";
 import SocialShare from "@/components/SocialShare";
+import DancerPhotoUpload from "@/components/DancerPhotoUpload";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -759,19 +760,85 @@ export default function BattleView() {
             {dancers.length > 0 && currentNomination.phase === "selection" && (
               <div>
                 <h3 className="text-lg sm:text-xl font-bold mb-3">Participants</h3>
-                <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {dancers.map((dancer, index) => (
                     <Card key={dancer.id} className="p-3 bg-card/50 backdrop-blur-sm border-border/50">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0">
-                          {index + 1}
-                        </div>
-                        <div className="min-w-0">
+                      <div className="flex items-center gap-3">
+                        {isOrganizer ? (
+                          <DancerPhotoUpload
+                            dancerId={dancer.id}
+                            currentPhotoUrl={dancer.photo_url}
+                            dancerName={dancer.name}
+                            onPhotoUpdated={(url) => {
+                              setDancers(prev => prev.map(d => 
+                                d.id === dancer.id ? { ...d, photo_url: url || null } : d
+                              ));
+                            }}
+                            compact
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                            {dancer.photo_url ? (
+                              <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-sm font-bold text-primary-foreground">{index + 1}</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
                           <div className="font-semibold text-sm truncate">{dancer.name}</div>
                           {dancer.city && <div className="text-xs text-muted-foreground truncate">{dancer.city}</div>}
                         </div>
+                        {dancer.is_qualified && <Badge variant="secondary" className="text-xs shrink-0">Q</Badge>}
                       </div>
-                      {dancer.is_qualified && <Badge variant="secondary" className="mt-2 text-xs">Qualified</Badge>}
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Registration Participants */}
+            {dancers.length > 0 && currentNomination.phase === "registration" && (
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold mb-3">Registered ({dancers.length})</h3>
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {dancers.map((dancer, index) => (
+                    <Card key={dancer.id} className="p-3 bg-card/50 backdrop-blur-sm border-border/50">
+                      <div className="flex items-center gap-3">
+                        {isOrganizer ? (
+                          <DancerPhotoUpload
+                            dancerId={dancer.id}
+                            currentPhotoUrl={dancer.photo_url}
+                            dancerName={dancer.name}
+                            onPhotoUpdated={(url) => {
+                              setDancers(prev => prev.map(d => 
+                                d.id === dancer.id ? { ...d, photo_url: url || null } : d
+                              ));
+                            }}
+                            compact
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                            {dancer.photo_url ? (
+                              <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-5 h-5 text-primary-foreground" />
+                            )}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm truncate">{dancer.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {dancer.city && <span>{dancer.city}</span>}
+                            {dancer.age && <span> • {dancer.age} y.o.</span>}
+                          </div>
+                        </div>
+                        {isOrganizer && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive shrink-0">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </Card>
                   ))}
                 </div>
