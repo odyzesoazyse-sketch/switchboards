@@ -35,9 +35,11 @@ import {
   Plane,
   Heart,
   Share2,
-  ExternalLink
+  ExternalLink,
+  MapPinned
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import EventsMap from "@/components/EventsMap";
 
 interface Battle {
   id: string;
@@ -125,7 +127,7 @@ export default function WorldEvents() {
   const navigate = useNavigate();
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "calendar">("grid");
+  const [viewMode, setViewMode] = useState<"map" | "grid" | "list" | "calendar">("map");
   const [showFilters, setShowFilters] = useState(false);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -456,6 +458,10 @@ export default function WorldEvents() {
           <div className="flex items-center gap-2">
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)} className="hidden sm:block">
               <TabsList className="h-12">
+                <TabsTrigger value="map" className="px-4">
+                  <MapPinned className="w-4 h-4 mr-2" />
+                  Map
+                </TabsTrigger>
                 <TabsTrigger value="grid" className="px-4">
                   <Map className="w-4 h-4 mr-2" />
                   Grid
@@ -713,6 +719,16 @@ export default function WorldEvents() {
             {filters.continent !== "All" && ` in ${filters.continent}`}
           </p>
         </div>
+
+        {/* Map View */}
+        {viewMode === "map" && (
+          <section className="mb-12">
+            <EventsMap 
+              events={filteredBattles} 
+              onEventClick={(id) => navigate(`/battles/${id}`)} 
+            />
+          </section>
+        )}
 
         {/* Grid View */}
         {viewMode === "grid" && (
