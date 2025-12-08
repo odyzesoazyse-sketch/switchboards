@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { format, parseISO } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { MapPin, ExternalLink, Key } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -25,12 +29,12 @@ const LOCATION_COORDS: Record<string, [number, number]> = {
   "Paris, France": [2.3522, 48.8566],
   "Montpellier, France": [3.8767, 43.6108],
   "Lyon, France": [4.8357, 45.7640],
-  "Nantes, France": [1.5534, 47.2184],
+  "Nantes, France": [-1.5534, 47.2184],
   // Germany
   "Berlin, Germany": [13.4050, 52.5200],
   "Bochum, Germany": [7.2162, 51.4818],
   // UK
-  "London, UK": [0.1276, 51.5074],
+  "London, UK": [-0.1276, 51.5074],
   // South Korea
   "Seoul, South Korea": [126.9780, 37.5665],
   // USA
@@ -90,47 +94,80 @@ const getPhaseLabel = (phase: string): string => {
   }
 };
 
+const MAPBOX_TOKEN_KEY = 'mapbox_public_token';
+
 export default function EventsMap({ events, onEventClick }: EventsMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string>(() => {
+    return localStorage.getItem(MAPBOX_TOKEN_KEY) || '';
+  });
+  const [tokenInput, setTokenInput] = useState('');
+  const [showTokenInput, setShowTokenInput] = useState(!mapboxToken);
+
+  const handleSaveToken = () => {
+    if (tokenInput.trim()) {
+      localStorage.setItem(MAPBOX_TOKEN_KEY, tokenInput.trim());
+      setMapboxToken(tokenInput.trim());
+      setShowTokenInput(false);
+    }
+  };
+
+  const handleClearToken = () => {
+    localStorage.removeItem(MAPBOX_TOKEN_KEY);
+    setMapboxToken('');
+    setShowTokenInput(true);
+    setMapLoaded(false);
+    if (map.current) {
+      markersRef.current.forEach(marker => marker.remove());
+      map.current.remove();
+      map.current = null;
+    }
+  };
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !mapboxToken) return;
 
-    const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
-    if (!token) {
-      console.error('Mapbox token not configured');
-      return;
+    mapboxgl.accessToken = mapboxToken;
+
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [10, 30],
+        zoom: 1.5,
+        projection: 'mercator',
+      });
+
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+
+      map.current.on('load', () => {
+        setMapLoaded(true);
+      });
+
+      map.current.on('error', (e: mapboxgl.ErrorEvent) => {
+        console.error('Mapbox error:', e);
+        // Check if it's an authentication error
+        if (e.error?.message?.includes('401') || e.error?.message?.includes('Unauthorized')) {
+          handleClearToken();
+        }
+      });
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
     }
-
-    mapboxgl.accessToken = token;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [10, 30],
-      zoom: 1.5,
-      projection: 'mercator',
-    });
-
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
-
-    map.current.on('load', () => {
-      setMapLoaded(true);
-    });
 
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       map.current?.remove();
     };
-  }, []);
+  }, [mapboxToken]);
 
   // Add markers when map is loaded and events change
   useEffect(() => {
@@ -253,6 +290,44 @@ export default function EventsMap({ events, onEventClick }: EventsMapProps) {
     });
   }, [events, mapLoaded, onEventClick]);
 
+  // Show token input if no token is configured
+  if (showTokenInput || !mapboxToken) {
+    return (
+      <Card className="w-full h-[500px] flex items-center justify-center">
+        <CardContent className="text-center max-w-md py-12">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+            <MapPin className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-display font-bold mb-2">Configure Map</h3>
+          <p className="text-muted-foreground mb-6">
+            To display the interactive world map, please enter your Mapbox public token. 
+            You can get one for free at mapbox.com
+          </p>
+          <div className="space-y-4">
+            <Input
+              placeholder="pk.eyJ1Ijoi... (your Mapbox public token)"
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              className="text-center"
+            />
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleSaveToken} disabled={!tokenInput.trim()}>
+                <Key className="w-4 h-4 mr-2" />
+                Save Token
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Get Token
+                </a>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="relative w-full h-[500px] rounded-xl overflow-hidden border border-border">
       <div ref={mapContainer} className="absolute inset-0" />
@@ -280,9 +355,20 @@ export default function EventsMap({ events, onEventClick }: EventsMapProps) {
         </div>
       </div>
 
-      {/* Event count */}
-      <div className="absolute top-4 left-4 glass rounded-lg px-3 py-2">
-        <span className="text-sm font-medium text-foreground">{events.length} events on map</span>
+      {/* Event count & settings */}
+      <div className="absolute top-4 left-4 flex gap-2">
+        <div className="glass rounded-lg px-3 py-2">
+          <span className="text-sm font-medium text-foreground">{events.length} events on map</span>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="glass"
+          onClick={handleClearToken}
+        >
+          <Key className="w-3 h-3 mr-1" />
+          Change Token
+        </Button>
       </div>
     </div>
   );
