@@ -19,6 +19,7 @@ import BattlePublic from "./pages/BattlePublic";
 import Leaderboard from "./pages/Leaderboard";
 import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
+import WorldEvents from "./pages/WorldEvents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/battles" element={<BattlesList />} />
             <Route path="/battles/:id" element={<BattlePublic />} />
+            <Route path="/world-events" element={<WorldEvents />} />
             <Route path="/battles/:id/leaderboard" element={<Leaderboard />} />
             <Route path="/battle/create" element={<CreateBattle />} />
             <Route path="/battle/:id" element={<BattleView />} />
