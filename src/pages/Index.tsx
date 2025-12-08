@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trophy, Users, Timer, Sparkles, CheckCircle, TrendingUp, Zap, Shield, ArrowRight } from "lucide-react";
+import { Trophy, Users, Timer, Sparkles, CheckCircle, TrendingUp, Zap, Shield, ArrowRight, Globe } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -22,6 +22,14 @@ const Index = () => {
           </h1>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/world-events")}
+              className="hidden sm:inline-flex"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              World Events
+            </Button>
             <Button 
               variant="ghost" 
               onClick={() => navigate("/battles")}
@@ -71,20 +79,21 @@ const Index = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <Button 
-                onClick={() => navigate("/battles")}
+                onClick={() => navigate("/world-events")}
                 size="lg"
-                className="text-lg px-8 h-14 bg-primary hover:bg-primary/90 glow-red hover-lift"
+                className="text-lg px-8 h-14 bg-gradient-to-r from-primary to-secondary text-white hover-lift"
               >
-                {t("hero.findBattle")}
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <Globe className="mr-2 w-5 h-5" />
+                Explore World Events
               </Button>
               <Button 
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/battles")}
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 h-14 border-2 hover-lift"
               >
-                {t("hero.organize")}
+                {t("hero.findBattle")}
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
 
