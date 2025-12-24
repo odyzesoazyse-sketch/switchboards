@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trophy, Crown, User, Check, Award, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Crown, Check, Award } from "lucide-react";
 
 interface JudgeVote {
   judgeName: string;
@@ -40,7 +40,6 @@ export function TournamentBracketDialog({
   highlightDancerName,
   onSelectDancer
 }: TournamentBracketDialogProps) {
-  const [expandedBattle, setExpandedBattle] = useState<string | null>(null);
 
   // Organize battles by round
   const roundsData = useMemo(() => {
@@ -54,7 +53,7 @@ export function TournamentBracketDialog({
       rounds.get(round)!.push(battle);
     }
     
-    // Sort by round order
+    // Sort by round order (reversed for left-to-right display)
     return ROUND_ORDER
       .filter(r => rounds.has(r))
       .map(roundName => ({
@@ -76,7 +75,7 @@ export function TournamentBracketDialog({
     return Array.from(judgeSet);
   }, [battles]);
 
-  // Find winner (final battle winner)
+  // Find winner
   const winner = useMemo(() => {
     const finalBattle = battles.find(b => b.round === "Final");
     return finalBattle?.winner_name || null;
@@ -84,195 +83,191 @@ export function TournamentBracketDialog({
 
   const isHighlighted = (name?: string) => highlightDancerName && name === highlightDancerName;
 
+  // If no round data, show simple list
+  const hasRoundData = roundsData.some(r => r.name !== "Unknown");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="p-4 pb-2 border-b border-border/50">
           <DialogTitle className="flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-primary" />
-            <div>
-              <div>{tournamentName}</div>
-              {winner && (
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+            <Trophy className="w-5 h-5 text-primary" />
+            <div className="flex-1">
+              <div className="text-lg">{tournamentName}</div>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {winner && (
+                  <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
                     <Crown className="w-3 h-3 mr-1" />
-                    Champion: {winner}
+                    {winner}
                   </Badge>
-                </div>
-              )}
+                )}
+                <Badge variant="outline" className="text-xs">
+                  {battles.length} battles
+                </Badge>
+              </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[75vh] px-6 pb-6">
-          {/* Judges Panel */}
-          {judges.length > 0 && (
-            <div className="mb-6 p-4 rounded-lg bg-muted/30 border border-border/50">
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Award className="w-4 h-4" />
-                Judges Panel
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {judges.map(judge => (
-                  <Badge key={judge} variant="secondary">
-                    {judge}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Bracket Visualization */}
-          <div className="space-y-1">
-            {roundsData.map((round, roundIdx) => (
-              <div key={round.name} className="relative">
-                {/* Round Header */}
-                <div className="sticky top-0 z-10 py-2 bg-background/95 backdrop-blur">
-                  <Badge 
-                    variant={round.name === "Final" ? "default" : "outline"}
-                    className={`${round.name === "Final" ? "bg-primary" : ""}`}
-                  >
-                    {round.name}
-                  </Badge>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {round.battles.length} {round.battles.length === 1 ? 'battle' : 'battles'}
-                  </span>
+        <ScrollArea className="max-h-[75vh]">
+          <div className="p-4">
+            {/* Judges Panel */}
+            {judges.length > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Award className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Judges:</span>
+                  {judges.map(judge => (
+                    <Badge key={judge} variant="secondary" className="text-xs">
+                      {judge}
+                    </Badge>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                {/* Battles Grid */}
-                <div className={`grid gap-2 ${
-                  round.battles.length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 
-                  round.battles.length <= 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
-                  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-                }`}>
-                  {round.battles.map((battle) => {
-                    const isExpanded = expandedBattle === battle.id;
-                    const winnerVotes = battle.judge_votes?.filter(v => v.votedFor === battle.winner_name).length || 0;
-                    const loserVotes = battle.judge_votes?.filter(v => v.votedFor === battle.loser_name).length || 0;
+            {hasRoundData ? (
+              /* Horizontal Bracket */
+              <div className="overflow-x-auto pb-4">
+                <div className="flex gap-2 min-w-max">
+                  {roundsData.map((round, roundIdx) => {
+                    const isLast = roundIdx === roundsData.length - 1;
                     
                     return (
-                      <div
-                        key={battle.id}
-                        className={`rounded-lg border transition-all ${
-                          round.name === "Final" 
-                            ? "border-primary/50 bg-primary/5" 
-                            : "border-border/50 bg-card"
-                        } ${isExpanded ? "ring-2 ring-primary/30" : ""}`}
-                      >
-                        {/* Match Header */}
-                        <div 
-                          className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => setExpandedBattle(isExpanded ? null : battle.id)}
-                        >
-                          {/* Winner */}
-                          <div 
-                            className={`flex items-center justify-between p-2 rounded-md mb-1 ${
-                              isHighlighted(battle.winner_name) 
-                                ? "bg-primary/20 ring-1 ring-primary" 
-                                : "bg-green-500/10"
-                            }`}
+                      <div key={round.name} className="flex flex-col">
+                        {/* Round Header */}
+                        <div className="text-center mb-2 sticky top-0 bg-background z-10 pb-1">
+                          <Badge 
+                            variant={round.name === "Final" ? "default" : "outline"}
+                            className={round.name === "Final" ? "bg-primary" : ""}
                           >
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-3 h-3 text-green-500" />
-                              <button
-                                className="font-medium text-sm hover:underline text-left"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (battle.winner_name && onSelectDancer) {
-                                    onSelectDancer(battle.winner_name);
-                                  }
-                                }}
-                              >
-                                {battle.winner_name}
-                              </button>
-                            </div>
-                            {battle.judge_votes && battle.judge_votes.length > 0 && (
-                              <Badge variant="secondary" className="bg-green-500/20 text-green-600 text-xs">
-                                {winnerVotes}
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {/* Loser */}
-                          <div 
-                            className={`flex items-center justify-between p-2 rounded-md ${
-                              isHighlighted(battle.loser_name) 
-                                ? "bg-primary/20 ring-1 ring-primary" 
-                                : "bg-muted/50"
-                            }`}
-                          >
-                            <button
-                              className="text-sm text-muted-foreground hover:underline text-left"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (battle.loser_name && onSelectDancer) {
-                                  onSelectDancer(battle.loser_name);
-                                }
-                              }}
-                            >
-                              {battle.loser_name}
-                            </button>
-                            {battle.judge_votes && battle.judge_votes.length > 0 && (
-                              <Badge variant="outline" className="text-xs">
-                                {loserVotes}
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Expand indicator */}
-                          {battle.judge_votes && battle.judge_votes.length > 0 && (
-                            <div className="flex justify-center pt-1">
-                              {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                              )}
-                            </div>
-                          )}
+                            {round.name}
+                          </Badge>
                         </div>
 
-                        {/* Judge Votes (Expanded) */}
-                        {isExpanded && battle.judge_votes && battle.judge_votes.length > 0 && (
-                          <div className="px-3 pb-3 pt-0 border-t border-border/30">
-                            <div className="text-xs font-medium text-muted-foreground mb-2 mt-2">
-                              Judge Votes
-                            </div>
-                            <div className="space-y-1">
-                              {battle.judge_votes.map((vote, idx) => (
+                        {/* Battles Column with spacing to align with bracket */}
+                        <div 
+                          className="flex flex-col justify-around flex-1 gap-1"
+                          style={{ 
+                            minHeight: round.battles.length * 80 + (round.battles.length - 1) * 8
+                          }}
+                        >
+                          {round.battles.map((battle, battleIdx) => {
+                            const winnerVotes = battle.judge_votes?.filter(v => v.votedFor === battle.winner_name).length || 0;
+                            const loserVotes = battle.judge_votes?.filter(v => v.votedFor === battle.loser_name).length || 0;
+                            const hasVotes = battle.judge_votes && battle.judge_votes.length > 0;
+                            
+                            return (
+                              <div key={battle.id} className="relative flex items-center">
+                                {/* Match Box */}
                                 <div 
-                                  key={idx}
-                                  className="flex items-center justify-between text-xs p-1.5 rounded bg-muted/30"
+                                  className={`w-44 rounded-lg border overflow-hidden ${
+                                    round.name === "Final" 
+                                      ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20" 
+                                      : "border-border/50 bg-card"
+                                  }`}
                                 >
-                                  <span className="text-muted-foreground">{vote.judgeName}</span>
-                                  <Badge 
-                                    variant={vote.votedFor === battle.winner_name ? "default" : "outline"}
-                                    className={`text-xs ${
-                                      vote.votedFor === battle.winner_name 
-                                        ? "bg-green-500/20 text-green-600" 
+                                  {/* Winner */}
+                                  <div 
+                                    className={`flex items-center justify-between px-2 py-1.5 border-b border-border/30 cursor-pointer hover:bg-muted/50 transition-colors ${
+                                      isHighlighted(battle.winner_name) 
+                                        ? "bg-primary/20" 
+                                        : "bg-green-500/10"
+                                    }`}
+                                    onClick={() => battle.winner_name && onSelectDancer?.(battle.winner_name)}
+                                  >
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <Crown className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                      <span className="text-xs font-medium truncate">
+                                        {battle.winner_name}
+                                      </span>
+                                    </div>
+                                    {hasVotes && (
+                                      <Badge variant="secondary" className="text-[10px] px-1 h-4 bg-green-500/20 text-green-600">
+                                        {winnerVotes}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Loser */}
+                                  <div 
+                                    className={`flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors ${
+                                      isHighlighted(battle.loser_name) 
+                                        ? "bg-primary/20" 
                                         : ""
                                     }`}
+                                    onClick={() => battle.loser_name && onSelectDancer?.(battle.loser_name)}
                                   >
-                                    <Check className="w-2 h-2 mr-1" />
-                                    {vote.votedFor}
-                                  </Badge>
+                                    <span className="text-xs text-muted-foreground truncate">
+                                      {battle.loser_name}
+                                    </span>
+                                    {hasVotes && (
+                                      <Badge variant="outline" className="text-[10px] px-1 h-4">
+                                        {loserVotes}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+
+                                {/* Connector Line to next round */}
+                                {!isLast && (
+                                  <div className="w-4 h-px bg-border/50 flex-shrink-0" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
-                </div>
 
-                {/* Connector lines between rounds (visual only) */}
-                {roundIdx < roundsData.length - 1 && (
-                  <div className="flex justify-center py-2">
-                    <div className="w-px h-4 bg-border/50" />
-                  </div>
-                )}
+                  {/* Winner Trophy */}
+                  {winner && (
+                    <div className="flex flex-col justify-center items-center pl-2">
+                      <div className="w-20 p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-center">
+                        <Trophy className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
+                        <div className="text-xs font-bold text-yellow-600 truncate">
+                          {winner}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">Champion</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            ))}
+            ) : (
+              /* Simple List (no round data) */
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground mb-3">
+                  No bracket data available. Showing battle list:
+                </p>
+                {battles.map((battle) => (
+                  <div 
+                    key={battle.id}
+                    className="flex items-center gap-3 p-2 rounded-lg border border-border/50 bg-card"
+                  >
+                    <div 
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded bg-green-500/10 cursor-pointer hover:bg-green-500/20 ${
+                        isHighlighted(battle.winner_name) ? "ring-1 ring-primary" : ""
+                      }`}
+                      onClick={() => battle.winner_name && onSelectDancer?.(battle.winner_name)}
+                    >
+                      <Crown className="w-3 h-3 text-green-500" />
+                      <span className="text-sm font-medium">{battle.winner_name}</span>
+                    </div>
+                    <span className="text-muted-foreground text-sm">beat</span>
+                    <div 
+                      className={`px-2 py-1 rounded bg-muted/50 cursor-pointer hover:bg-muted ${
+                        isHighlighted(battle.loser_name) ? "ring-1 ring-primary" : ""
+                      }`}
+                      onClick={() => battle.loser_name && onSelectDancer?.(battle.loser_name)}
+                    >
+                      <span className="text-sm">{battle.loser_name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
