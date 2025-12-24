@@ -124,33 +124,33 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
             return (
               <Card 
                 key={tournament.name}
-                className="p-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                className="p-3 sm:p-4 hover:bg-muted/50 active:bg-muted/70 cursor-pointer transition-colors"
                 onClick={() => setSelectedTournament(tournament)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Trophy className="w-6 h-6 text-primary" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold">{tournament.name}</h3>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{tournament.name}</h3>
+                      <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          {tournament.battles.length} battles
+                          {tournament.battles.length}
                         </span>
                         {judges.length > 0 && (
                           <span className="flex items-center gap-1">
                             <Award className="w-3 h-3" />
-                            {judges.length} judges
+                            {judges.length}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     {winner && (
-                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
+                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30 text-xs hidden sm:flex">
                         <Crown className="w-3 h-3 mr-1" />
                         {winner}
                       </Badge>
@@ -177,16 +177,16 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
         />
       ) : (
         <Dialog open={!!selectedTournament && viewMode === 'list'} onOpenChange={() => setSelectedTournament(null)}>
-          <DialogContent className="max-w-3xl max-h-[85vh]">
+          <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[85vh]">
             {selectedTournament && (
               <>
                 <DialogHeader>
-                  <DialogTitle className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <Trophy className="w-6 h-6 text-primary" />
-                      {selectedTournament.name}
+                  <DialogTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
+                      <span className="truncate">{selectedTournament.name}</span>
                     </div>
-                    <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'list' | 'bracket')}>
+                    <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'list' | 'bracket')} className="flex-shrink-0">
                       <ToggleGroupItem value="list" size="sm" aria-label="List view">
                         <List className="w-4 h-4" />
                       </ToggleGroupItem>
@@ -235,14 +235,14 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
                           {roundBattles.map((battle) => (
                             <Card 
                               key={battle.id}
-                              className="p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                              className="p-2 sm:p-3 hover:bg-muted/50 active:bg-muted/70 cursor-pointer transition-colors"
                               onClick={() => setSelectedBattle(battle)}
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 flex-wrap">
+                                  <div className="flex items-center gap-1 sm:gap-2">
                                     <div 
-                                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-500 cursor-pointer hover:bg-green-500/20"
+                                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500/10 text-green-500 cursor-pointer hover:bg-green-500/20 active:bg-green-500/30"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (battle.winner_name && onSelectDancer) {
@@ -251,11 +251,11 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
                                       }}
                                     >
                                       <Crown className="w-3 h-3" />
-                                      <span className="font-medium">{battle.winner_name}</span>
+                                      <span className="font-medium text-xs sm:text-sm">{battle.winner_name}</span>
                                     </div>
-                                    <span className="text-muted-foreground">vs</span>
+                                    <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
                                     <div 
-                                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted cursor-pointer hover:bg-muted/80"
+                                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-muted cursor-pointer hover:bg-muted/80 active:bg-muted/60"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (battle.loser_name && onSelectDancer) {
@@ -263,12 +263,12 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
                                         }
                                       }}
                                     >
-                                      <span>{battle.loser_name}</span>
+                                      <span className="text-xs sm:text-sm">{battle.loser_name}</span>
                                     </div>
                                   </div>
                                 </div>
                                 {battle.judge_votes && battle.judge_votes.length > 0 && (
-                                  <Badge variant="outline" className="text-xs">
+                                  <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">
                                     {battle.judge_votes.filter(v => v.votedFor === battle.winner_name).length}-
                                     {battle.judge_votes.filter(v => v.votedFor === battle.loser_name).length}
                                   </Badge>
@@ -289,11 +289,11 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
 
       {/* Battle Detail Dialog (Judge Votes) */}
       <Dialog open={!!selectedBattle} onOpenChange={() => setSelectedBattle(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           {selectedBattle && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex flex-wrap items-center gap-1 sm:gap-2 text-sm sm:text-base">
                   <span className="text-green-500">{selectedBattle.winner_name}</span>
                   <span className="text-muted-foreground">vs</span>
                   <span>{selectedBattle.loser_name}</span>

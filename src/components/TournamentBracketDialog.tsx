@@ -117,8 +117,9 @@ function BracketView({
   }
 
   return (
-    <div className="overflow-auto max-h-full">
-      <div className="flex gap-2 min-w-max pb-4">
+    <div className="overflow-auto max-h-full touch-pan-x touch-pan-y">
+      {/* Mobile: vertical stack, Desktop: horizontal bracket */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 min-w-max pb-4">
         {roundsData.map((round, roundIdx) => {
           const isLast = roundIdx === roundsData.length - 1;
           
@@ -134,8 +135,8 @@ function BracketView({
               </div>
 
               <div 
-                className="flex flex-col justify-around flex-1 gap-1"
-                style={{ minHeight: round.battles.length * 80 + (round.battles.length - 1) * 8 }}
+                className="flex flex-col justify-around flex-1 gap-2 sm:gap-1"
+                style={{ minHeight: round.battles.length > 1 ? round.battles.length * 80 + (round.battles.length - 1) * 8 : undefined }}
               >
                 {round.battles.map((battle) => {
                   const winnerVotes = battle.judge_votes?.filter(v => v.votedFor === battle.winner_name).length || 0;
@@ -145,43 +146,43 @@ function BracketView({
                   return (
                     <div key={battle.id} className="relative flex items-center">
                       <div 
-                        className={`w-44 rounded-lg border overflow-hidden ${
+                        className={`w-full sm:w-44 rounded-lg border overflow-hidden ${
                           round.name === "Final" 
                             ? "border-primary/50 bg-primary/5 ring-2 ring-primary/20" 
                             : "border-border/50 bg-card"
                         }`}
                       >
                         <div 
-                          className={`flex items-center justify-between px-2 py-1.5 border-b border-border/30 cursor-pointer hover:bg-muted/50 transition-colors ${
+                          className={`flex items-center justify-between px-3 py-2 sm:px-2 sm:py-1.5 border-b border-border/30 cursor-pointer hover:bg-muted/50 active:bg-muted/70 transition-colors ${
                             isHighlighted(battle.winner_name) ? "bg-primary/20" : "bg-green-500/10"
                           }`}
                           onClick={() => battle.winner_name && onSelectDancer?.(battle.winner_name)}
                         >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <Crown className="w-3 h-3 text-green-500 flex-shrink-0" />
-                            <span className="text-xs font-medium truncate">{battle.winner_name}</span>
+                          <div className="flex items-center gap-2 sm:gap-1.5 min-w-0">
+                            <Crown className="w-4 h-4 sm:w-3 sm:h-3 text-green-500 flex-shrink-0" />
+                            <span className="text-sm sm:text-xs font-medium truncate">{battle.winner_name}</span>
                           </div>
                           {hasVotes && (
-                            <Badge variant="secondary" className="text-[10px] px-1 h-4 bg-green-500/20 text-green-600">
+                            <Badge variant="secondary" className="text-xs sm:text-[10px] px-1.5 sm:px-1 h-5 sm:h-4 bg-green-500/20 text-green-600">
                               {winnerVotes}
                             </Badge>
                           )}
                         </div>
                         
                         <div 
-                          className={`flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors ${
+                          className={`flex items-center justify-between px-3 py-2 sm:px-2 sm:py-1.5 cursor-pointer hover:bg-muted/50 active:bg-muted/70 transition-colors ${
                             isHighlighted(battle.loser_name) ? "bg-primary/20" : ""
                           }`}
                           onClick={() => battle.loser_name && onSelectDancer?.(battle.loser_name)}
                         >
-                          <span className="text-xs text-muted-foreground truncate">{battle.loser_name}</span>
+                          <span className="text-sm sm:text-xs text-muted-foreground truncate">{battle.loser_name}</span>
                           {hasVotes && (
-                            <Badge variant="outline" className="text-[10px] px-1 h-4">{loserVotes}</Badge>
+                            <Badge variant="outline" className="text-xs sm:text-[10px] px-1.5 sm:px-1 h-5 sm:h-4">{loserVotes}</Badge>
                           )}
                         </div>
                       </div>
 
-                      {!isLast && <div className="w-4 h-px bg-border/50 flex-shrink-0" />}
+                      {!isLast && <div className="hidden sm:block w-4 h-px bg-border/50 flex-shrink-0" />}
                     </div>
                   );
                 })}
@@ -191,11 +192,11 @@ function BracketView({
         })}
 
         {winner && (
-          <div className="flex flex-col justify-center items-center pl-2">
-            <div className="w-20 p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-center">
-              <Trophy className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
-              <div className="text-xs font-bold text-yellow-600 truncate">{winner}</div>
-              <div className="text-[10px] text-muted-foreground">Champion</div>
+          <div className="flex flex-col justify-center items-center pt-3 sm:pt-0 sm:pl-2">
+            <div className="w-full sm:w-20 p-4 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-center">
+              <Trophy className="w-8 h-8 sm:w-6 sm:h-6 mx-auto text-yellow-500 mb-1" />
+              <div className="text-sm sm:text-xs font-bold text-yellow-600 truncate">{winner}</div>
+              <div className="text-xs sm:text-[10px] text-muted-foreground">Champion</div>
             </div>
           </div>
         )}
@@ -244,24 +245,24 @@ export function TournamentBracketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="p-4 pb-2 border-b border-border/50">
-          <DialogTitle className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Trophy className="w-5 h-5 text-primary" />
-              <div>
-                <div className="text-lg">{tournamentName}</div>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <Badge variant="outline" className="text-xs">
+      <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="p-3 sm:p-4 pb-2 border-b border-border/50">
+          <DialogTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Trophy className="w-5 h-5 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="text-base sm:text-lg truncate">{tournamentName}</div>
+                <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">
                     {battles.length} battles
                   </Badge>
                   {hasBboys && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs">
                       🏆 {bboyBattles.length} B-Boy
                     </Badge>
                   )}
                   {hasBgirls && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs">
                       👑 {bgirlBattles.length} B-Girl
                     </Badge>
                   )}
@@ -269,7 +270,7 @@ export function TournamentBracketDialog({
               </div>
             </div>
             {onViewModeChange && (
-              <ToggleGroup type="single" value={defaultViewMode} onValueChange={handleViewModeChange}>
+              <ToggleGroup type="single" value={defaultViewMode} onValueChange={handleViewModeChange} className="flex-shrink-0">
                 <ToggleGroupItem value="list" size="sm" aria-label="List view">
                   <List className="w-4 h-4" />
                 </ToggleGroupItem>

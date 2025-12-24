@@ -61,7 +61,8 @@ export function BattleGraph({ dancers, battles, category, onSelectDancer }: Batt
 
     const container = containerRef.current;
     const width = container.clientWidth;
-    const height = isExpanded ? 600 : 400;
+    const isMobile = width < 500;
+    const height = isExpanded ? (isMobile ? window.innerHeight - 100 : 600) : (isMobile ? 280 : 400);
 
     // Create nodes
     const nodes: GraphNode[] = filteredDancers.map(d => ({
@@ -253,47 +254,50 @@ export function BattleGraph({ dancers, battles, category, onSelectDancer }: Batt
   const handleResetZoom = () => (containerRef.current as any)?.__resetZoom?.();
 
   return (
-    <Card className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-4 z-50' : ''}`}>
-      <div className="p-3 border-b border-border/50 flex items-center justify-between bg-muted/30">
-        <div className="text-sm font-medium">
-          Battle Network Graph
-          <span className="text-muted-foreground ml-2 text-xs">
+    <Card className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-2 sm:inset-4 z-50' : ''}`}>
+      <div className="p-2 sm:p-3 border-b border-border/50 flex items-center justify-between bg-muted/30">
+        <div className="text-xs sm:text-sm font-medium">
+          Battle Network
+          <span className="text-muted-foreground ml-1 sm:ml-2 text-[10px] sm:text-xs">
             ({category === 'bboy' ? 'B-Boys' : 'B-Girls'})
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomIn}>
-            <ZoomIn className="w-4 h-4" />
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" onClick={handleZoomIn}>
+            <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomOut}>
-            <ZoomOut className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" onClick={handleZoomOut}>
+            <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom}>
-            <RotateCcw className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" onClick={handleResetZoom}>
+            <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </Button>
         </div>
       </div>
-      <div ref={containerRef} className={`w-full ${isExpanded ? 'h-[calc(100%-48px)]' : 'h-[400px]'}`}>
+      <div 
+        ref={containerRef} 
+        className={`w-full touch-none ${isExpanded ? 'h-[calc(100%-40px)] sm:h-[calc(100%-48px)]' : 'h-[280px] sm:h-[400px]'}`}
+      >
         <svg ref={svgRef} className="w-full h-full" />
       </div>
       {isExpanded && (
-        <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur p-3 rounded-lg text-xs space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: "hsl(142, 71%, 45%)" }} />
+        <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-background/80 backdrop-blur p-2 sm:p-3 rounded-lg text-[10px] sm:text-xs space-y-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ background: "hsl(142, 71%, 45%)" }} />
             <span>High win rate (&gt;70%)</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary" />
             <span>Medium win rate</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: "hsl(0, 84%, 60%)" }} />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ background: "hsl(0, 84%, 60%)" }} />
             <span>Low win rate (&lt;40%)</span>
           </div>
-          <div className="mt-2 text-muted-foreground">Node size = PageRank score</div>
+          <div className="mt-1 sm:mt-2 text-muted-foreground">Node size = PageRank</div>
         </div>
       )}
     </Card>
