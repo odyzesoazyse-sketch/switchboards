@@ -10,11 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   ArrowLeft, Trophy, TrendingUp, Zap, Users, Swords, 
   Plus, RefreshCw, Trash2, ChevronRight, Loader2,
-  Crown, Medal, Award, User
+  Crown, Medal, Award, User, Network
 } from "lucide-react";
 import { toast } from "sonner";
 import { calculatePageRank, parseBattleText } from "@/lib/pagerank";
 import { generateDemoData, BBOYS, BGIRLS } from "@/lib/demoData";
+import { BattleGraph } from "@/components/BattleGraph";
 
 interface RankedDancer {
   id: string;
@@ -406,6 +407,16 @@ export default function WorldRanking() {
             </div>
             <div className="text-xs text-muted-foreground">Events</div>
           </Card>
+        </div>
+
+        {/* Graph Visualization */}
+        <div className="mb-6">
+          <BattleGraph
+            dancers={dancers}
+            battles={battles}
+            category={activeTab}
+            onSelectDancer={setSelectedDancer}
+          />
         </div>
 
         {/* Leaderboard */}
