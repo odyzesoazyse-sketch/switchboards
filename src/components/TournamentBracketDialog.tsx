@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Crown, Award } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Trophy, Crown, Award, List, LayoutGrid } from "lucide-react";
 
 interface JudgeVote {
   judgeName: string;
@@ -30,6 +31,8 @@ interface TournamentBracketDialogProps {
   battles: TournamentBattle[];
   highlightDancerName?: string;
   onSelectDancer?: (dancerName: string) => void;
+  defaultViewMode?: 'list' | 'bracket';
+  onViewModeChange?: (mode: 'list' | 'bracket') => void;
 }
 
 const ROUND_ORDER = ["Top 32", "Top 16", "Quarter-Final", "Semi-Final", "Final"];
@@ -207,7 +210,9 @@ export function TournamentBracketDialog({
   tournamentName,
   battles,
   highlightDancerName,
-  onSelectDancer
+  onSelectDancer,
+  defaultViewMode = 'bracket',
+  onViewModeChange
 }: TournamentBracketDialogProps) {
   const [activeCategory, setActiveCategory] = useState<'bboy' | 'bgirl'>('bboy');
 
@@ -231,30 +236,48 @@ export function TournamentBracketDialog({
     return Array.from(judgeSet);
   }, [battles]);
 
+  const handleViewModeChange = (value: string) => {
+    if (value && onViewModeChange) {
+      onViewModeChange(value as 'list' | 'bracket');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 pb-2 border-b border-border/50">
-          <DialogTitle className="flex items-center gap-3">
-            <Trophy className="w-5 h-5 text-primary" />
-            <div className="flex-1">
-              <div className="text-lg">{tournamentName}</div>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <Badge variant="outline" className="text-xs">
-                  {battles.length} battles
-                </Badge>
-                {hasBboys && (
-                  <Badge variant="secondary" className="text-xs">
-                    🏆 {bboyBattles.length} B-Boy
+          <DialogTitle className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-5 h-5 text-primary" />
+              <div>
+                <div className="text-lg">{tournamentName}</div>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <Badge variant="outline" className="text-xs">
+                    {battles.length} battles
                   </Badge>
-                )}
-                {hasBgirls && (
-                  <Badge variant="secondary" className="text-xs">
-                    👑 {bgirlBattles.length} B-Girl
-                  </Badge>
-                )}
+                  {hasBboys && (
+                    <Badge variant="secondary" className="text-xs">
+                      🏆 {bboyBattles.length} B-Boy
+                    </Badge>
+                  )}
+                  {hasBgirls && (
+                    <Badge variant="secondary" className="text-xs">
+                      👑 {bgirlBattles.length} B-Girl
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
+            {onViewModeChange && (
+              <ToggleGroup type="single" value={defaultViewMode} onValueChange={handleViewModeChange}>
+                <ToggleGroupItem value="list" size="sm" aria-label="List view">
+                  <List className="w-4 h-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="bracket" size="sm" aria-label="Bracket view">
+                  <LayoutGrid className="w-4 h-4" />
+                </ToggleGroupItem>
+              </ToggleGroup>
+            )}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Tournament bracket with battle results
