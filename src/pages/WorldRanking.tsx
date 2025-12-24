@@ -219,11 +219,25 @@ export default function WorldRanking() {
   const generateDemo = async () => {
     setCalculating(true);
     try {
-      // Clear existing demo data
-      await supabase.from('ranking_battles').delete().eq('is_demo', true);
+      // Get existing tournament names to avoid duplicates
+      const { data: existingBattles } = await supabase
+        .from('ranking_battles')
+        .select('tournament_name')
+        .eq('is_demo', true);
       
-      const demoData = generateDemoData();
+      const existingTournamentNames = [...new Set(
+        existingBattles?.map(b => b.tournament_name).filter(Boolean) as string[]
+      )];
       
+      const demoData = generateDemoData(existingTournamentNames);
+      
+      if (demoData.length === 0) {
+        toast.info("All available tournaments already generated!");
+        setCalculating(false);
+        return;
+      }
+      
+      let addedBattles = 0;
       for (const battle of demoData) {
         const winnerId = await getOrCreateDancer(battle.winner, battle.category);
         const loserId = await getOrCreateDancer(battle.loser, battle.category);
@@ -238,10 +252,24 @@ export default function WorldRanking() {
           judge_votes: JSON.parse(JSON.stringify(battle.judgeVotes)),
           is_demo: true
         } as any);
+        addedBattles++;
       }
 
       await recalculateRankings();
-      toast.success(`Generated demo data with ${demoData.length} battles!`);
+      
+      // Get new totals
+      const { data: totalBattles } = await supabase.from('ranking_battles').select('id');
+      const { data: totalDancers } = await supabase.from('ranking_dancers').select('id');
+      const { data: tournamentNames } = await supabase
+        .from('ranking_battles')
+        .select('tournament_name')
+        .not('tournament_name', 'is', null);
+      
+      const uniqueTournaments = new Set(tournamentNames?.map(b => b.tournament_name));
+      
+      toast.success(
+        `+${addedBattles} battles! Total: ${totalBattles?.length || 0} battles, ${totalDancers?.length || 0} dancers, ${uniqueTournaments.size} tournaments`
+      );
     } catch (error) {
       console.error(error);
       toast.error("Failed to generate demo data");

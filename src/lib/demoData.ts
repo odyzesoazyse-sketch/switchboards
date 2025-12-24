@@ -20,11 +20,22 @@ export const DEMO_JUDGES = [
   "Flea Rock", "Poe One", "Ivan", "El Nino", "Remind"
 ];
 
-const TOURNAMENTS = [
-  { name: "Red Bull BC One World Final 2024", size: 16, date: "2024-11-09" },
-  { name: "Red Bull BC One World Final 2023", size: 16, date: "2023-10-21" },
-  { name: "Paris 2024 Olympics", size: 16, date: "2024-08-10" },
-  { name: "Outbreak Europe 2024", size: 32, date: "2024-06-15" },
+const BASE_TOURNAMENTS = [
+  { name: "Red Bull BC One World Final", size: 16 },
+  { name: "Paris Olympics", size: 16 },
+  { name: "Outbreak Europe", size: 32 },
+  { name: "Silverback Open", size: 16 },
+  { name: "R16 Korea", size: 16 },
+  { name: "UK B-Boy Championships", size: 16 },
+  { name: "Battle of the Year", size: 16 },
+  { name: "Taipei Bboy City", size: 16 },
+  { name: "Freestyle Session", size: 16 },
+  { name: "IBE", size: 16 },
+  { name: "Undisputed", size: 16 },
+  { name: "Floor Wars", size: 16 },
+  { name: "Chelles Battle Pro", size: 16 },
+  { name: "SDK Europe", size: 16 },
+  { name: "Power Move Competition", size: 16 },
 ];
 
 function shuffle<T>(array: T[]): T[] {
@@ -137,10 +148,70 @@ function simulateTournament(
   return battles;
 }
 
-export function generateDemoData(): DemoBattle[] {
+// Generate tournaments with unique names based on iteration number
+export function generateDemoData(existingTournamentNames: string[] = []): DemoBattle[] {
   const allBattles: DemoBattle[] = [];
   
-  for (const tournament of TOURNAMENTS) {
+  // Find which tournaments we can add (ones not already in the list)
+  const usedBaseNames = new Set<string>();
+  const usedYears = new Map<string, Set<number>>();
+  
+  for (const name of existingTournamentNames) {
+    for (const baseTournament of BASE_TOURNAMENTS) {
+      if (name.startsWith(baseTournament.name)) {
+        // Extract year from name like "Red Bull BC One World Final 2024"
+        const yearMatch = name.match(/(\d{4})$/);
+        if (yearMatch) {
+          const year = parseInt(yearMatch[1]);
+          if (!usedYears.has(baseTournament.name)) {
+            usedYears.set(baseTournament.name, new Set());
+          }
+          usedYears.get(baseTournament.name)!.add(year);
+        }
+      }
+    }
+  }
+  
+  // Generate new tournaments
+  const tournamentsToGenerate: { name: string; size: number; date: string }[] = [];
+  const years = [2024, 2023, 2022, 2021, 2020, 2019];
+  
+  for (const baseTournament of BASE_TOURNAMENTS) {
+    const usedYearsForThis = usedYears.get(baseTournament.name) || new Set();
+    
+    for (const year of years) {
+      if (!usedYearsForThis.has(year)) {
+        // Generate random month/day for variety
+        const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+        const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+        
+        tournamentsToGenerate.push({
+          name: `${baseTournament.name} ${year}`,
+          size: baseTournament.size,
+          date: `${year}-${month}-${day}`
+        });
+        
+        // Only add 2-3 tournaments per demo click to avoid overwhelming
+        if (tournamentsToGenerate.length >= 3) break;
+      }
+    }
+    
+    if (tournamentsToGenerate.length >= 3) break;
+  }
+  
+  // If no new tournaments found, cycle back with additional suffix
+  if (tournamentsToGenerate.length === 0) {
+    const randomIndex = Math.floor(Math.random() * BASE_TOURNAMENTS.length);
+    const baseTournament = BASE_TOURNAMENTS[randomIndex];
+    const suffix = Date.now().toString().slice(-4);
+    tournamentsToGenerate.push({
+      name: `${baseTournament.name} Special ${suffix}`,
+      size: baseTournament.size,
+      date: new Date().toISOString().split('T')[0]
+    });
+  }
+  
+  for (const tournament of tournamentsToGenerate) {
     // B-Boy bracket
     const bboyBattles = simulateTournament(
       BBOYS, 
@@ -153,18 +224,16 @@ export function generateDemoData(): DemoBattle[] {
       allBattles.push(battle);
     }
     
-    // B-Girl bracket (except Olympics which only had 16 total)
-    if (tournament.size <= 16) {
-      const bgirlBattles = simulateTournament(
-        BGIRLS, 
-        Math.min(16, tournament.size),
-        tournament.name,
-        tournament.date
-      );
-      for (const battle of bgirlBattles) {
-        battle.category = 'bgirl';
-        allBattles.push(battle);
-      }
+    // B-Girl bracket
+    const bgirlBattles = simulateTournament(
+      BGIRLS, 
+      Math.min(16, tournament.size),
+      tournament.name,
+      tournament.date
+    );
+    for (const battle of bgirlBattles) {
+      battle.category = 'bgirl';
+      allBattles.push(battle);
     }
   }
   
@@ -172,5 +241,5 @@ export function generateDemoData(): DemoBattle[] {
 }
 
 export function getTournaments() {
-  return TOURNAMENTS;
+  return BASE_TOURNAMENTS;
 }
