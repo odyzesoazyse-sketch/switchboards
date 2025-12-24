@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { calculatePageRank, parseBattleText } from "@/lib/pagerank";
-import { generateDemoData, BBOYS, BGIRLS } from "@/lib/demoData";
+import { generateDemoData, BASE_BBOYS, BASE_BGIRLS } from "@/lib/demoData";
 import { BattleGraph } from "@/components/BattleGraph";
 import { RankingTournamentView } from "@/components/RankingTournamentView";
 import { TournamentBracketDialog } from "@/components/TournamentBracketDialog";
@@ -188,7 +188,7 @@ export default function WorldRanking() {
     try {
       for (const battle of parsed) {
         // Determine category based on known names
-        const isBgirl = BGIRLS.some(bg => 
+        const isBgirl = BASE_BGIRLS.some(bg => 
           bg.toLowerCase() === battle.winner.toLowerCase() || 
           bg.toLowerCase() === battle.loser.toLowerCase()
         );
@@ -219,17 +219,23 @@ export default function WorldRanking() {
   const generateDemo = async () => {
     setCalculating(true);
     try {
-      // Get existing tournament names to avoid duplicates
+      // Get existing tournament names and dancer names to avoid duplicates
       const { data: existingBattles } = await supabase
         .from('ranking_battles')
         .select('tournament_name')
         .eq('is_demo', true);
       
+      const { data: existingDancers } = await supabase
+        .from('ranking_dancers')
+        .select('name');
+      
       const existingTournamentNames = [...new Set(
         existingBattles?.map(b => b.tournament_name).filter(Boolean) as string[]
       )];
       
-      const demoData = generateDemoData(existingTournamentNames);
+      const existingDancerNames = existingDancers?.map(d => d.name) || [];
+      
+      const { battles: demoData, newDancers } = generateDemoData(existingTournamentNames, existingDancerNames);
       
       if (demoData.length === 0) {
         toast.info("All available tournaments already generated!");
@@ -267,8 +273,9 @@ export default function WorldRanking() {
       
       const uniqueTournaments = new Set(tournamentNames?.map(b => b.tournament_name));
       
+      const newDancersInfo = newDancers.length > 0 ? `, +${newDancers.length} new dancers` : '';
       toast.success(
-        `+${addedBattles} battles! Total: ${totalBattles?.length || 0} battles, ${totalDancers?.length || 0} dancers, ${uniqueTournaments.size} tournaments`
+        `+${addedBattles} battles${newDancersInfo}! Total: ${totalBattles?.length || 0} battles, ${totalDancers?.length || 0} dancers, ${uniqueTournaments.size} tournaments`
       );
     } catch (error) {
       console.error(error);

@@ -1,6 +1,6 @@
 // Demo data generator for breaking rankings
 
-export const BBOYS = [
+export const BASE_BBOYS = [
   "Phil Wizard", "Victor", "Shigekix", "Menno", "Hong 10", "Lil Zoo",
   "Pocket", "Bumblebee", "Killa Kolya", "Neguin", "Thesis", "Kid David",
   "Kareem", "Physicx", "Wing", "Dyzee", "Cheerito", "Alkolil",
@@ -8,12 +8,21 @@ export const BBOYS = [
   "Gravity", "Samuka", "Bruce Almighty", "Kid Karam", "Jeffro", "Spin"
 ];
 
-export const BGIRLS = [
+export const BASE_BGIRLS = [
   "Ami", "Ayumi", "Nicka", "Kastet", "AT", "Vanessa",
   "India", "Logistx", "Sunny", "Anti", "Madmax", "San Andrea",
   "Ram", "Frieda", "Lee", "Kate", "Jilou", "Paulina",
   "Kaycee", "Sara", "Macca", "Emma", "Stefani", "Kimie"
 ];
+
+// Additional dancer name parts for generating new dancers
+const BBOY_PREFIXES = ["Lil", "Kid", "Big", "MC", "DJ", "El", "The", "Young", "Old", "Dr"];
+const BBOY_NAMES = ["Kool", "Fresh", "Crazy", "Smooth", "Quick", "Power", "Freeze", "Spin", "Flow", "Rock", "Beat", "Air", "Floor", "Top", "Flex", "Steel", "Iron", "Fire", "Ice", "Thunder"];
+const BBOY_SUFFIXES = ["X", "One", "King", "Master", "Pro", "Star", "Boy", "Man", "G", "Rock", "Style", "Move"];
+
+const BGIRL_PREFIXES = ["Lady", "Miss", "Queen", "Princess", "Lil", "The", "Young", "Sweet", "Fly", "Hot"];
+const BGIRL_NAMES = ["Flow", "Grace", "Style", "Beat", "Twist", "Spin", "Wave", "Star", "Dream", "Dance", "Fire", "Ice", "Storm", "Sky", "Moon", "Sun", "Rose", "Jazz", "Funk", "Soul"];
+const BGIRL_SUFFIXES = ["Queen", "Star", "X", "Girl", "Lady", "One", "Pro", "Diva", "Bella", "Luna"];
 
 export const DEMO_JUDGES = [
   "Storm", "Ken Swift", "Crazy Legs", "Asia One", "Roxrite",
@@ -45,6 +54,42 @@ function shuffle<T>(array: T[]): T[] {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+function generateRandomBboy(existingNames: Set<string>): string {
+  let name = "";
+  let attempts = 0;
+  while (attempts < 100) {
+    const usePrefix = Math.random() > 0.4;
+    const useSuffix = Math.random() > 0.5;
+    const prefix = usePrefix ? BBOY_PREFIXES[Math.floor(Math.random() * BBOY_PREFIXES.length)] + " " : "";
+    const mainName = BBOY_NAMES[Math.floor(Math.random() * BBOY_NAMES.length)];
+    const suffix = useSuffix ? " " + BBOY_SUFFIXES[Math.floor(Math.random() * BBOY_SUFFIXES.length)] : "";
+    name = `${prefix}${mainName}${suffix}`.trim();
+    if (!existingNames.has(name)) {
+      return name;
+    }
+    attempts++;
+  }
+  return `B-Boy ${Date.now().toString().slice(-6)}`;
+}
+
+function generateRandomBgirl(existingNames: Set<string>): string {
+  let name = "";
+  let attempts = 0;
+  while (attempts < 100) {
+    const usePrefix = Math.random() > 0.4;
+    const useSuffix = Math.random() > 0.5;
+    const prefix = usePrefix ? BGIRL_PREFIXES[Math.floor(Math.random() * BGIRL_PREFIXES.length)] + " " : "";
+    const mainName = BGIRL_NAMES[Math.floor(Math.random() * BGIRL_NAMES.length)];
+    const suffix = useSuffix ? " " + BGIRL_SUFFIXES[Math.floor(Math.random() * BGIRL_SUFFIXES.length)] : "";
+    name = `${prefix}${mainName}${suffix}`.trim();
+    if (!existingNames.has(name)) {
+      return name;
+    }
+    attempts++;
+  }
+  return `B-Girl ${Date.now().toString().slice(-6)}`;
 }
 
 function getRoundName(participantsLeft: number): string {
@@ -149,11 +194,43 @@ function simulateTournament(
 }
 
 // Generate tournaments with unique names based on iteration number
-export function generateDemoData(existingTournamentNames: string[] = []): DemoBattle[] {
+export function generateDemoData(
+  existingTournamentNames: string[] = [],
+  existingDancerNames: string[] = []
+): { battles: DemoBattle[]; newDancers: { name: string; category: 'bboy' | 'bgirl' }[] } {
   const allBattles: DemoBattle[] = [];
+  const newDancers: { name: string; category: 'bboy' | 'bgirl' }[] = [];
+  
+  // Build set of existing dancer names
+  const existingNamesSet = new Set(existingDancerNames);
+  
+  // Start with base dancers
+  let currentBboys = [...BASE_BBOYS];
+  let currentBgirls = [...BASE_BGIRLS];
+  
+  // Add new dancers each time (3-6 new bboys, 2-4 new bgirls)
+  const newBboysCount = 3 + Math.floor(Math.random() * 4);
+  const newBgirlsCount = 2 + Math.floor(Math.random() * 3);
+  
+  for (let i = 0; i < newBboysCount; i++) {
+    const newName = generateRandomBboy(existingNamesSet);
+    if (!existingNamesSet.has(newName)) {
+      currentBboys.push(newName);
+      existingNamesSet.add(newName);
+      newDancers.push({ name: newName, category: 'bboy' });
+    }
+  }
+  
+  for (let i = 0; i < newBgirlsCount; i++) {
+    const newName = generateRandomBgirl(existingNamesSet);
+    if (!existingNamesSet.has(newName)) {
+      currentBgirls.push(newName);
+      existingNamesSet.add(newName);
+      newDancers.push({ name: newName, category: 'bgirl' });
+    }
+  }
   
   // Find which tournaments we can add (ones not already in the list)
-  const usedBaseNames = new Set<string>();
   const usedYears = new Map<string, Set<number>>();
   
   for (const name of existingTournamentNames) {
@@ -214,7 +291,7 @@ export function generateDemoData(existingTournamentNames: string[] = []): DemoBa
   for (const tournament of tournamentsToGenerate) {
     // B-Boy bracket
     const bboyBattles = simulateTournament(
-      BBOYS, 
+      currentBboys, 
       tournament.size, 
       tournament.name,
       tournament.date
@@ -226,7 +303,7 @@ export function generateDemoData(existingTournamentNames: string[] = []): DemoBa
     
     // B-Girl bracket
     const bgirlBattles = simulateTournament(
-      BGIRLS, 
+      currentBgirls, 
       Math.min(16, tournament.size),
       tournament.name,
       tournament.date
@@ -237,7 +314,7 @@ export function generateDemoData(existingTournamentNames: string[] = []): DemoBa
     }
   }
   
-  return allBattles;
+  return { battles: allBattles, newDancers };
 }
 
 export function getTournaments() {
