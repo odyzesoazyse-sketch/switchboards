@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -256,6 +256,9 @@ export function TournamentBracketDialog({
               </div>
             </div>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Tournament bracket with battle results
+          </DialogDescription>
         </DialogHeader>
 
         <div className="p-4 pb-0">
