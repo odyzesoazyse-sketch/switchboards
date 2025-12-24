@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Trophy, Calendar, Users, ChevronRight, Crown, 
@@ -170,6 +170,9 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
                   <Trophy className="w-6 h-6 text-primary" />
                   {selectedTournament.name}
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Tournament details and bracket
+                </DialogDescription>
               </DialogHeader>
 
               <ScrollArea className="max-h-[65vh] pr-4">
@@ -269,6 +272,9 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
                   <span className="text-muted-foreground">vs</span>
                   <span>{selectedBattle.loser_name}</span>
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Battle details and judge votes
+                </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4">

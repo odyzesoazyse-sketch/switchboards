@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Trophy, TrendingUp, Zap, Users, Swords, 
   Plus, RefreshCw, Trash2, ChevronRight, Loader2,
@@ -371,6 +371,9 @@ export default function WorldRanking() {
                       <Swords className="w-5 h-5" />
                       Add Battle Results
                     </DialogTitle>
+                    <DialogDescription>
+                      Enter battle results in text format
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -513,6 +516,9 @@ export default function WorldRanking() {
                       </Badge>
                     </div>
                   </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Dancer profile and battle history
+                  </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid grid-cols-3 gap-3 my-4">
