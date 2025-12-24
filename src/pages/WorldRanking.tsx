@@ -45,6 +45,7 @@ interface Battle {
   round?: string;
   match_position?: number;
   judge_votes?: JudgeVote[];
+  category?: string;
 }
 
 export default function WorldRanking() {
@@ -71,12 +72,13 @@ export default function WorldRanking() {
       setDancers(dancersRes.data);
     }
     if (battlesRes.data) {
-      // Enrich battles with dancer names
-      const dancerMap = new Map(dancersRes.data?.map(d => [d.id, d.name]) || []);
+      // Enrich battles with dancer names and category
+      const dancerMap = new Map(dancersRes.data?.map(d => [d.id, { name: d.name, category: d.category }]) || []);
       const enrichedBattles = battlesRes.data.map(b => ({
         ...b,
-        winner_name: dancerMap.get(b.winner_id),
-        loser_name: dancerMap.get(b.loser_id),
+        winner_name: dancerMap.get(b.winner_id)?.name,
+        loser_name: dancerMap.get(b.loser_id)?.name,
+        category: dancerMap.get(b.winner_id)?.category,
         judge_votes: Array.isArray(b.judge_votes) ? (b.judge_votes as unknown as JudgeVote[]) : []
       }));
       setBattles(enrichedBattles);
