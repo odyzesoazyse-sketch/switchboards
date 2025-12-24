@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { TournamentBracketDialog } from "@/components/TournamentBracketDialog";
 import { 
   Trophy, Calendar, Users, ChevronRight, Crown, 
-  User, Check, X, Award
+  User, Check, X, Award, List, LayoutGrid
 } from "lucide-react";
 
 interface JudgeVote {
@@ -24,6 +26,7 @@ interface TournamentBattle {
   round?: string;
   match_position?: number;
   judge_votes?: JudgeVote[];
+  category?: string;
 }
 
 interface TournamentGroup {
@@ -40,6 +43,7 @@ interface RankingTournamentViewProps {
 export function RankingTournamentView({ battles, onSelectDancer }: RankingTournamentViewProps) {
   const [selectedTournament, setSelectedTournament] = useState<TournamentGroup | null>(null);
   const [selectedBattle, setSelectedBattle] = useState<TournamentBattle | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'bracket'>('bracket');
 
   // Group battles by tournament
   const tournaments: TournamentGroup[] = [];
@@ -160,106 +164,128 @@ export function RankingTournamentView({ battles, onSelectDancer }: RankingTourna
         )}
       </div>
 
-      {/* Tournament Detail Dialog */}
-      <Dialog open={!!selectedTournament} onOpenChange={() => setSelectedTournament(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh]">
-          {selectedTournament && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <Trophy className="w-6 h-6 text-primary" />
-                  {selectedTournament.name}
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                  Tournament details and bracket
-                </DialogDescription>
-              </DialogHeader>
-
-              <ScrollArea className="max-h-[65vh] pr-4">
-                {/* Judges Panel */}
-                {getUniqueJudges(selectedTournament.battles).length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                      <Award className="w-4 h-4" />
-                      Judges
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {getUniqueJudges(selectedTournament.battles).map(judge => (
-                        <Badge key={judge} variant="secondary">
-                          {judge}
-                        </Badge>
-                      ))}
+      {/* Tournament Dialog - uses bracket view or list view based on toggle */}
+      {selectedTournament && viewMode === 'bracket' ? (
+        <TournamentBracketDialog
+          open={!!selectedTournament}
+          onOpenChange={(open) => !open && setSelectedTournament(null)}
+          tournamentName={selectedTournament.name}
+          battles={selectedTournament.battles}
+          onSelectDancer={onSelectDancer}
+          defaultViewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
+      ) : (
+        <Dialog open={!!selectedTournament && viewMode === 'list'} onOpenChange={() => setSelectedTournament(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh]">
+            {selectedTournament && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Trophy className="w-6 h-6 text-primary" />
+                      {selectedTournament.name}
                     </div>
-                  </div>
-                )}
+                    <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'list' | 'bracket')}>
+                      <ToggleGroupItem value="list" size="sm" aria-label="List view">
+                        <List className="w-4 h-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="bracket" size="sm" aria-label="Bracket view">
+                        <LayoutGrid className="w-4 h-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Tournament details and bracket
+                  </DialogDescription>
+                </DialogHeader>
 
-                {/* Bracket by Rounds */}
-                <div className="space-y-6">
-                  {organizeByRounds(selectedTournament.battles).map(([round, roundBattles]) => (
-                    <div key={round}>
-                      <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                        <Badge variant={round === "Final" ? "default" : "outline"}>
-                          {round}
-                        </Badge>
-                        <span className="text-muted-foreground">
-                          {roundBattles.length} {roundBattles.length === 1 ? 'battle' : 'battles'}
-                        </span>
+                <ScrollArea className="max-h-[65vh] pr-4">
+                  {/* Judges Panel */}
+                  {getUniqueJudges(selectedTournament.battles).length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Award className="w-4 h-4" />
+                        Judges
                       </h4>
-                      
-                      <div className="grid gap-2">
-                        {roundBattles.map((battle) => (
-                          <Card 
-                            key={battle.id}
-                            className="p-3 hover:bg-muted/50 cursor-pointer transition-colors"
-                            onClick={() => setSelectedBattle(battle)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                  <div 
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-500 cursor-pointer hover:bg-green-500/20"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (battle.winner_name && onSelectDancer) {
-                                        onSelectDancer(battle.winner_name);
-                                      }
-                                    }}
-                                  >
-                                    <Crown className="w-3 h-3" />
-                                    <span className="font-medium">{battle.winner_name}</span>
-                                  </div>
-                                  <span className="text-muted-foreground">vs</span>
-                                  <div 
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted cursor-pointer hover:bg-muted/80"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (battle.loser_name && onSelectDancer) {
-                                        onSelectDancer(battle.loser_name);
-                                      }
-                                    }}
-                                  >
-                                    <span>{battle.loser_name}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              {battle.judge_votes && battle.judge_votes.length > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {battle.judge_votes.filter(v => v.votedFor === battle.winner_name).length}-
-                                  {battle.judge_votes.filter(v => v.votedFor === battle.loser_name).length}
-                                </Badge>
-                              )}
-                            </div>
-                          </Card>
+                      <div className="flex flex-wrap gap-2">
+                        {getUniqueJudges(selectedTournament.battles).map(judge => (
+                          <Badge key={judge} variant="secondary">
+                            {judge}
+                          </Badge>
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+                  )}
+
+                  {/* Bracket by Rounds */}
+                  <div className="space-y-6">
+                    {organizeByRounds(selectedTournament.battles).map(([round, roundBattles]) => (
+                      <div key={round}>
+                        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                          <Badge variant={round === "Final" ? "default" : "outline"}>
+                            {round}
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            {roundBattles.length} {roundBattles.length === 1 ? 'battle' : 'battles'}
+                          </span>
+                        </h4>
+                        
+                        <div className="grid gap-2">
+                          {roundBattles.map((battle) => (
+                            <Card 
+                              key={battle.id}
+                              className="p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                              onClick={() => setSelectedBattle(battle)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-500 cursor-pointer hover:bg-green-500/20"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (battle.winner_name && onSelectDancer) {
+                                          onSelectDancer(battle.winner_name);
+                                        }
+                                      }}
+                                    >
+                                      <Crown className="w-3 h-3" />
+                                      <span className="font-medium">{battle.winner_name}</span>
+                                    </div>
+                                    <span className="text-muted-foreground">vs</span>
+                                    <div 
+                                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted cursor-pointer hover:bg-muted/80"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (battle.loser_name && onSelectDancer) {
+                                          onSelectDancer(battle.loser_name);
+                                        }
+                                      }}
+                                    >
+                                      <span>{battle.loser_name}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                {battle.judge_votes && battle.judge_votes.length > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {battle.judge_votes.filter(v => v.votedFor === battle.winner_name).length}-
+                                    {battle.judge_votes.filter(v => v.votedFor === battle.loser_name).length}
+                                  </Badge>
+                                )}
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Battle Detail Dialog (Judge Votes) */}
       <Dialog open={!!selectedBattle} onOpenChange={() => setSelectedBattle(null)}>
