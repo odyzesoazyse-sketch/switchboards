@@ -507,7 +507,10 @@ export type Database = {
           created_at: string
           id: string
           is_demo: boolean | null
+          judge_votes: Json | null
           loser_id: string
+          match_position: number | null
+          round: string | null
           tournament_name: string | null
           winner_id: string
         }
@@ -516,7 +519,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_demo?: boolean | null
+          judge_votes?: Json | null
           loser_id: string
+          match_position?: number | null
+          round?: string | null
           tournament_name?: string | null
           winner_id: string
         }
@@ -525,7 +531,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_demo?: boolean | null
+          judge_votes?: Json | null
           loser_id?: string
+          match_position?: number | null
+          round?: string | null
           tournament_name?: string | null
           winner_id?: string
         }

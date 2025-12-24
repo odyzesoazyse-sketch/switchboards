@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { calculatePageRank, parseBattleText } from "@/lib/pagerank";
 import { generateDemoData, BBOYS, BGIRLS } from "@/lib/demoData";
 import { BattleGraph } from "@/components/BattleGraph";
+import { RankingTournamentView } from "@/components/RankingTournamentView";
 
 interface RankedDancer {
   id: string;
@@ -27,6 +28,11 @@ interface RankedDancer {
   battles_count: number;
 }
 
+interface JudgeVote {
+  judgeName: string;
+  votedFor: string;
+}
+
 interface Battle {
   id: string;
   winner_id: string;
@@ -35,6 +41,9 @@ interface Battle {
   loser_name?: string;
   tournament_name: string | null;
   battle_date: string | null;
+  round?: string;
+  match_position?: number;
+  judge_votes?: JudgeVote[];
 }
 
 export default function WorldRanking() {
@@ -44,6 +53,7 @@ export default function WorldRanking() {
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
   const [activeTab, setActiveTab] = useState<'bboy' | 'bgirl'>('bboy');
+  const [mainView, setMainView] = useState<'ranking' | 'tournaments'>('ranking');
   const [battleInput, setBattleInput] = useState('');
   const [selectedDancer, setSelectedDancer] = useState<RankedDancer | null>(null);
   const [showAddBattles, setShowAddBattles] = useState(false);
@@ -63,7 +73,8 @@ export default function WorldRanking() {
       const enrichedBattles = battlesRes.data.map(b => ({
         ...b,
         winner_name: dancerMap.get(b.winner_id),
-        loser_name: dancerMap.get(b.loser_id)
+        loser_name: dancerMap.get(b.loser_id),
+        judge_votes: Array.isArray(b.judge_votes) ? (b.judge_votes as unknown as JudgeVote[]) : []
       }));
       setBattles(enrichedBattles);
     }
@@ -216,8 +227,12 @@ export default function WorldRanking() {
           winner_id: winnerId,
           loser_id: loserId,
           tournament_name: battle.tournamentName,
+          battle_date: battle.tournamentDate,
+          round: battle.round,
+          match_position: battle.matchPosition,
+          judge_votes: JSON.parse(JSON.stringify(battle.judgeVotes)),
           is_demo: true
-        });
+        } as any);
       }
 
       await recalculateRankings();
@@ -409,46 +424,72 @@ export default function WorldRanking() {
           </Card>
         </div>
 
-        {/* Graph Visualization */}
-        <div className="mb-6">
-          <BattleGraph
-            dancers={dancers}
-            battles={battles}
-            category={activeTab}
-            onSelectDancer={setSelectedDancer}
-          />
-        </div>
+        {/* Main View Tabs */}
+        <Tabs value={mainView} onValueChange={(v) => setMainView(v as 'ranking' | 'tournaments')} className="mb-6">
+          <TabsList className="w-full max-w-md mx-auto">
+            <TabsTrigger value="ranking" className="flex-1">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Ranking
+            </TabsTrigger>
+            <TabsTrigger value="tournaments" className="flex-1">
+              <Trophy className="w-4 h-4 mr-2" />
+              Tournaments
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        {/* Leaderboard */}
-        <Card className="overflow-hidden">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'bboy' | 'bgirl')}>
-            <div className="px-4 pt-4 border-b border-border/50">
-              <TabsList className="w-full max-w-xs">
-                <TabsTrigger value="bboy" className="flex-1">
-                  <span className="mr-2">🏆</span> B-Boys
-                </TabsTrigger>
-                <TabsTrigger value="bgirl" className="flex-1">
-                  <span className="mr-2">👑</span> B-Girls
-                </TabsTrigger>
-              </TabsList>
+        {mainView === 'ranking' ? (
+          <>
+            {/* Graph Visualization */}
+            <div className="mb-6">
+              <BattleGraph
+                dancers={dancers}
+                battles={battles}
+                category={activeTab}
+                onSelectDancer={setSelectedDancer}
+              />
             </div>
 
-            <TabsContent value="bboy" className="mt-0">
-              <LeaderboardList 
-                dancers={filteredDancers} 
-                getRankIcon={getRankIcon}
-                onSelectDancer={setSelectedDancer}
-              />
-            </TabsContent>
-            <TabsContent value="bgirl" className="mt-0">
-              <LeaderboardList 
-                dancers={filteredDancers} 
-                getRankIcon={getRankIcon}
-                onSelectDancer={setSelectedDancer}
-              />
-            </TabsContent>
-          </Tabs>
-        </Card>
+            {/* Leaderboard */}
+            <Card className="overflow-hidden">
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'bboy' | 'bgirl')}>
+                <div className="px-4 pt-4 border-b border-border/50">
+                  <TabsList className="w-full max-w-xs">
+                    <TabsTrigger value="bboy" className="flex-1">
+                      <span className="mr-2">🏆</span> B-Boys
+                    </TabsTrigger>
+                    <TabsTrigger value="bgirl" className="flex-1">
+                      <span className="mr-2">👑</span> B-Girls
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="bboy" className="mt-0">
+                  <LeaderboardList 
+                    dancers={filteredDancers} 
+                    getRankIcon={getRankIcon}
+                    onSelectDancer={setSelectedDancer}
+                  />
+                </TabsContent>
+                <TabsContent value="bgirl" className="mt-0">
+                  <LeaderboardList 
+                    dancers={filteredDancers} 
+                    getRankIcon={getRankIcon}
+                    onSelectDancer={setSelectedDancer}
+                  />
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </>
+        ) : (
+          <RankingTournamentView 
+            battles={battles}
+            onSelectDancer={(dancerName) => {
+              const dancer = dancers.find(d => d.name === dancerName);
+              if (dancer) setSelectedDancer(dancer);
+            }}
+          />
+        )}
 
         {/* Dancer Profile Dialog */}
         <Dialog open={!!selectedDancer} onOpenChange={() => setSelectedDancer(null)}>
@@ -516,10 +557,30 @@ export default function WorldRanking() {
                                 vs {isWinner ? battle.loser_name : battle.winner_name}
                               </span>
                             </div>
+                            {battle.round && (
+                              <Badge variant="outline" className="text-xs">
+                                {battle.round}
+                              </Badge>
+                            )}
                           </div>
                           {battle.tournament_name && (
-                            <div className="text-xs text-muted-foreground mt-1">
+                            <button
+                              className="text-xs text-primary hover:underline mt-1 text-left"
+                              onClick={() => {
+                                setSelectedDancer(null);
+                                setMainView('tournaments');
+                              }}
+                            >
                               {battle.tournament_name}
+                            </button>
+                          )}
+                          {battle.judge_votes && battle.judge_votes.length > 0 && (
+                            <div className="flex items-center gap-1 mt-2">
+                              <span className="text-xs text-muted-foreground">Judges:</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {battle.judge_votes.filter(v => v.votedFor === battle.winner_name).length}-
+                                {battle.judge_votes.filter(v => v.votedFor === battle.loser_name).length}
+                              </Badge>
                             </div>
                           )}
                         </div>
