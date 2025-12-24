@@ -15,11 +15,16 @@ export const BGIRLS = [
   "Kaycee", "Sara", "Macca", "Emma", "Stefani", "Kimie"
 ];
 
+export const DEMO_JUDGES = [
+  "Storm", "Ken Swift", "Crazy Legs", "Asia One", "Roxrite",
+  "Flea Rock", "Poe One", "Ivan", "El Nino", "Remind"
+];
+
 const TOURNAMENTS = [
-  { name: "Red Bull BC One World Final 2024", size: 16 },
-  { name: "Red Bull BC One World Final 2023", size: 16 },
-  { name: "Paris 2024 Olympics", size: 16 },
-  { name: "Outbreak Europe 2024", size: 32 },
+  { name: "Red Bull BC One World Final 2024", size: 16, date: "2024-11-09" },
+  { name: "Red Bull BC One World Final 2023", size: 16, date: "2023-10-21" },
+  { name: "Paris 2024 Olympics", size: 16, date: "2024-08-10" },
+  { name: "Outbreak Europe 2024", size: 32, date: "2024-06-15" },
 ];
 
 function shuffle<T>(array: T[]): T[] {
@@ -31,17 +36,49 @@ function shuffle<T>(array: T[]): T[] {
   return result;
 }
 
+function getRoundName(participantsLeft: number): string {
+  if (participantsLeft === 2) return "Final";
+  if (participantsLeft === 4) return "Semi-Final";
+  if (participantsLeft === 8) return "Quarter-Final";
+  if (participantsLeft === 16) return "Top 16";
+  if (participantsLeft === 32) return "Top 32";
+  return `Round of ${participantsLeft}`;
+}
+
+export interface JudgeVote {
+  judgeName: string;
+  votedFor: string;
+}
+
+export interface DemoBattle {
+  winner: string;
+  loser: string;
+  tournamentName: string;
+  category: 'bboy' | 'bgirl';
+  round: string;
+  matchPosition: number;
+  judgeVotes: JudgeVote[];
+  tournamentDate: string;
+}
+
 function simulateTournament(
   dancers: string[],
   size: number,
+  tournamentName: string,
+  tournamentDate: string,
   upsetChance: number = 0.2
-): { winner: string; loser: string }[] {
-  const battles: { winner: string; loser: string }[] = [];
+): DemoBattle[] {
+  const battles: DemoBattle[] = [];
   const participants = shuffle(dancers).slice(0, size);
   
+  // Pick 3-5 random judges for this tournament
+  const tournamentJudges = shuffle(DEMO_JUDGES).slice(0, 3 + Math.floor(Math.random() * 3));
+  
   let currentRound = [...participants];
+  let matchPosition = 0;
   
   while (currentRound.length > 1) {
+    const roundName = getRoundName(currentRound.length);
     const nextRound: string[] = [];
     
     for (let i = 0; i < currentRound.length; i += 2) {
@@ -71,7 +108,26 @@ function simulateTournament(
         loser = isUpset ? dancer2 : dancer1;
       }
       
-      battles.push({ winner, loser });
+      // Simulate judge votes (majority wins)
+      const judgeVotes: JudgeVote[] = tournamentJudges.map(judgeName => {
+        // Most judges vote for winner, some might vote for loser
+        const votesForWinner = Math.random() > 0.25;
+        return {
+          judgeName,
+          votedFor: votesForWinner ? winner : loser
+        };
+      });
+      
+      battles.push({
+        winner,
+        loser,
+        tournamentName,
+        category: 'bboy', // Will be set by caller
+        round: roundName,
+        matchPosition: matchPosition++,
+        judgeVotes,
+        tournamentDate
+      });
       nextRound.push(winner);
     }
     
@@ -81,39 +137,40 @@ function simulateTournament(
   return battles;
 }
 
-export interface DemoBattle {
-  winner: string;
-  loser: string;
-  tournamentName: string;
-  category: 'bboy' | 'bgirl';
-}
-
 export function generateDemoData(): DemoBattle[] {
   const allBattles: DemoBattle[] = [];
   
   for (const tournament of TOURNAMENTS) {
     // B-Boy bracket
-    const bboyBattles = simulateTournament(BBOYS, tournament.size);
+    const bboyBattles = simulateTournament(
+      BBOYS, 
+      tournament.size, 
+      tournament.name,
+      tournament.date
+    );
     for (const battle of bboyBattles) {
-      allBattles.push({
-        ...battle,
-        tournamentName: tournament.name,
-        category: 'bboy'
-      });
+      battle.category = 'bboy';
+      allBattles.push(battle);
     }
     
     // B-Girl bracket (except Olympics which only had 16 total)
     if (tournament.size <= 16) {
-      const bgirlBattles = simulateTournament(BGIRLS, Math.min(16, tournament.size));
+      const bgirlBattles = simulateTournament(
+        BGIRLS, 
+        Math.min(16, tournament.size),
+        tournament.name,
+        tournament.date
+      );
       for (const battle of bgirlBattles) {
-        allBattles.push({
-          ...battle,
-          tournamentName: tournament.name,
-          category: 'bgirl'
-        });
+        battle.category = 'bgirl';
+        allBattles.push(battle);
       }
     }
   }
   
   return allBattles;
+}
+
+export function getTournaments() {
+  return TOURNAMENTS;
 }
