@@ -308,64 +308,63 @@ export default function WorldRanking() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 glass border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="flex-shrink-0">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div>
-                <h1 className="text-xl font-display font-bold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Dominance Graph Ranking
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-display font-bold flex items-center gap-2 truncate">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                  <span className="truncate">Dominance Graph</span>
                 </h1>
-                <p className="text-sm text-muted-foreground">Pure head-to-head PageRank</p>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Pure head-to-head PageRank</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={recalculateRankings}
-                disabled={calculating}
-              >
-                {calculating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                <span className="hidden sm:inline ml-2">Recalculate</span>
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={recalculateRankings}
+              disabled={calculating}
+              className="flex-shrink-0"
+            >
+              {calculating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              <span className="hidden sm:inline ml-2">Recalculate</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-4xl">
         {/* Demo Controls */}
-        <Card className="p-6 mb-6 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <Card className="p-4 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+          <div className="flex flex-col gap-4">
             <div className="text-center sm:text-left">
-              <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-display font-semibold flex items-center justify-center sm:justify-start gap-2">
                 <Zap className="w-5 h-5 text-primary" />
                 Quick Start
               </h2>
-              <p className="text-sm text-muted-foreground">Generate demo data or add your own battles</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Generate demo data or add your own battles</p>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={generateDemo} disabled={calculating} className="bg-primary">
-                <Zap className="w-4 h-4 mr-2" />
-                Generate Demo
+            <div className="flex flex-wrap justify-center sm:justify-start gap-2">
+              <Button onClick={generateDemo} disabled={calculating} className="bg-primary" size="sm">
+                <Zap className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Generate </span>Demo
               </Button>
-              <Button variant="outline" onClick={resetDemo} disabled={calculating}>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Reset
+              <Button variant="outline" onClick={resetDemo} disabled={calculating} size="sm">
+                <Trash2 className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Reset</span>
               </Button>
               <Dialog open={showAddBattles} onOpenChange={setShowAddBattles}>
                 <DialogTrigger asChild>
-                  <Button variant="secondary">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Battles
+                  <Button variant="secondary" size="sm">
+                    <Plus className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Add Battles</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <Swords className="w-5 h-5" />
@@ -390,7 +389,7 @@ export default function WorldRanking() {
                       value={battleInput}
                       onChange={(e) => setBattleInput(e.target.value)}
                       placeholder="Phil Wizard beat Victor&#10;Shigekix > Menno&#10;Ami defeated Ayumi"
-                      className="min-h-[200px] font-mono text-sm"
+                      className="min-h-[150px] sm:min-h-[200px] font-mono text-sm"
                     />
                     <Button 
                       onClick={addBattlesFromText} 
@@ -412,35 +411,35 @@ export default function WorldRanking() {
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Card className="p-4 text-center">
-            <Users className="w-6 h-6 mx-auto mb-2 text-primary" />
-            <div className="text-2xl font-bold">{dancers.length}</div>
-            <div className="text-xs text-muted-foreground">Dancers</div>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <Card className="p-3 sm:p-4 text-center">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-primary" />
+            <div className="text-xl sm:text-2xl font-bold">{dancers.length}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">Dancers</div>
           </Card>
-          <Card className="p-4 text-center">
-            <Swords className="w-6 h-6 mx-auto mb-2 text-secondary" />
-            <div className="text-2xl font-bold">{battles.length}</div>
-            <div className="text-xs text-muted-foreground">Battles</div>
+          <Card className="p-3 sm:p-4 text-center">
+            <Swords className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-secondary" />
+            <div className="text-xl sm:text-2xl font-bold">{battles.length}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">Battles</div>
           </Card>
-          <Card className="p-4 text-center">
-            <Trophy className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-            <div className="text-2xl font-bold">
+          <Card className="p-3 sm:p-4 text-center">
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-yellow-500" />
+            <div className="text-xl sm:text-2xl font-bold">
               {new Set(battles.map(b => b.tournament_name).filter(Boolean)).size}
             </div>
-            <div className="text-xs text-muted-foreground">Events</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">Events</div>
           </Card>
         </div>
 
         {/* Main View Tabs */}
-        <Tabs value={mainView} onValueChange={(v) => setMainView(v as 'ranking' | 'tournaments')} className="mb-6">
-          <TabsList className="w-full max-w-md mx-auto">
-            <TabsTrigger value="ranking" className="flex-1">
-              <TrendingUp className="w-4 h-4 mr-2" />
+        <Tabs value={mainView} onValueChange={(v) => setMainView(v as 'ranking' | 'tournaments')} className="mb-4 sm:mb-6">
+          <TabsList className="w-full max-w-md mx-auto grid grid-cols-2">
+            <TabsTrigger value="ranking" className="text-xs sm:text-sm">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Ranking
             </TabsTrigger>
-            <TabsTrigger value="tournaments" className="flex-1">
-              <Trophy className="w-4 h-4 mr-2" />
+            <TabsTrigger value="tournaments" className="text-xs sm:text-sm">
+              <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Tournaments
             </TabsTrigger>
           </TabsList>
@@ -461,13 +460,13 @@ export default function WorldRanking() {
             {/* Leaderboard */}
             <Card className="overflow-hidden">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'bboy' | 'bgirl')}>
-                <div className="px-4 pt-4 border-b border-border/50">
-                  <TabsList className="w-full max-w-xs">
-                    <TabsTrigger value="bboy" className="flex-1">
-                      <span className="mr-2">🏆</span> B-Boys
+                <div className="px-3 sm:px-4 pt-3 sm:pt-4 border-b border-border/50">
+                  <TabsList className="w-full max-w-xs grid grid-cols-2">
+                    <TabsTrigger value="bboy" className="text-xs sm:text-sm">
+                      <span className="mr-1 sm:mr-2">🏆</span> B-Boys
                     </TabsTrigger>
-                    <TabsTrigger value="bgirl" className="flex-1">
-                      <span className="mr-2">👑</span> B-Girls
+                    <TabsTrigger value="bgirl" className="text-xs sm:text-sm">
+                      <span className="mr-1 sm:mr-2">👑</span> B-Girls
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -501,7 +500,7 @@ export default function WorldRanking() {
 
         {/* Dancer Profile Dialog */}
         <Dialog open={!!selectedDancer} onOpenChange={() => setSelectedDancer(null)}>
-          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[85vh] overflow-y-auto p-4 sm:p-6">
             {selectedDancer && (
               <>
                 <DialogHeader>
