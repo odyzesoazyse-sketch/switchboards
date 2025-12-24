@@ -117,8 +117,8 @@ function BracketView({
   }
 
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="flex gap-2 min-w-max">
+    <div className="overflow-auto max-h-full">
+      <div className="flex gap-2 min-w-max pb-4">
         {roundsData.map((round, roundIdx) => {
           const isLast = roundIdx === roundsData.length - 1;
           
@@ -312,7 +312,7 @@ export function TournamentBracketDialog({
                 </TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="max-h-[55vh]">
+              <div className="overflow-auto max-h-[55vh]">
                 <TabsContent value="bboy" className="mt-0">
                   <BracketView 
                     battles={bboyBattles}
@@ -327,16 +327,16 @@ export function TournamentBracketDialog({
                     onSelectDancer={onSelectDancer}
                   />
                 </TabsContent>
-              </ScrollArea>
+              </div>
             </Tabs>
           ) : (
-            <ScrollArea className="max-h-[60vh]">
+            <div className="overflow-auto max-h-[60vh]">
               <BracketView 
                 battles={hasBboys ? bboyBattles : bgirlBattles}
                 highlightDancerName={highlightDancerName}
                 onSelectDancer={onSelectDancer}
               />
-            </ScrollArea>
+            </div>
           )}
         </div>
       </DialogContent>
