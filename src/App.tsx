@@ -20,6 +20,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
 import WorldEvents from "./pages/WorldEvents";
+import WorldRanking from "./pages/WorldRanking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/battle/:id/analytics" element={<Analytics />} />
             <Route path="/dancer/:id" element={<DancerProfile />} />
             <Route path="/judge" element={<JudgePanel />} />
+            <Route path="/world-ranking" element={<WorldRanking />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

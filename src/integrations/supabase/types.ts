@@ -501,6 +501,87 @@ export type Database = {
         }
         Relationships: []
       }
+      ranking_battles: {
+        Row: {
+          battle_date: string | null
+          created_at: string
+          id: string
+          is_demo: boolean | null
+          loser_id: string
+          tournament_name: string | null
+          winner_id: string
+        }
+        Insert: {
+          battle_date?: string | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean | null
+          loser_id: string
+          tournament_name?: string | null
+          winner_id: string
+        }
+        Update: {
+          battle_date?: string | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean | null
+          loser_id?: string
+          tournament_name?: string | null
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_battles_loser_id_fkey"
+            columns: ["loser_id"]
+            isOneToOne: false
+            referencedRelation: "ranking_dancers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_battles_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "ranking_dancers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ranking_dancers: {
+        Row: {
+          battles_count: number | null
+          category: string
+          created_at: string
+          id: string
+          losses_count: number | null
+          name: string
+          pagerank_score: number | null
+          updated_at: string
+          wins_count: number | null
+        }
+        Insert: {
+          battles_count?: number | null
+          category?: string
+          created_at?: string
+          id?: string
+          losses_count?: number | null
+          name: string
+          pagerank_score?: number | null
+          updated_at?: string
+          wins_count?: number | null
+        }
+        Update: {
+          battles_count?: number | null
+          category?: string
+          created_at?: string
+          id?: string
+          losses_count?: number | null
+          name?: string
+          pagerank_score?: number | null
+          updated_at?: string
+          wins_count?: number | null
+        }
+        Relationships: []
+      }
       scores: {
         Row: {
           created_at: string

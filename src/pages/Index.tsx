@@ -32,6 +32,14 @@ const Index = () => {
             </Button>
             <Button 
               variant="ghost" 
+              onClick={() => navigate("/world-ranking")}
+              className="hidden sm:inline-flex"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Rankings
+            </Button>
+            <Button 
+              variant="ghost" 
               onClick={() => navigate("/battles")}
               className="hidden sm:inline-flex"
             >
