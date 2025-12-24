@@ -17,6 +17,7 @@ import { calculatePageRank, parseBattleText } from "@/lib/pagerank";
 import { generateDemoData, BBOYS, BGIRLS } from "@/lib/demoData";
 import { BattleGraph } from "@/components/BattleGraph";
 import { RankingTournamentView } from "@/components/RankingTournamentView";
+import { TournamentBracketDialog } from "@/components/TournamentBracketDialog";
 
 interface RankedDancer {
   id: string;
@@ -57,6 +58,8 @@ export default function WorldRanking() {
   const [battleInput, setBattleInput] = useState('');
   const [selectedDancer, setSelectedDancer] = useState<RankedDancer | null>(null);
   const [showAddBattles, setShowAddBattles] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState<string | null>(null);
+  const [highlightDancer, setHighlightDancer] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const [dancersRes, battlesRes] = await Promise.all([
@@ -567,11 +570,11 @@ export default function WorldRanking() {
                             <button
                               className="text-xs text-primary hover:underline mt-1 text-left"
                               onClick={() => {
-                                setSelectedDancer(null);
-                                setMainView('tournaments');
+                                setHighlightDancer(selectedDancer.name);
+                                setSelectedTournament(battle.tournament_name);
                               }}
                             >
-                              {battle.tournament_name}
+                              📋 {battle.tournament_name} →
                             </button>
                           )}
                           {battle.judge_votes && battle.judge_votes.length > 0 && (
@@ -597,6 +600,28 @@ export default function WorldRanking() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Tournament Bracket Dialog */}
+        <TournamentBracketDialog
+          open={!!selectedTournament}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedTournament(null);
+              setHighlightDancer(null);
+            }
+          }}
+          tournamentName={selectedTournament || ""}
+          battles={battles.filter(b => b.tournament_name === selectedTournament)}
+          highlightDancerName={highlightDancer || undefined}
+          onSelectDancer={(name) => {
+            const dancer = dancers.find(d => d.name === name);
+            if (dancer) {
+              setSelectedTournament(null);
+              setHighlightDancer(null);
+              setSelectedDancer(dancer);
+            }
+          }}
+        />
       </main>
     </div>
   );
