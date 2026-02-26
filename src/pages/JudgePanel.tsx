@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -117,6 +117,9 @@ export default function JudgePanel() {
 
   const [activeCircleView, setActiveCircleView] = useState(0);
 
+  // Track previous match ID for notifications
+  const prevMatchIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     loadActiveMatch();
 
@@ -132,7 +135,7 @@ export default function JudgePanel() {
           table: 'screen_state'
         },
         () => {
-          loadActiveMatch();
+          loadActiveMatch(true);
         }
       )
       .subscribe();
@@ -176,7 +179,7 @@ export default function JudgePanel() {
     };
   }, []);
 
-  const loadActiveMatch = async () => {
+  const loadActiveMatch = async (fromRealtime = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -328,6 +331,16 @@ export default function JudgePanel() {
       };
 
       setActiveMatch(match);
+
+      // Notify judge when a new match is activated
+      if (fromRealtime && match.id !== prevMatchIdRef.current) {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        toast({
+          title: "🔴 New Match Active!",
+          description: `${match.dancer_left?.name || "TBD"} vs ${match.dancer_right?.name || "TBD"}`,
+        });
+      }
+      prevMatchIdRef.current = match.id;
 
       const effectiveRound = match.vote_per_round === false ? 1 : match.current_round;
 

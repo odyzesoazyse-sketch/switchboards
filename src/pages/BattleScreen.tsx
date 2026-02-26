@@ -7,6 +7,7 @@ import TournamentBracket from "@/components/TournamentBracket";
 import { Trophy, User } from "lucide-react";
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import AudienceVoteOverlay from "@/components/AudienceVoteOverlay";
 
 interface ScreenState {
   id: string;
@@ -1132,6 +1133,17 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
           {/* Next Up Overlay */}
           {renderNextUp()}
+
+          {/* Audience Vote QR Overlay */}
+          {!isObs && (
+            <AudienceVoteOverlay
+              battleId={id!}
+              matchId={screenState.current_match_id}
+              leftDancerId={leftDancer?.id || null}
+              rightDancerId={rightDancer?.id || null}
+              isLight={isLight}
+            />
+          )}
         </div>
       </div>
     </ScreenWrapper>
