@@ -751,8 +751,49 @@ export default function OperatorPanel() {
   };
 
   const declareWinner = async () => {
-    playSound("winner");
-    await updateScreenState({ show_winner: true });
+    if (!currentMatch) return;
+    
+    // Determine winner based on votes
+    const winnerId = votesLeft > votesRight 
+      ? currentMatch.dancer_left_id 
+      : votesRight > votesLeft 
+        ? currentMatch.dancer_right_id 
+        : null;
+    
+    if (!winnerId) {
+      toast({ title: "Tie!", description: "Scores are equal — use Tie Break first.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      // Save winner to match
+      const { error: matchError } = await supabase
+        .from("matches")
+        .update({ winner_id: winnerId, is_completed: true, votes_left: votesLeft, votes_right: votesRight })
+        .eq("id", currentMatch.id);
+      
+      if (matchError) throw matchError;
+
+      // Advance winner to next round
+      const { error: advanceError } = await supabase.rpc("advance_winner_to_next_match", {
+        p_match_id: currentMatch.id,
+        p_winner_id: winnerId,
+      });
+
+      if (advanceError) {
+        console.warn("advance_winner_to_next_match failed (may not exist):", advanceError);
+      }
+
+      playSound("winner");
+      await updateScreenState({ show_winner: true });
+      
+      toast({ title: "🏆 Winner!", description: `${getDancerName(winnerId)} wins!` });
+      
+      // Refresh matches
+      await loadMatches();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const triggerTieBreaker = async () => {
