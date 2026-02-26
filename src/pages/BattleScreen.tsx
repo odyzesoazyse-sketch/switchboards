@@ -367,7 +367,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         setRightDancer(null);
       }
 
-      // Load Next Match
+      // Load Next Match with batched dancer query
       if (stateData.next_match_id) {
         const { data: nextMatchData } = await supabase
           .from("matches")
@@ -376,14 +376,16 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
           .single();
         if (nextMatchData) {
           setNextMatch(nextMatchData);
-          if (nextMatchData.dancer_left_id) {
-            const { data } = await supabase.from("dancers").select("*").eq("id", nextMatchData.dancer_left_id).single();
-            setNextLeftDancer(data);
-          } else { setNextLeftDancer(null); }
-          if (nextMatchData.dancer_right_id) {
-            const { data } = await supabase.from("dancers").select("*").eq("id", nextMatchData.dancer_right_id).single();
-            setNextRightDancer(data);
-          } else { setNextRightDancer(null); }
+          const nextDancerIds = [nextMatchData.dancer_left_id, nextMatchData.dancer_right_id].filter(Boolean);
+          if (nextDancerIds.length > 0) {
+            const { data: nextDancers } = await supabase.from("dancers").select("*").in("id", nextDancerIds);
+            const map = new Map(nextDancers?.map(d => [d.id, d]) || []);
+            setNextLeftDancer(nextMatchData.dancer_left_id ? (map.get(nextMatchData.dancer_left_id) as Dancer) || null : null);
+            setNextRightDancer(nextMatchData.dancer_right_id ? (map.get(nextMatchData.dancer_right_id) as Dancer) || null : null);
+          } else {
+            setNextLeftDancer(null);
+            setNextRightDancer(null);
+          }
         }
       } else {
         setNextMatch(null); setNextLeftDancer(null); setNextRightDancer(null);
