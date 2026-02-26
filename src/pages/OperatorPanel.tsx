@@ -513,7 +513,7 @@ export default function OperatorPanel() {
       delete safeUpdates.font_family;
       delete safeUpdates.primary_color;
       delete safeUpdates.secondary_color;
-      delete safeUpdates.theme_preset; // Just in case this is also unmigrated
+      // theme_preset is a valid DB column — do NOT delete it
 
       const { error } = await supabase
         .from("screen_state")

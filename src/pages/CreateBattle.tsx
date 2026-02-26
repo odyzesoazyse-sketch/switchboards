@@ -214,7 +214,7 @@ const CreateBattle = () => {
 
       const { error: nominationsError } = await supabase
         .from("nominations")
-        .insert(nominationsToInsert);
+        .insert(nominationsToInsert as any);
 
       if (nominationsError) throw nominationsError;
 
