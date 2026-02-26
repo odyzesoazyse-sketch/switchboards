@@ -33,6 +33,7 @@ function getSessionId(): string {
 
 export default function AudienceVote() {
   const { id } = useParams();
+  const { t } = useLanguage();
   const [battleName, setBattleName] = useState("");
   const [matchId, setMatchId] = useState<string | null>(null);
   const [leftDancer, setLeftDancer] = useState<Dancer | null>(null);
