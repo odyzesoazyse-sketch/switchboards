@@ -165,7 +165,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
   useEffect(() => {
     if (!id) return;
-    loadScreenState();
+    loadScreenState(true);
 
     const channelId = Math.random().toString(36).substring(7);
 
@@ -280,9 +280,9 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
     }
   }, [screenState?.timer_seconds, screenState?.show_timer, screenState?.timer_running]);
 
-  const loadScreenState = async () => {
+  const loadScreenState = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
 
       const { data: battleData } = await supabase
         .from("battles")

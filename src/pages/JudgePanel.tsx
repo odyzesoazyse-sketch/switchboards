@@ -273,14 +273,14 @@ export default function JudgePanel() {
           setActiveCircleView(0);
         }
 
-        const { data: existingScores } = await supabase
-          .from("selection_scores" as any)
+      const { data: existingScores } = await supabase
+          .from("selection_scores")
           .select("*")
           .eq("nomination_id", screenStates.nomination_id)
           .eq("judge_id", user.id)
-          .in("dancer_id", screenStates.active_selection_dancers) as any;
+          .in("dancer_id", screenStates.active_selection_dancers);
 
-        setHeatScores(existingScores as any[] || []);
+        setHeatScores((existingScores || []) as HeatScore[]);
         setLoading(false);
         return;
       }
@@ -552,10 +552,18 @@ export default function JudgePanel() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: "Session expired",
+          description: "Please sign in again",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
 
       const { error } = await supabase
-        .from("selection_scores" as any)
+        .from("selection_scores")
         .upsert({
           nomination_id: activeHeat.nomination_id,
           dancer_id: dancerId,
@@ -574,12 +582,13 @@ export default function JudgePanel() {
 
       setHeatScores(prev => [
         ...prev.filter(s => s.dancer_id !== dancerId),
-        { dancer_id: dancerId, score_technique: technique, score_musicality: musicality, score_performance: performance } as any
+        { dancer_id: dancerId, score_technique: technique, score_musicality: musicality, score_performance: performance }
       ]);
     } catch (error: any) {
+      console.error("submitHeatScore error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error saving score",
+        description: error.message || "Unknown error",
         variant: "destructive",
       });
     }
@@ -844,14 +853,6 @@ export default function JudgePanel() {
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-12"
-                onClick={openSchedule}
-              >
-                <CalendarDays className="h-5 w-5" />
-                Schedule
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 h-12"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-5 w-5" />
@@ -969,14 +970,6 @@ export default function JudgePanel() {
               >
                 <History className="h-5 w-5" />
                 Vote History
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 h-12"
-                onClick={openSchedule}
-              >
-                <CalendarDays className="h-5 w-5" />
-                Schedule
               </Button>
               <Button
                 variant="ghost"

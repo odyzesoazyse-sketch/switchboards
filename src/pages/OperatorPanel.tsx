@@ -339,10 +339,10 @@ export default function OperatorPanel() {
         }
       }
 
-      const { data: scores } = await (supabase
-        .from("selection_scores" as any)
+      const { data: scores } = await supabase
+        .from("selection_scores")
         .select("*")
-        .eq("nomination_id", selectedNomination) as any)
+        .eq("nomination_id", selectedNomination)
         .in("dancer_id", screenState.active_selection_dancers);
 
       setSelectionScores(scores || []);
@@ -1264,11 +1264,64 @@ export default function OperatorPanel() {
           </div>
         )}
 
+        {/* Quick Phase Switch */}
+        {currentNomination && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
+            {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
+              const isCurrent = currentNomination.phase === phase;
+              const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
+              return (
+                <Button
+                  key={phase}
+                  variant={isCurrent ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs h-7 px-2 ${isCurrent ? "" : "opacity-60"}`}
+                  onClick={async () => {
+                    if (isCurrent) return;
+                    try {
+                      const { error } = await supabase
+                        .from("nominations")
+                        .update({ phase })
+                        .eq("id", selectedNomination);
+                      if (error) throw error;
+
+                      if (phase === "bracket") {
+                        // Clear selection dancers from screen when switching to bracket
+                        await updateScreenState({
+                          active_selection_dancers: [],
+                          next_selection_dancers: [],
+                        });
+                      }
+
+                      if (phase === "selection") {
+                        // Clear match when switching to selection
+                        await updateScreenState({
+                          current_match_id: null,
+                          next_match_id: null,
+                        });
+                      }
+
+                      toast({ title: "Phase changed", description: `Now in ${labels[phase]} mode` });
+                      await loadData();
+                      await loadMatches();
+                    } catch (error: any) {
+                      toast({ title: "Error", description: error.message, variant: "destructive" });
+                    }
+                  }}
+                >
+                  {labels[phase]}
+                </Button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Active Selection Heat Control */}
         {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 border-primary/30">
             <div className="space-y-3 text-center">
-              <Badge className="bg-green-500 mb-2">LIVE HEAT</Badge>
+              <Badge className="bg-primary mb-2">LIVE HEAT</Badge>
               <div className="flex flex-wrap justify-center items-center gap-4">
                 {screenState.active_selection_dancers.map((dId, index) => (
                   <div key={dId} className="flex items-center">
@@ -1298,7 +1351,7 @@ export default function OperatorPanel() {
                         <div key={judge.id} className="flex flex-col p-2 bg-background/50 rounded border text-sm">
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">{judge.name}</span>
-                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-green-500 hover:bg-green-600" : ""}>
+                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-primary hover:bg-primary/90" : ""}>
                               {isDone ? "Done" : `${scoredCount} / ${totalNeeded} scored`}
                             </Badge>
                           </div>
@@ -1480,7 +1533,7 @@ export default function OperatorPanel() {
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>
                 </Button>
-                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 bg-red-600 hover:bg-red-700 animate-pulse-soft">
+                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 animate-pulse-soft">
                   <span className="text-xl font-bold">X</span>
                   <span className="text-[10px] uppercase">Tie Break</span>
                 </Button>
@@ -1547,7 +1600,7 @@ export default function OperatorPanel() {
                           ))}
                         </div>
                         {isActive ? (
-                          <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                          <Badge className="shrink-0 bg-primary">LIVE</Badge>
                         ) : (
                           <Button size="sm" variant="ghost" className="shrink-0 gap-1">
                             <Play className="h-3 w-3" />
@@ -1598,7 +1651,7 @@ export default function OperatorPanel() {
                         </div>
 
                         {isActive && (
-                          <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                          <Badge className="shrink-0 bg-primary">LIVE</Badge>
                         )}
                         {hasWinner && !isActive && (
                           <Badge variant="secondary" className="shrink-0">Done</Badge>
