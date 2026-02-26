@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Check, Users, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Dancer {
   id: string;
