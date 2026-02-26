@@ -135,17 +135,20 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="border-b border-border/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">SWITCHBOARD</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground shrink-0">SWITCHBOARD</h1>
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <span className="text-xs sm:text-sm text-muted-foreground truncate max-w-[120px] sm:max-w-none hidden sm:inline">{user?.email}</span>
             {isJudge && (
-              <Button variant="outline" onClick={() => navigate("/judge")}>
-                <Gavel className="w-4 h-4 mr-2" />
-                Judge Panel
+              <Button variant="outline" size="sm" onClick={() => navigate("/judge")} className="shrink-0">
+                <Gavel className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Judge Panel</span>
               </Button>
             )}
-            <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
           </div>
         </div>
       </header>
