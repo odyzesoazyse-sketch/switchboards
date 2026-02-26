@@ -163,7 +163,9 @@ export default function OperatorPanel() {
   const [primaryColor, setPrimaryColor] = useState("");
   const [secondaryColor, setSecondaryColor] = useState("");
   const [showLivePreview, setShowLivePreview] = useState(false);
-
+  const [showAudienceQR, setShowAudienceQR] = useState(true);
+  const [autoAdvanceOnTimer, setAutoAdvanceOnTimer] = useState(false);
+  const timerEndRef = useRef<string | null>(null);
   const { playSound, preloadAll } = useSoundEffects(soundEnabled);
 
   useEffect(() => {
