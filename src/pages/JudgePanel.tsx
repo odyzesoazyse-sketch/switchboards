@@ -1143,32 +1143,35 @@ export default function JudgePanel() {
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
               {/* Left Dancer - Red */}
               <button
-                className="group"
-                onClick={() => activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id)}
+                className="group touch-manipulation"
+                onClick={() => {
+                  activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id);
+                  if (navigator.vibrate) navigator.vibrate(50);
+                }}
               >
-                <Card className="p-6 sm:p-8 text-center card-red hover:border-primary transition-all active:scale-95 hover:shadow-glow-red">
-                  <div className="space-y-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors overflow-hidden shrink-0">
+                <Card className="p-4 sm:p-8 text-center card-red hover:border-primary transition-all active:scale-[0.92] hover:shadow-glow-red min-h-[200px] sm:min-h-[280px] flex items-center justify-center">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors overflow-hidden shrink-0">
                       {activeMatch.dancer_left?.video_url ? (
                         <video src={activeMatch.dancer_left.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                       ) : activeMatch.dancer_left?.photo_url ? (
                         <img src={activeMatch.dancer_left.photo_url} alt={activeMatch.dancer_left.name || "Red"} className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+                        <User className="w-12 h-12 sm:w-14 sm:h-14 text-primary" />
                       )}
                     </div>
                     <div>
-                      <div className="text-xl sm:text-2xl font-display font-bold text-primary truncate">
+                      <div className="text-lg sm:text-2xl font-display font-bold text-primary truncate">
                         {activeMatch.dancer_left?.name || "Waiting"}
                       </div>
                       {activeMatch.dancer_left?.city && (
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                           {activeMatch.dancer_left.city}
                         </div>
                       )}
                     </div>
-                    <div className="pt-2">
-                      <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                    <div className="pt-1 sm:pt-2">
+                      <span className="inline-block px-4 py-2.5 rounded-full bg-primary/10 text-primary font-bold text-sm sm:text-base">
                         Tap to Vote
                       </span>
                     </div>
