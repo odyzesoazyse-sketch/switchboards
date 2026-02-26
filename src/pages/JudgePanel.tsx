@@ -224,10 +224,10 @@ export default function JudgePanel() {
 
       // Enforce judge assignments
       const { data: assignments } = await supabase
-        .from("judge_assignments")
+        .from("judge_assignments" as any)
         .select("nomination_id")
         .eq("battle_id", screenStates.battle_id)
-        .eq("judge_id", user.id);
+        .eq("judge_id", user.id) as any;
 
       const allowedNominationIds = assignments?.map(a => a.nomination_id) || [];
       const hasRestrictionsForThisBattle = allowedNominationIds.length > 0;
