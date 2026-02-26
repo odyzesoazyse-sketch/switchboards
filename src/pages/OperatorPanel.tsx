@@ -1533,7 +1533,7 @@ export default function OperatorPanel() {
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>
                 </Button>
-                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 bg-red-600 hover:bg-red-700 animate-pulse-soft">
+                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 animate-pulse-soft">
                   <span className="text-xl font-bold">X</span>
                   <span className="text-[10px] uppercase">Tie Break</span>
                 </Button>
