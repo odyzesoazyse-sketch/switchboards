@@ -1055,6 +1055,14 @@ export default function OperatorPanel() {
                         <Switch checked={showScore} onCheckedChange={setShowScore} />
                       </div>
                       <div className="flex items-center justify-between">
+                        <Label>Audience QR on Screen</Label>
+                        <Switch checked={showAudienceQR} onCheckedChange={setShowAudienceQR} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Auto-advance on timer end</Label>
+                        <Switch checked={autoAdvanceOnTimer} onCheckedChange={setAutoAdvanceOnTimer} />
+                      </div>
+                      <div className="flex items-center justify-between">
                         <Label>Rounds to Win</Label>
                         <Input
                           type="number"
