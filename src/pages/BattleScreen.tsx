@@ -457,7 +457,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
     } catch (error) {
       console.error("Error loading screen state:", error);
     } finally {
-      setLoading(false);
+      setInitialLoaded(true);
     }
   };
 
