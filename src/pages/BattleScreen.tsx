@@ -230,7 +230,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
       supabase.removeChannel(dancersChannel);
       supabase.removeChannel(matchesChannel);
     };
-  }, [id, screenState?.current_match_id]);
+  }, [id]);
 
   const loadVotes = async () => {
     const matchId = currentMatchIdRef.current;
