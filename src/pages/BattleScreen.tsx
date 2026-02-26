@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import TournamentBracket from "@/components/TournamentBracket";
 import { Trophy, User } from "lucide-react";
 import { useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ScreenState {
   id: string;
