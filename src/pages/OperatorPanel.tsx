@@ -25,6 +25,7 @@ import JudgeAssignmentsModal from "@/components/JudgeAssignmentsModal";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import BracketSetup from "@/components/BracketSetup";
 
 interface Match {
   id: string;
