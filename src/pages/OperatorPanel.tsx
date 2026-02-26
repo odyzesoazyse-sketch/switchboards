@@ -667,20 +667,15 @@ export default function OperatorPanel() {
 
   const toggleBracket = async (layout?: "symmetric" | "linear") => {
     if (layout) {
-      // If clicking same layout that's already showing, hide it
       if (showBracket && bracketLayout === layout) {
         setShowBracket(false);
-        await updateScreenState({
-          show_bracket: false,
-        } as any);
+        await updateScreenState({ show_bracket: false } as any);
       } else {
-        // Show bracket with selected layout
         setShowBracket(true);
         setBracketLayout(layout);
         await updateScreenState({
           show_bracket: true,
           bracket_layout: layout,
-          current_match_id: null,
         } as any);
       }
     } else {
@@ -689,9 +684,23 @@ export default function OperatorPanel() {
       await updateScreenState({
         show_bracket: newValue,
         bracket_layout: bracketLayout,
-        current_match_id: newValue ? null : screenState?.current_match_id,
       } as any);
     }
+  };
+
+  const clearScreen = async () => {
+    setShowBracket(false);
+    setShowCustomMessage(false);
+    await updateScreenState({
+      current_match_id: null,
+      next_match_id: null,
+      show_bracket: false,
+      show_winner: false,
+      show_custom_message: false,
+      active_selection_dancers: [],
+      next_selection_dancers: [],
+    });
+    toast({ title: "Screen cleared" });
   };
 
   const startTimer = async () => {
