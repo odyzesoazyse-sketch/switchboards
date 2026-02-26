@@ -23,6 +23,7 @@ import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
 import WorldEvents from "./pages/WorldEvents";
 import WorldRanking from "./pages/WorldRanking";
+import AudienceVote from "./pages/AudienceVote";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
