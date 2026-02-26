@@ -505,8 +505,8 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
   const blurClass = isObs ? '' : 'backdrop-blur-xl';
   const blurClassSmall = isObs ? '' : 'backdrop-blur';
 
-  // Loading
-  if (loading) {
+  // Only show initializing state before first load completes
+  if (!initialLoaded && !screenState) {
     return (
       <ScreenWrapper screenState={screenState} dynamicStyles={getBackgroundStyle()} isObs={isObs}>
         <div className="h-full w-full flex items-center justify-center" style={getBackgroundStyle()}>
