@@ -667,20 +667,15 @@ export default function OperatorPanel() {
 
   const toggleBracket = async (layout?: "symmetric" | "linear") => {
     if (layout) {
-      // If clicking same layout that's already showing, hide it
       if (showBracket && bracketLayout === layout) {
         setShowBracket(false);
-        await updateScreenState({
-          show_bracket: false,
-        } as any);
+        await updateScreenState({ show_bracket: false } as any);
       } else {
-        // Show bracket with selected layout
         setShowBracket(true);
         setBracketLayout(layout);
         await updateScreenState({
           show_bracket: true,
           bracket_layout: layout,
-          current_match_id: null,
         } as any);
       }
     } else {
@@ -689,9 +684,23 @@ export default function OperatorPanel() {
       await updateScreenState({
         show_bracket: newValue,
         bracket_layout: bracketLayout,
-        current_match_id: newValue ? null : screenState?.current_match_id,
       } as any);
     }
+  };
+
+  const clearScreen = async () => {
+    setShowBracket(false);
+    setShowCustomMessage(false);
+    await updateScreenState({
+      current_match_id: null,
+      next_match_id: null,
+      show_bracket: false,
+      show_winner: false,
+      show_custom_message: false,
+      active_selection_dancers: [],
+      next_selection_dancers: [],
+    });
+    toast({ title: "Screen cleared" });
   };
 
   const startTimer = async () => {
@@ -1324,7 +1333,6 @@ export default function OperatorPanel() {
                       if (error) throw error;
 
                       if (phase === "bracket") {
-                        // Clear selection dancers from screen when switching to bracket
                         await updateScreenState({
                           active_selection_dancers: [],
                           next_selection_dancers: [],
@@ -1332,7 +1340,6 @@ export default function OperatorPanel() {
                       }
 
                       if (phase === "selection") {
-                        // Clear match when switching to selection
                         await updateScreenState({
                           current_match_id: null,
                           next_match_id: null,
@@ -1353,6 +1360,68 @@ export default function OperatorPanel() {
             })}
           </div>
         )}
+
+        {/* Screen Control Bar - always visible */}
+        <Card className="p-3 border-dashed">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mr-1">Screen:</span>
+            
+            {screenState?.current_match_id && currentMatch && !showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                {getDancerName(currentMatch.dancer_left_id)} vs {getDancerName(currentMatch.dancer_right_id)}
+              </Badge>
+            )}
+            {showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <Layout className="h-3 w-3" />
+                Bracket
+              </Badge>
+            )}
+            {screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && !showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <Users className="h-3 w-3" />
+                Heat Live
+              </Badge>
+            )}
+            {!screenState?.current_match_id && !showBracket && (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) && (
+              <span className="text-xs text-muted-foreground italic">Empty</span>
+            )}
+
+            <div className="flex-1" />
+
+            {currentNomination?.phase === 'bracket' && matches.length > 0 && (
+              <div className="flex gap-1">
+                <Button
+                  variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleBracket("symmetric")}
+                  className="h-7 text-[10px] px-2"
+                >
+                  ←|→
+                </Button>
+                <Button
+                  variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleBracket("linear")}
+                  className="h-7 text-[10px] px-2"
+                >
+                  →→→
+                </Button>
+              </div>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearScreen}
+              className="h-7 text-[10px] px-2 text-destructive hover:text-destructive"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          </div>
+        </Card>
 
         {/* Active Selection Heat Control */}
         {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
@@ -1543,7 +1612,7 @@ export default function OperatorPanel() {
               )}
 
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>
@@ -1556,22 +1625,6 @@ export default function OperatorPanel() {
                   <Trophy className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Winner</span>
                 </Button>
-                <div className="flex flex-col gap-1 h-14 justify-center">
-                  <Button
-                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
-                    onClick={() => toggleBracket("symmetric")}
-                    className="flex-1 min-h-0 py-0 text-[10px]"
-                  >
-                    ←|→
-                  </Button>
-                  <Button
-                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
-                    onClick={() => toggleBracket("linear")}
-                    className="flex-1 min-h-0 py-0 text-[10px]"
-                  >
-                    →→→
-                  </Button>
-                </div>
               </div>
             </div>
           </Card>
