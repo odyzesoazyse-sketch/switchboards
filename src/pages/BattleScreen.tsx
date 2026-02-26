@@ -7,6 +7,7 @@ import TournamentBracket from "@/components/TournamentBracket";
 import { Trophy, User } from "lucide-react";
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import AudienceVoteOverlay from "@/components/AudienceVoteOverlay";
 
 interface ScreenState {
   id: string;
