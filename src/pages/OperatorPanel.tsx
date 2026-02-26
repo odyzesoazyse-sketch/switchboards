@@ -1267,8 +1267,8 @@ export default function OperatorPanel() {
 
         {/* Quick Phase Switch */}
         {currentNomination && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
             {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
               const isCurrent = currentNomination.phase === phase;
               const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
