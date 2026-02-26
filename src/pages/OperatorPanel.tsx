@@ -1529,7 +1529,7 @@ export default function OperatorPanel() {
               )}
 
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>
