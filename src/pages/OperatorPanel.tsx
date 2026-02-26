@@ -1277,7 +1277,7 @@ export default function OperatorPanel() {
                   key={phase}
                   variant={isCurrent ? "default" : "outline"}
                   size="sm"
-                  className={`text-xs h-7 px-2 ${isCurrent ? "" : "opacity-60"}`}
+                  className={`text-[10px] sm:text-xs h-6 sm:h-7 px-1.5 sm:px-2 ${isCurrent ? "" : "opacity-60"}`}
                   onClick={async () => {
                     if (isCurrent) return;
                     try {
