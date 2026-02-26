@@ -117,6 +117,9 @@ export default function JudgePanel() {
 
   const [activeCircleView, setActiveCircleView] = useState(0);
 
+  // Track previous match ID for notifications
+  const prevMatchIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     loadActiveMatch();
 
