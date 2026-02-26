@@ -179,7 +179,7 @@ export default function JudgePanel() {
     };
   }, []);
 
-  const loadActiveMatch = async () => {
+  const loadActiveMatch = async (fromRealtime = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
