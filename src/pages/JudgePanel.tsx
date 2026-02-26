@@ -332,6 +332,16 @@ export default function JudgePanel() {
 
       setActiveMatch(match);
 
+      // Notify judge when a new match is activated
+      if (fromRealtime && match.id !== prevMatchIdRef.current) {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        toast({
+          title: "🔴 New Match Active!",
+          description: `${match.dancer_left?.name || "TBD"} vs ${match.dancer_right?.name || "TBD"}`,
+        });
+      }
+      prevMatchIdRef.current = match.id;
+
       const effectiveRound = match.vote_per_round === false ? 1 : match.current_round;
 
       const { data: existingVote } = await supabase
