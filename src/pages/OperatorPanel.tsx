@@ -853,6 +853,20 @@ export default function OperatorPanel() {
     return dancer ? dancer.name : "?";
   };
 
+  const formatRound = (round: string) => {
+    const labels: Record<string, string> = {
+      round_of_16: "1/8",
+      quarterfinal: "1/4",
+      semifinal: "1/2",
+      final: "Final",
+    };
+    return labels[round] || round;
+  };
+
+  const isMatchReady = (match: Match) => {
+    return match.dancer_left_id !== null && match.dancer_right_id !== null;
+  };
+
   const getCurrentMatch = () => {
     if (!screenState?.current_match_id) return null;
     return matches.find(m => m.id === screenState.current_match_id);
