@@ -106,11 +106,13 @@ export default function BattleSettings() {
 
       if (nominationsError) throw nominationsError;
 
-      setNominations((nominationsData || []).map((n, i) => ({
+      setNominations((nominationsData || []).map((n: any, i: number) => ({
         ...n,
         judging_criteria: Array.isArray(n.judging_criteria)
           ? n.judging_criteria as unknown as JudgingCriterion[]
           : [],
+        selection_format: n.selection_format || 1,
+        concurrent_circles: n.concurrent_circles || 1,
         isOpen: i === 0
       })));
     } catch (error: any) {
@@ -192,7 +194,7 @@ export default function BattleSettings() {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("nominations")
         .insert({
           battle_id: id,
@@ -200,9 +202,9 @@ export default function BattleSettings() {
           phase: "registration",
           judging_mode: "simple",
           selection_format: 1,
-        })
+        } as any)
         .select()
-        .single();
+        .single()) as any;
 
       if (error) throw error;
 
@@ -300,7 +302,7 @@ export default function BattleSettings() {
               selection_format: nom.selection_format || 1,
               concurrent_circles: nom.concurrent_circles || 1,
               phase: (nom.phase as "registration" | "selection" | "bracket" | "completed") || 'registration',
-            })
+            } as any)
             .eq("id", nom.id);
 
           if (error) throw error;

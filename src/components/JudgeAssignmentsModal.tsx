@@ -65,14 +65,14 @@ export default function JudgeAssignmentsModal({ battleId }: Props) {
                 .from("nominations")
                 .select("id, name, concurrent_circles")
                 .eq("battle_id", battleId)
-                .order("created_at");
+                .order("created_at") as any;
             setNominations(noms || []);
 
             // Fetch existing assignments
             const { data: existing } = await supabase
-                .from("judge_assignments")
+                .from("judge_assignments" as any)
                 .select("judge_id, nomination_id, phase")
-                .eq("battle_id", battleId);
+                .eq("battle_id", battleId) as any;
 
             setAssignments(existing || []);
         } catch (error: any) {
@@ -89,9 +89,9 @@ export default function JudgeAssignmentsModal({ battleId }: Props) {
         try {
             if (isAssigned) {
                 // Remove assignment
-                await supabase
-                    .from("judge_assignments")
-                    .delete()
+                await (supabase
+                    .from("judge_assignments" as any)
+                    .delete() as any)
                     .eq("battle_id", battleId)
                     .eq("judge_id", judgeId)
                     .eq("nomination_id", nominationId);
@@ -99,8 +99,8 @@ export default function JudgeAssignmentsModal({ battleId }: Props) {
                 setAssignments(prev => prev.filter(a => !(a.judge_id === judgeId && a.nomination_id === nominationId)));
             } else {
                 // Add assignment
-                await supabase
-                    .from("judge_assignments")
+                await (supabase
+                    .from("judge_assignments" as any) as any)
                     .insert({
                         battle_id: battleId,
                         judge_id: judgeId,

@@ -213,7 +213,7 @@ export default function JudgePanel() {
         .in("battle_id", battleIds)
         .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as any;
 
       if (!screenStates || (!screenStates.current_match_id && (!screenStates.active_selection_dancers || screenStates.active_selection_dancers.length === 0))) {
         setActiveMatch(null);
@@ -224,10 +224,10 @@ export default function JudgePanel() {
 
       // Enforce judge assignments
       const { data: assignments } = await supabase
-        .from("judge_assignments")
+        .from("judge_assignments" as any)
         .select("nomination_id")
         .eq("battle_id", screenStates.battle_id)
-        .eq("judge_id", user.id);
+        .eq("judge_id", user.id) as any;
 
       const allowedNominationIds = assignments?.map(a => a.nomination_id) || [];
       const hasRestrictionsForThisBattle = allowedNominationIds.length > 0;
@@ -252,7 +252,7 @@ export default function JudgePanel() {
           .from("nominations")
           .select("name, concurrent_circles")
           .eq("id", screenStates.nomination_id)
-          .single();
+          .single() as any;
 
         const orderedDancers = screenStates.active_selection_dancers.map((id: string) => dancers?.find(d => d.id === id)).filter(Boolean) as Dancer[];
 
@@ -274,11 +274,11 @@ export default function JudgePanel() {
         }
 
         const { data: existingScores } = await supabase
-          .from("selection_scores")
+          .from("selection_scores" as any)
           .select("*")
           .eq("nomination_id", screenStates.nomination_id)
           .eq("judge_id", user.id)
-          .in("dancer_id", screenStates.active_selection_dancers);
+          .in("dancer_id", screenStates.active_selection_dancers) as any;
 
         setHeatScores(existingScores as any[] || []);
         setLoading(false);
@@ -298,7 +298,7 @@ export default function JudgePanel() {
           )
         `)
         .eq("id", screenStates.current_match_id)
-        .single();
+        .single() as any;
 
       if (!matchData) {
         setActiveMatch(null);
@@ -405,10 +405,10 @@ export default function JudgePanel() {
 
       // Check judge assignments
       const { data: assignments } = await supabase
-        .from("judge_assignments")
+        .from("judge_assignments" as any)
         .select("nomination_id, battle_id")
         .in("battle_id", battleIds)
-        .eq("judge_id", user.id);
+        .eq("judge_id", user.id) as any;
 
       const assignedByBattle = assignments?.reduce((acc, curr) => {
         if (!acc[curr.battle_id]) acc[curr.battle_id] = [];
@@ -555,7 +555,7 @@ export default function JudgePanel() {
       if (!user) return;
 
       const { error } = await supabase
-        .from("selection_scores")
+        .from("selection_scores" as any)
         .upsert({
           nomination_id: activeHeat.nomination_id,
           dancer_id: dancerId,
