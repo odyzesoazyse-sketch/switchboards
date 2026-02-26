@@ -194,7 +194,7 @@ export default function BattleSettings() {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("nominations")
         .insert({
           battle_id: id,
@@ -202,9 +202,9 @@ export default function BattleSettings() {
           phase: "registration",
           judging_mode: "simple",
           selection_format: 1,
-        })
+        } as any)
         .select()
-        .single();
+        .single()) as any;
 
       if (error) throw error;
 
