@@ -1600,7 +1600,7 @@ export default function OperatorPanel() {
                           ))}
                         </div>
                         {isActive ? (
-                          <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                          <Badge className="shrink-0 bg-primary">LIVE</Badge>
                         ) : (
                           <Button size="sm" variant="ghost" className="shrink-0 gap-1">
                             <Play className="h-3 w-3" />
