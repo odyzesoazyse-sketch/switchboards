@@ -213,7 +213,7 @@ export default function JudgePanel() {
         .in("battle_id", battleIds)
         .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as any;
 
       if (!screenStates || (!screenStates.current_match_id && (!screenStates.active_selection_dancers || screenStates.active_selection_dancers.length === 0))) {
         setActiveMatch(null);
