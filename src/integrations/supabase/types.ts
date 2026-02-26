@@ -988,6 +988,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "user_roles_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_roles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
