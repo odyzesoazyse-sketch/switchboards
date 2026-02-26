@@ -135,7 +135,7 @@ export default function JudgePanel() {
           table: 'screen_state'
         },
         () => {
-          loadActiveMatch();
+          loadActiveMatch(true);
         }
       )
       .subscribe();
