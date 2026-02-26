@@ -25,6 +25,7 @@ import JudgeAssignmentsModal from "@/components/JudgeAssignmentsModal";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import BracketSetup from "@/components/BracketSetup";
 
 interface Match {
   id: string;
@@ -1616,7 +1617,12 @@ export default function OperatorPanel() {
           ) : (
             matches.length === 0 ? (
               <Card className="p-8 text-center text-muted-foreground">
-                No matches yet
+                <BracketSetup
+                  nominationId={selectedNomination}
+                  dancers={dancers}
+                  topCount={currentNomination?.top_count || 16}
+                  onBracketCreated={loadMatches}
+                />
               </Card>
             ) : (
               <div className="space-y-2">

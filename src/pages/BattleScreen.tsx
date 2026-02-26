@@ -143,7 +143,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
   const [judges, setJudges] = useState<Judge[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [battleName, setBattleName] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [allMatches, setAllMatches] = useState<BracketMatch[]>([]);
   const [allDancers, setAllDancers] = useState<Dancer[]>([]);
   const [animationClass, setAnimationClass] = useState("");
@@ -282,7 +282,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
   const loadScreenState = async (isInitial = false) => {
     try {
-      if (isInitial) setLoading(true);
+
 
       const { data: battleData } = await supabase
         .from("battles")
@@ -457,7 +457,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
     } catch (error) {
       console.error("Error loading screen state:", error);
     } finally {
-      setLoading(false);
+      setInitialLoaded(true);
     }
   };
 
@@ -505,8 +505,8 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
   const blurClass = isObs ? '' : 'backdrop-blur-xl';
   const blurClassSmall = isObs ? '' : 'backdrop-blur';
 
-  // Loading
-  if (loading) {
+  // Only show initializing state before first load completes
+  if (!initialLoaded && !screenState) {
     return (
       <ScreenWrapper screenState={screenState} dynamicStyles={getBackgroundStyle()} isObs={isObs}>
         <div className="h-full w-full flex items-center justify-center" style={getBackgroundStyle()}>
