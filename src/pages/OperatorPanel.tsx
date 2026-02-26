@@ -1421,6 +1421,24 @@ export default function OperatorPanel() {
               Clear
             </Button>
           </div>
+
+          {/* Live Preview iframe */}
+          {showLivePreview && (
+            <div className="mt-3 rounded-lg overflow-hidden border border-border/50 bg-black">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  src={`/battle/${id}/screen`}
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  title="Live Screen Preview"
+                  style={{ border: 'none' }}
+                />
+              </div>
+              <div className="flex items-center justify-center gap-1 py-1 bg-muted/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[10px] text-muted-foreground font-medium">LIVE PREVIEW</span>
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Active Selection Heat Control */}
