@@ -198,8 +198,8 @@ export default function AudienceVote() {
             <Trophy className="w-10 h-10 text-muted-foreground" />
           </div>
           <h1 className="text-2xl font-display font-bold">{battleName}</h1>
-          <p className="text-muted-foreground">No active match right now. Stay tuned!</p>
-          <Badge variant="outline" className="animate-pulse">Waiting for match...</Badge>
+          <p className="text-muted-foreground">{t("audience.noMatch")}</p>
+          <Badge variant="outline" className="animate-pulse">{t("audience.waitingMatch")}</Badge>
         </div>
       </div>
     );
