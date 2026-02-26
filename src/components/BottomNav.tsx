@@ -1,13 +1,14 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Trophy, Globe, TrendingUp, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const navItems = [
-  { path: "/", icon: Home, label: "Home" },
-  { path: "/battles", icon: Trophy, label: "Battles" },
-  { path: "/world-events", icon: Globe, label: "Events" },
-  { path: "/world-ranking", icon: TrendingUp, label: "Ranking" },
-  { path: "/dashboard", icon: User, label: "Profile" },
+const navKeys = [
+  { path: "/", icon: Home, labelKey: "nav.home" },
+  { path: "/battles", icon: Trophy, labelKey: "nav.battles" },
+  { path: "/world-events", icon: Globe, labelKey: "nav.events" },
+  { path: "/world-ranking", icon: TrendingUp, labelKey: "nav.ranking" },
+  { path: "/dashboard", icon: User, labelKey: "nav.profile" },
 ];
 
 export default function BottomNav() {
