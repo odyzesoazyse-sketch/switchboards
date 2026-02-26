@@ -302,7 +302,7 @@ export default function BattleSettings() {
               selection_format: nom.selection_format || 1,
               concurrent_circles: nom.concurrent_circles || 1,
               phase: (nom.phase as "registration" | "selection" | "bracket" | "completed") || 'registration',
-            })
+            } as any)
             .eq("id", nom.id);
 
           if (error) throw error;
