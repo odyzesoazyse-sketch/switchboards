@@ -1724,51 +1724,69 @@ export default function OperatorPanel() {
                 />
               </Card>
             ) : (
-              <div className="space-y-2">
-                {matches.map((match) => {
-                  const isActive = screenState?.current_match_id === match.id;
-                  const hasWinner = match.winner_id !== null;
+              <div className="space-y-4">
+                {["round_of_16", "quarterfinal", "semifinal", "final"].map((round) => {
+                  const roundMatches = matches.filter(m => m.round === round);
+                  if (roundMatches.length === 0) return null;
 
                   return (
-                    <Card
-                      key={match.id}
-                      className={`p-3 cursor-pointer transition-all ${isActive
-                        ? 'ring-2 ring-primary bg-primary/5'
-                        : hasWinner
-                          ? 'opacity-60'
-                          : 'hover:border-primary/50'
-                        }`}
-                      onClick={() => showMatch(match.id)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="shrink-0 text-xs">
-                          {match.round}
-                        </Badge>
+                    <div key={round} className="space-y-2">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {formatRound(round)}
+                      </h3>
+                      {roundMatches.map((match) => {
+                        const isActive = screenState?.current_match_id === match.id;
+                        const hasWinner = match.winner_id !== null;
+                        const ready = isMatchReady(match);
 
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
-                            {getDancerName(match.dancer_left_id)}
-                          </span>
-                          <span className="text-muted-foreground shrink-0">vs</span>
-                          <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
-                            {getDancerName(match.dancer_right_id)}
-                          </span>
-                        </div>
+                        return (
+                          <Card
+                            key={match.id}
+                            className={`p-3 transition-all ${
+                              !ready
+                                ? 'opacity-40 cursor-not-allowed'
+                                : isActive
+                                  ? 'ring-2 ring-primary bg-primary/5 cursor-pointer'
+                                  : hasWinner
+                                    ? 'opacity-60 cursor-pointer'
+                                    : 'hover:border-primary/50 cursor-pointer'
+                            }`}
+                            onClick={() => {
+                              if (!ready) return;
+                              if (hasWinner && !window.confirm("This match already has a winner. Restart it?")) return;
+                              showMatch(match.id);
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
+                                  {ready ? getDancerName(match.dancer_left_id) : "—"}
+                                </span>
+                                <span className="text-muted-foreground shrink-0">vs</span>
+                                <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
+                                  {ready ? getDancerName(match.dancer_right_id) : "—"}
+                                </span>
+                              </div>
 
-                        {isActive && (
-                          <Badge className="shrink-0 bg-primary">LIVE</Badge>
-                        )}
-                        {hasWinner && !isActive && (
-                          <Badge variant="secondary" className="shrink-0">Done</Badge>
-                        )}
-                        {!isActive && !hasWinner && (
-                          <Button size="sm" variant="ghost" className="shrink-0 gap-1">
-                            <Play className="h-3 w-3" />
-                            Start
-                          </Button>
-                        )}
-                      </div>
-                    </Card>
+                              {isActive && (
+                                <Badge className="shrink-0 bg-primary">LIVE</Badge>
+                              )}
+                              {hasWinner && !isActive && (
+                                <Badge variant="secondary" className="shrink-0">✓</Badge>
+                              )}
+                              {!isActive && !hasWinner && ready && (
+                                <Button size="sm" variant="ghost" className="shrink-0 gap-1">
+                                  <Play className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {!ready && (
+                                <span className="text-[10px] text-muted-foreground italic shrink-0">Waiting</span>
+                              )}
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
                   );
                 })}
               </div>
