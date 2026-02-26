@@ -1264,6 +1264,59 @@ export default function OperatorPanel() {
           </div>
         )}
 
+        {/* Quick Phase Switch */}
+        {currentNomination && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
+            {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
+              const isCurrent = currentNomination.phase === phase;
+              const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
+              return (
+                <Button
+                  key={phase}
+                  variant={isCurrent ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs h-7 px-2 ${isCurrent ? "" : "opacity-60"}`}
+                  onClick={async () => {
+                    if (isCurrent) return;
+                    try {
+                      const { error } = await supabase
+                        .from("nominations")
+                        .update({ phase })
+                        .eq("id", selectedNomination);
+                      if (error) throw error;
+
+                      if (phase === "bracket") {
+                        // Clear selection dancers from screen when switching to bracket
+                        await updateScreenState({
+                          active_selection_dancers: [],
+                          next_selection_dancers: [],
+                        });
+                      }
+
+                      if (phase === "selection") {
+                        // Clear match when switching to selection
+                        await updateScreenState({
+                          current_match_id: null,
+                          next_match_id: null,
+                        });
+                      }
+
+                      toast({ title: "Phase changed", description: `Now in ${labels[phase]} mode` });
+                      await loadData();
+                      await loadMatches();
+                    } catch (error: any) {
+                      toast({ title: "Error", description: error.message, variant: "destructive" });
+                    }
+                  }}
+                >
+                  {labels[phase]}
+                </Button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Active Selection Heat Control */}
         {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 border-primary/30">
