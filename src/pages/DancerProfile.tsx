@@ -15,6 +15,7 @@ interface DancerProfile {
   bio: string | null;
   instagram: string | null;
   photo_url: string | null;
+  video_url: string | null;
   wins_count: number;
   battles_count: number;
   average_score: number | null;
@@ -82,7 +83,7 @@ export default function DancerProfile() {
         .limit(10);
 
       const allMatches = [...(matchesAsLeft || []), ...(matchesAsRight || [])];
-      
+
       // Get opponent names
       const opponentIds = new Set<string>();
       allMatches.forEach(m => {
@@ -147,15 +148,17 @@ export default function DancerProfile() {
         {/* Profile Header */}
         <div className="text-center mb-10">
           <div className="w-32 h-32 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center mb-6 overflow-hidden">
-            {dancer.photo_url ? (
+            {dancer.video_url ? (
+              <video src={dancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+            ) : dancer.photo_url ? (
               <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
             ) : (
               <User className="w-16 h-16 text-primary" />
             )}
           </div>
-          
+
           <h1 className="text-3xl font-display font-bold mb-2">{dancer.name}</h1>
-          
+
           <div className="flex items-center justify-center gap-4 text-muted-foreground mb-4">
             {dancer.city && (
               <span className="flex items-center gap-1">
@@ -172,7 +175,7 @@ export default function DancerProfile() {
           </div>
 
           {dancer.instagram && (
-            <a 
+            <a
               href={`https://instagram.com/${dancer.instagram}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -231,18 +234,16 @@ export default function DancerProfile() {
                 {recentMatches.slice(0, 5).map((match) => {
                   const isWin = match.winner_id === id;
                   const isPending = !match.winner_id;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={match.id}
-                      className={`flex items-center justify-between p-3 rounded-xl ${
-                        isPending ? "bg-muted/50" : isWin ? "bg-success/10" : "bg-destructive/10"
-                      }`}
+                      className={`flex items-center justify-between p-3 rounded-xl ${isPending ? "bg-muted/50" : isWin ? "bg-success/10" : "bg-destructive/10"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Trophy className={`w-5 h-5 ${
-                          isPending ? "text-muted-foreground" : isWin ? "text-success" : "text-destructive"
-                        }`} />
+                        <Trophy className={`w-5 h-5 ${isPending ? "text-muted-foreground" : isWin ? "text-success" : "text-destructive"
+                          }`} />
                         <div>
                           <p className="font-medium">vs {match.opponent_name || "TBD"}</p>
                           <p className="text-sm text-muted-foreground">{match.round}</p>

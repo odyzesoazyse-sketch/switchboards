@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle, Loader2, MessageCircle } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Trophy, CheckCircle, Loader2, MessageCircle, Gavel } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import LiveChat from "@/components/LiveChat";
+import { MediaUploader } from "@/components/MediaUploader";
 
 interface Battle {
   id: string;
@@ -41,10 +42,85 @@ export default function BattlePublic() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNomination, setSelectedNomination] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", city: "", age: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    city: "",
+    age: "",
+    mediaUrl: null as string | null,
+    mediaType: null as 'photo' | 'video' | null,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isJudge, setIsJudge] = useState(false);
+  const [hasAppliedJudge, setHasAppliedJudge] = useState(false);
+  const [applyingJudge, setApplyingJudge] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        checkJudgeStatus(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) checkJudgeStatus(session.user.id);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkJudgeStatus = async (userId: string) => {
+    // Check if user has applied for this specific battle
+    const { data: application } = await supabase
+      .from("judge_applications")
+      .select("status")
+      .eq("battle_id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (application) {
+      setHasAppliedJudge(true);
+    }
+
+    // Check if user is a judge in general (has a judge role anywhere) to show the button
+    const { data: anyJudgeRole } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("role", "judge")
+      .limit(1);
+
+    if (anyJudgeRole && anyJudgeRole.length > 0) {
+      setIsJudge(true);
+    }
+  };
+
+  const handleJudgeApply = async () => {
+    if (!user) {
+      toast.error("Please sign in first");
+      navigate("/auth");
+      return;
+    }
+    setApplyingJudge(true);
+    try {
+      const { error } = await supabase.from("judge_applications").insert({
+        battle_id: id,
+        user_id: user.id,
+        status: "pending"
+      });
+      if (error) throw error;
+      setHasAppliedJudge(true);
+      toast.success("Application sent! Waiting for organizer approval.");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setApplyingJudge(false);
+    }
+  };
 
   useEffect(() => {
     if (id) loadBattle();
@@ -130,6 +206,8 @@ export default function BattlePublic() {
         position: (count || 0) + 1,
         average_score: 0,
         is_qualified: false,
+        photo_url: formData.mediaType === 'photo' ? formData.mediaUrl : null,
+        video_url: formData.mediaType === 'video' ? formData.mediaUrl : null,
       });
 
       if (error) throw error;
@@ -176,10 +254,10 @@ export default function BattlePublic() {
               <Button variant="outline" onClick={() => navigate("/battles")}>
                 Browse More
               </Button>
-              <Button onClick={() => { 
-                setRegistered(false); 
-                setFormData({ name: "", city: "", age: "" }); 
-                setSelectedNomination(null); 
+              <Button onClick={() => {
+                setRegistered(false);
+                setFormData({ name: "", city: "", age: "", mediaUrl: null, mediaType: null });
+                setSelectedNomination(null);
               }}>
                 Register Another
               </Button>
@@ -208,11 +286,11 @@ export default function BattlePublic() {
           <div className="flex flex-wrap gap-4 text-muted-foreground">
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {new Date(battle.date).toLocaleDateString("en-US", { 
-                weekday: "long", 
-                year: "numeric", 
-                month: "long", 
-                day: "numeric" 
+              {new Date(battle.date).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
               })}
             </span>
             {battle.location && (
@@ -252,15 +330,14 @@ export default function BattlePublic() {
                     {openNominations.map((nom) => {
                       const isFull = nom.dancer_count >= nom.max_dancers;
                       const isSelected = selectedNomination === nom.id;
-                      
+
                       return (
                         <Card
                           key={nom.id}
-                          className={`cursor-pointer transition-all ${
-                            isSelected
-                              ? "border-primary ring-2 ring-primary/20 bg-primary/5"
-                              : "hover:border-primary/50"
-                          } ${isFull ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`cursor-pointer transition-all ${isSelected
+                            ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                            : "hover:border-primary/50"
+                            } ${isFull ? "opacity-50 cursor-not-allowed" : ""}`}
                           onClick={() => !isFull && setSelectedNomination(nom.id)}
                         >
                           <CardContent className="p-4">
@@ -290,7 +367,17 @@ export default function BattlePublic() {
                 </div>
 
                 {/* Form Fields */}
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  <div>
+                    <Label className="mb-2 block">Dancer Media / Avatar</Label>
+                    <MediaUploader
+                      bucket="media"
+                      onUploadSelect={(url, type) => setFormData(prev => ({ ...prev, mediaUrl: url, mediaType: type }))}
+                      existingUrl={formData.mediaUrl}
+                      existingType={formData.mediaType}
+                    />
+                  </div>
+
                   <div>
                     <Label htmlFor="name">
                       Dancer Name <span className="text-destructive">*</span>
@@ -333,10 +420,10 @@ export default function BattlePublic() {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-14 text-lg" 
-                  size="lg" 
+                <Button
+                  type="submit"
+                  className="w-full h-14 text-lg"
+                  size="lg"
                   disabled={submitting || !selectedNomination}
                 >
                   {submitting ? (
@@ -349,6 +436,39 @@ export default function BattlePublic() {
                   )}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Judge Application Section */}
+        {user && (!isJudge || isJudge) && (
+          <Card className="mt-8 border-border/50 bg-secondary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gavel className="w-5 h-5 text-secondary" />
+                Want to Judge?
+              </CardTitle>
+              <CardDescription>
+                Apply to be a judge for this battle. The organizer will review your application.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasAppliedJudge ? (
+                <div className="flex items-center gap-2 text-success bg-success/10 p-4 rounded-xl">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Application sent! Pending approval.</span>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto border-secondary/50 hover:bg-secondary/10 hover:text-secondary"
+                  onClick={handleJudgeApply}
+                  disabled={applyingJudge}
+                >
+                  {applyingJudge ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Gavel className="w-4 h-4 mr-2" />}
+                  Apply as Judge
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}

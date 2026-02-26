@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, Users, Trophy, Gavel, Trash2 } from "lucide-react";
+import { Plus, Calendar, Users, Trophy, Gavel, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -65,7 +65,7 @@ const Dashboard = () => {
         .order("date", { ascending: false });
 
       if (battleError) throw battleError;
-      
+
       const hasOrganizerBattles = organizerBattles && organizerBattles.length > 0;
 
       // Check if user is judge for any battles
@@ -167,17 +167,23 @@ const Dashboard = () => {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Trophy className="w-16 h-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No battles yet</h3>
-              <p className="text-muted-foreground text-center mb-6">Create your first battle</p>
-              <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Battle
-              </Button>
+              <p className="text-muted-foreground text-center mb-6">Create your first battle or find an event to join!</p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Battle
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/battles")}>
+                  <Search className="w-4 h-4 mr-2" />
+                  Find Battles
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {battles.map((battle) => (
-              <Card 
+              <Card
                 key={battle.id}
                 className="border-border/50 hover:border-primary/50 transition-all cursor-pointer group relative"
                 onClick={() => navigate(`/battle/${battle.id}`)}
@@ -221,12 +227,11 @@ const Dashboard = () => {
                       <Users className="w-4 h-4" />
                       <span>{battle.nominations?.[0]?.count || 0} categories</span>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      battle.phase === "registration" ? "bg-secondary/20 text-secondary" 
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${battle.phase === "registration" ? "bg-secondary/20 text-secondary"
                       : battle.phase === "selection" ? "bg-primary/20 text-primary"
-                      : battle.phase === "bracket" ? "bg-accent/20 text-accent"
-                      : "bg-muted text-muted-foreground"
-                    }`}>
+                        : battle.phase === "bracket" ? "bg-accent/20 text-accent"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
                       {getPhaseLabel(battle.phase)}
                     </div>
                   </div>

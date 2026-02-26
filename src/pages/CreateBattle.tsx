@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { 
+import {
   ArrowLeft, ArrowRight, Check, Plus, Trash2, ChevronDown, ChevronUp,
   Sparkles, Calendar, MapPin, Trophy, Zap
 } from "lucide-react";
@@ -20,6 +20,8 @@ interface Nomination {
   description: string;
   judgingConfig: JudgingConfig;
   isOpen: boolean;
+  selectionFormat: number;
+  concurrentCircles: number;
 }
 
 const defaultJudgingConfig: JudgingConfig = {
@@ -27,6 +29,7 @@ const defaultJudgingConfig: JudgingConfig = {
   criteria: [],
   roundsToWin: 2,
   allowTies: false,
+  votePerRound: true,
 };
 
 const STEPS = [
@@ -42,19 +45,21 @@ const CreateBattle = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   // Form state
   const [battleName, setBattleName] = useState("");
   const [battleDate, setBattleDate] = useState("");
   const [battleTime, setBattleTime] = useState("");
   const [location, setLocation] = useState("");
   const [nominations, setNominations] = useState<Nomination[]>([
-    { 
-      id: "1", 
-      name: "", 
-      description: "", 
+    {
+      id: "1",
+      name: "",
+      description: "",
       judgingConfig: { ...defaultJudgingConfig },
-      isOpen: true 
+      isOpen: true,
+      selectionFormat: 1,
+      concurrentCircles: 1,
     }
   ]);
 
@@ -103,12 +108,14 @@ const CreateBattle = () => {
     }
     setNominations([
       ...nominations.map(n => ({ ...n, isOpen: false })),
-      { 
-        id: Date.now().toString(), 
-        name: "", 
+      {
+        id: Date.now().toString(),
+        name: "",
         description: "",
         judgingConfig: { ...defaultJudgingConfig },
-        isOpen: true
+        isOpen: true,
+        selectionFormat: 1,
+        concurrentCircles: 1,
       }
     ]);
   };
@@ -122,13 +129,13 @@ const CreateBattle = () => {
   };
 
   const updateNomination = (id: string, field: keyof Nomination, value: any) => {
-    setNominations(nominations.map(n => 
+    setNominations(nominations.map(n =>
       n.id === id ? { ...n, [field]: value } : n
     ));
   };
 
   const toggleNomination = (id: string) => {
-    setNominations(nominations.map(n => 
+    setNominations(nominations.map(n =>
       n.id === id ? { ...n, isOpen: !n.isOpen } : n
     ));
   };
@@ -176,7 +183,7 @@ const CreateBattle = () => {
       }
 
       const dateTime = new Date(`${battleDate}T${battleTime}`);
-      
+
       const { data: battle, error: battleError } = await supabase
         .from("battles")
         .insert({
@@ -200,6 +207,9 @@ const CreateBattle = () => {
         judging_criteria: JSON.parse(JSON.stringify(n.judgingConfig.criteria)),
         rounds_to_win: n.judgingConfig.roundsToWin,
         allow_ties: n.judgingConfig.allowTies,
+        vote_per_round: n.judgingConfig.votePerRound !== false,
+        selection_format: n.selectionFormat,
+        concurrent_circles: n.concurrentCircles,
       }));
 
       const { error: nominationsError } = await supabase
@@ -226,8 +236,8 @@ const CreateBattle = () => {
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => navigate("/dashboard")}
             >
@@ -238,42 +248,39 @@ const CreateBattle = () => {
               Step {currentStep} of {STEPS.length}
             </span>
           </div>
-          
+
           {/* Progress bar */}
           <Progress value={progress} className="h-1.5" />
-          
+
           {/* Step indicators */}
           <div className="flex justify-between mt-4">
             {STEPS.map((step) => {
               const StepIcon = step.icon;
               const isCompleted = currentStep > step.id;
               const isCurrent = currentStep === step.id;
-              
+
               return (
                 <button
                   key={step.id}
                   onClick={() => goToStep(step.id)}
                   disabled={step.id > currentStep}
-                  className={`flex flex-col items-center gap-1 transition-all duration-300 ${
-                    step.id > currentStep ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                  }`}
+                  className={`flex flex-col items-center gap-1 transition-all duration-300 ${step.id > currentStep ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+                    }`}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isCompleted 
-                      ? 'bg-primary text-primary-foreground scale-90' 
-                      : isCurrent 
-                        ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20' 
-                        : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isCompleted
+                    ? 'bg-primary text-primary-foreground scale-90'
+                    : isCurrent
+                      ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20'
+                      : 'bg-muted text-muted-foreground'
+                    }`}>
                     {isCompleted ? (
                       <Check className="w-5 h-5" />
                     ) : (
                       <StepIcon className="w-5 h-5" />
                     )}
                   </div>
-                  <span className={`text-xs font-medium hidden sm:block ${
-                    isCurrent ? 'text-primary' : 'text-muted-foreground'
-                  }`}>
+                  <span className={`text-xs font-medium hidden sm:block ${isCurrent ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                     {step.title}
                   </span>
                 </button>
@@ -285,14 +292,13 @@ const CreateBattle = () => {
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <div 
-          className={`transition-all duration-300 ${
-            isAnimating 
-              ? direction === 'forward' 
-                ? 'opacity-0 translate-x-8' 
-                : 'opacity-0 -translate-x-8'
-              : 'opacity-100 translate-x-0'
-          }`}
+        <div
+          className={`transition-all duration-300 ${isAnimating
+            ? direction === 'forward'
+              ? 'opacity-0 translate-x-8'
+              : 'opacity-0 -translate-x-8'
+            : 'opacity-100 translate-x-0'
+            }`}
         >
           {/* Step header */}
           <div className="text-center mb-8">
@@ -358,10 +364,10 @@ const CreateBattle = () => {
                 {battleDate && battleTime && (
                   <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
                     <p className="text-sm font-medium text-primary">
-                      📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
+                      📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
@@ -420,20 +426,18 @@ const CreateBattle = () => {
                     open={nomination.isOpen}
                     onOpenChange={() => toggleNomination(nomination.id)}
                   >
-                    <Card className={`overflow-hidden transition-all duration-300 ${
-                      nomination.isOpen ? 'ring-2 ring-primary/30' : ''
-                    }`}>
+                    <Card className={`overflow-hidden transition-all duration-300 ${nomination.isOpen ? 'ring-2 ring-primary/30' : ''
+                      }`}>
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
                           className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${
-                              nomination.isOpen 
-                                ? 'bg-primary text-primary-foreground' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${nomination.isOpen
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                              }`}>
                               {index + 1}
                             </div>
                             <div className="text-left">
@@ -490,6 +494,29 @@ const CreateBattle = () => {
                             </div>
                           </div>
 
+                          <div className="grid gap-4 sm:grid-cols-2 pt-2">
+                            <div className="space-y-2">
+                              <Label>Dancers per Heat (Selection)</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={8}
+                                value={nomination.selectionFormat}
+                                onChange={(e) => updateNomination(nomination.id, 'selectionFormat', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Concurrent Circles (Selection)</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={4}
+                                value={nomination.concurrentCircles}
+                                onChange={(e) => updateNomination(nomination.id, 'concurrentCircles', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                          </div>
+
                           <div className="space-y-3">
                             <Label className="text-base font-semibold">Judging System</Label>
                             <JudgingModeSelector
@@ -521,7 +548,7 @@ const CreateBattle = () => {
               Back
             </Button>
           )}
-          
+
           {currentStep < STEPS.length ? (
             <Button
               type="button"
@@ -562,7 +589,7 @@ const CreateBattle = () => {
               <p className="font-bold text-lg">{battleName}</p>
               {battleDate && battleTime && (
                 <p className="text-sm text-muted-foreground">
-                  📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', { 
+                  📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric', year: 'numeric'
                   })} at {battleTime}
                 </p>

@@ -5,13 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ThumbsUp, 
-  Sliders, 
-  Star, 
-  Hash, 
-  Settings2, 
-  Plus, 
+import {
+  ThumbsUp,
+  Sliders,
+  Star,
+  Hash,
+  Settings2,
+  Plus,
   Trash2,
   Check,
   Info,
@@ -38,6 +38,7 @@ export interface JudgingConfig {
   criteria: JudgingCriterion[];
   roundsToWin: number;
   allowTies: boolean;
+  votePerRound?: boolean;
 }
 
 interface JudgingModeSelectorProps {
@@ -123,7 +124,7 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
   const updateCriterion = (id: string, field: keyof JudgingCriterion, fieldValue: string | number) => {
     onChange({
       ...value,
-      criteria: value.criteria.map(c => 
+      criteria: value.criteria.map(c =>
         c.id === id ? { ...c, [field]: fieldValue } : c
       ),
     });
@@ -143,7 +144,7 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
         {PRESET_MODES.map((mode) => {
           const Icon = mode.icon;
           const isSelected = value.mode === mode.id;
-          
+
           return (
             <button
               key={mode.id}
@@ -151,8 +152,8 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
               onClick={() => handleModeSelect(mode.id)}
               className={`
                 relative p-3 sm:p-4 rounded-xl border-2 transition-all text-left
-                ${isSelected 
-                  ? 'border-primary bg-primary/5 shadow-md' 
+                ${isSelected
+                  ? 'border-primary bg-primary/5 shadow-md'
                   : 'border-border/50 hover:border-border hover:bg-muted/50'
                 }
               `}
@@ -200,7 +201,7 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
           ) : (
             <div className="space-y-3">
               {value.criteria.map((criterion, index) => (
-                <div 
+                <div
                   key={criterion.id}
                   className="p-3 bg-background rounded-lg border border-border/50 space-y-3"
                 >
@@ -314,6 +315,31 @@ export default function JudgingModeSelector({ value, onChange }: JudgingModeSele
             <Switch
               checked={value.allowTies}
               onCheckedChange={(checked) => onChange({ ...value, allowTies: checked })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Label className="font-semibold">Vote Per Round</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Judges vote after each round individually, rather than at the end of the entire battle</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Score round-by-round
+              </p>
+            </div>
+            <Switch
+              checked={value.votePerRound !== false}
+              onCheckedChange={(checked) => onChange({ ...value, votePerRound: checked })}
             />
           </div>
         </Card>

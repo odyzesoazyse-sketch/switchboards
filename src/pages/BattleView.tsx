@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus, 
+import {
+  ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
   BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User
 } from "lucide-react";
 import QRCodeShare from "@/components/QRCodeShare";
@@ -54,6 +54,7 @@ interface Dancer {
   id: string;
   name: string;
   photo_url: string | null;
+  video_url: string | null;
   age: number | null;
   city: string | null;
   position: number | null;
@@ -155,7 +156,7 @@ export default function BattleView() {
 
       if (nominationsError) throw nominationsError;
       setNominations(nominationsData || []);
-      
+
       if (nominationsData && nominationsData.length > 0) {
         setSelectedNomination(nominationsData[0].id);
       }
@@ -175,7 +176,7 @@ export default function BattleView() {
             .in("id", userIds);
 
           const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
-          
+
           const appsWithProfiles = appsData.map(app => ({
             ...app,
             profiles: profilesMap.get(app.user_id) || null
@@ -384,8 +385,8 @@ export default function BattleView() {
 
       toast({
         title: status === "approved" ? "Application approved" : "Application rejected",
-        description: status === "approved" 
-          ? "Judge added to battle" 
+        description: status === "approved"
+          ? "Judge added to battle"
           : "Application was rejected",
       });
 
@@ -425,9 +426,9 @@ export default function BattleView() {
         if (i + 1 < shuffled.length) {
           matchesToCreate.push({
             nomination_id: selectedNomination,
-            round: shuffled.length === 2 ? "final" : 
-                   shuffled.length === 4 ? "semifinal" :
-                   shuffled.length === 8 ? "quarterfinal" : "round_of_16",
+            round: shuffled.length === 2 ? "final" :
+              shuffled.length === 4 ? "semifinal" :
+                shuffled.length === 8 ? "quarterfinal" : "round_of_16",
             position: i / 2,
             dancer_left_id: shuffled[i].id,
             dancer_right_id: shuffled[i + 1].id,
@@ -483,19 +484,19 @@ export default function BattleView() {
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Back</span>
           </Button>
-          
+
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Share buttons - compact on mobile */}
             <div className="hidden sm:flex gap-2">
               <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
               <SocialShare url={`${window.location.origin}/battles/${id}`} title={battle.name} description={`Join ${battle.name}!`} />
             </div>
-            
+
             <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="outline" size="sm" className="gap-1">
               <Medal className="h-4 w-4" />
               <span className="hidden sm:inline">Leaderboard</span>
             </Button>
-            
+
             {/* Organizer menu */}
             {isOrganizer && (
               <DropdownMenu>
@@ -664,7 +665,7 @@ export default function BattleView() {
                 <h2 className="text-lg sm:text-xl font-bold">{currentNomination.name}</h2>
                 <Badge variant="secondary" className="text-xs shrink-0">{getPhaseLabel(currentNomination.phase)}</Badge>
               </div>
-              
+
               <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Users className="h-3.5 w-3.5 text-primary" />
@@ -699,7 +700,7 @@ export default function BattleView() {
             {currentNomination.phase === "bracket" && matches.length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-lg sm:text-xl font-bold">Bracket</h3>
-                
+
                 {["final", "semifinal", "quarterfinal", "round_of_16"].map((round) => {
                   const roundMatches = getRoundMatches(round);
                   if (roundMatches.length === 0) return null;
@@ -767,18 +768,25 @@ export default function BattleView() {
                         {isOrganizer ? (
                           <DancerPhotoUpload
                             dancerId={dancer.id}
-                            currentPhotoUrl={dancer.photo_url}
+                            currentPhotoUrl={dancer.video_url || dancer.photo_url}
                             dancerName={dancer.name}
                             onPhotoUpdated={(url) => {
-                              setDancers(prev => prev.map(d => 
-                                d.id === dancer.id ? { ...d, photo_url: url || null } : d
+                              const isVideo = url?.match(/\.(mp4|webm|mov)(\?.*)?$/i);
+                              setDancers(prev => prev.map(d =>
+                                d.id === dancer.id ? {
+                                  ...d,
+                                  photo_url: isVideo ? null : (url || null),
+                                  video_url: isVideo ? (url || null) : null
+                                } : d
                               ));
                             }}
                             compact
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
-                            {dancer.photo_url ? (
+                            {dancer.video_url ? (
+                              <video src={dancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                            ) : dancer.photo_url ? (
                               <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-sm font-bold text-primary-foreground">{index + 1}</span>
@@ -808,18 +816,25 @@ export default function BattleView() {
                         {isOrganizer ? (
                           <DancerPhotoUpload
                             dancerId={dancer.id}
-                            currentPhotoUrl={dancer.photo_url}
+                            currentPhotoUrl={dancer.video_url || dancer.photo_url}
                             dancerName={dancer.name}
                             onPhotoUpdated={(url) => {
-                              setDancers(prev => prev.map(d => 
-                                d.id === dancer.id ? { ...d, photo_url: url || null } : d
+                              const isVideo = url?.match(/\.(mp4|webm|mov)(\?.*)?$/i);
+                              setDancers(prev => prev.map(d =>
+                                d.id === dancer.id ? {
+                                  ...d,
+                                  photo_url: isVideo ? null : (url || null),
+                                  video_url: isVideo ? (url || null) : null
+                                } : d
                               ));
                             }}
                             compact
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
-                            {dancer.photo_url ? (
+                            {dancer.video_url ? (
+                              <video src={dancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                            ) : dancer.photo_url ? (
                               <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
                             ) : (
                               <User className="w-5 h-5 text-primary-foreground" />

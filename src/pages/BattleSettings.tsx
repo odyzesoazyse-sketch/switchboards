@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { 
-  ArrowLeft, ArrowRight, Check, Save, Plus, Trash2, ChevronDown, ChevronUp, 
+import {
+  ArrowLeft, ArrowRight, Check, Save, Plus, Trash2, ChevronDown, ChevronUp,
   Settings2, Calendar, MapPin, Trophy, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import JudgingModeSelector, { JudgingConfig, JudgingCriterion } from "@/components/JudgingModeSelector";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Battle {
   id: string;
@@ -32,6 +33,9 @@ interface Nomination {
   judging_criteria: JudgingCriterion[] | null;
   rounds_to_win: number;
   allow_ties: boolean;
+  vote_per_round?: boolean;
+  selection_format: number;
+  concurrent_circles: number;
   isOpen?: boolean;
 }
 
@@ -52,7 +56,7 @@ export default function BattleSettings() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   // Battle form state
   const [battleName, setBattleName] = useState("");
   const [battleDate, setBattleDate] = useState("");
@@ -104,8 +108,8 @@ export default function BattleSettings() {
 
       setNominations((nominationsData || []).map((n, i) => ({
         ...n,
-        judging_criteria: Array.isArray(n.judging_criteria) 
-          ? n.judging_criteria as unknown as JudgingCriterion[] 
+        judging_criteria: Array.isArray(n.judging_criteria)
+          ? n.judging_criteria as unknown as JudgingCriterion[]
           : [],
         isOpen: i === 0
       })));
@@ -152,29 +156,31 @@ export default function BattleSettings() {
       criteria: nom.judging_criteria || [],
       roundsToWin: nom.rounds_to_win || 2,
       allowTies: nom.allow_ties || false,
+      votePerRound: nom.vote_per_round !== false,
     };
   };
 
   const updateNomination = (nomId: string, field: string, value: any) => {
-    setNominations(nominations.map(n => 
+    setNominations(nominations.map(n =>
       n.id === nomId ? { ...n, [field]: value } : n
     ));
   };
 
   const updateNominationJudging = (nomId: string, config: JudgingConfig) => {
-    setNominations(nominations.map(n => 
-      n.id === nomId ? { 
-        ...n, 
+    setNominations(nominations.map(n =>
+      n.id === nomId ? {
+        ...n,
         judging_mode: config.mode,
         judging_criteria: config.criteria,
         rounds_to_win: config.roundsToWin,
         allow_ties: config.allowTies,
+        vote_per_round: config.votePerRound !== false,
       } : n
     ));
   };
 
   const toggleNomination = (nomId: string) => {
-    setNominations(nominations.map(n => 
+    setNominations(nominations.map(n =>
       n.id === nomId ? { ...n, isOpen: !n.isOpen } : n
     ));
   };
@@ -193,6 +199,7 @@ export default function BattleSettings() {
           name: `Category ${nominations.length + 1}`,
           phase: "registration",
           judging_mode: "simple",
+          selection_format: 1,
         })
         .select()
         .single();
@@ -201,7 +208,7 @@ export default function BattleSettings() {
 
       setNominations([
         ...nominations.map(n => ({ ...n, isOpen: false })),
-        { ...data, judging_criteria: [], isOpen: true }
+        { ...data, judging_criteria: [], selection_format: 1, concurrent_circles: 1, isOpen: true }
       ]);
       toast.success("Category added");
     } catch (error: any) {
@@ -251,7 +258,7 @@ export default function BattleSettings() {
           setSaving(false);
           return;
         }
-        
+
         const dateTime = new Date(`${battleDate}T${battleTime}`);
         const { error } = await supabase
           .from("battles")
@@ -289,6 +296,10 @@ export default function BattleSettings() {
               judging_criteria: JSON.parse(JSON.stringify(nom.judging_criteria || [])),
               rounds_to_win: nom.rounds_to_win,
               allow_ties: nom.allow_ties,
+              vote_per_round: nom.vote_per_round !== false,
+              selection_format: nom.selection_format || 1,
+              concurrent_circles: nom.concurrent_circles || 1,
+              phase: (nom.phase as "registration" | "selection" | "bracket" | "completed") || 'registration',
             })
             .eq("id", nom.id);
 
@@ -330,8 +341,8 @@ export default function BattleSettings() {
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => navigate(`/battle/${id}`)}
             >
@@ -343,32 +354,30 @@ export default function BattleSettings() {
               <span className="text-sm font-medium">Settings</span>
             </div>
           </div>
-          
+
           {/* Progress bar */}
           <Progress value={progress} className="h-1.5" />
-          
+
           {/* Step indicators */}
           <div className="flex justify-between mt-4">
             {STEPS.map((step) => {
               const StepIcon = step.icon;
               const isCurrent = currentStep === step.id;
-              
+
               return (
                 <button
                   key={step.id}
                   onClick={() => goToStep(step.id)}
                   className="flex flex-col items-center gap-1 transition-all duration-300 cursor-pointer"
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isCurrent 
-                      ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20' 
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isCurrent
+                    ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}>
                     <StepIcon className="w-5 h-5" />
                   </div>
-                  <span className={`text-xs font-medium hidden sm:block ${
-                    isCurrent ? 'text-primary' : 'text-muted-foreground'
-                  }`}>
+                  <span className={`text-xs font-medium hidden sm:block ${isCurrent ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                     {step.title}
                   </span>
                 </button>
@@ -380,14 +389,13 @@ export default function BattleSettings() {
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <div 
-          className={`transition-all duration-300 ${
-            isAnimating 
-              ? direction === 'forward' 
-                ? 'opacity-0 translate-x-8' 
-                : 'opacity-0 -translate-x-8'
-              : 'opacity-100 translate-x-0'
-          }`}
+        <div
+          className={`transition-all duration-300 ${isAnimating
+            ? direction === 'forward'
+              ? 'opacity-0 translate-x-8'
+              : 'opacity-0 -translate-x-8'
+            : 'opacity-100 translate-x-0'
+            }`}
         >
           {/* Step header */}
           <div className="text-center mb-8">
@@ -447,10 +455,10 @@ export default function BattleSettings() {
                 {battleDate && battleTime && (
                   <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
                     <p className="text-sm font-medium text-primary">
-                      📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
+                      📅 {new Date(`${battleDate}T${battleTime}`).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
@@ -509,20 +517,18 @@ export default function BattleSettings() {
                     open={nomination.isOpen}
                     onOpenChange={() => toggleNomination(nomination.id)}
                   >
-                    <Card className={`overflow-hidden transition-all duration-300 ${
-                      nomination.isOpen ? 'ring-2 ring-primary/30' : ''
-                    }`}>
+                    <Card className={`overflow-hidden transition-all duration-300 ${nomination.isOpen ? 'ring-2 ring-primary/30' : ''
+                      }`}>
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
                           className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${
-                              nomination.isOpen 
-                                ? 'bg-primary text-primary-foreground' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${nomination.isOpen
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                              }`}>
                               {index + 1}
                             </div>
                             <div className="text-left">
@@ -570,6 +576,45 @@ export default function BattleSettings() {
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label>Tournament Phase</Label>
+                              <Select
+                                value={nomination.phase || 'registration'}
+                                onValueChange={(value) => updateNomination(nomination.id, 'phase', value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="registration">Registration</SelectItem>
+                                  <SelectItem value="selection">Selection Heats</SelectItem>
+                                  <SelectItem value="bracket">Tournament Bracket</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Selection Format (Dancers per heat)</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={16}
+                                placeholder="e.g. 1, 2, 4..."
+                                value={nomination.selection_format || 1}
+                                onChange={(e) => updateNomination(nomination.id, 'selection_format', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Concurrent Circles</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={4}
+                                placeholder="1 = One floor, 2 = Two split floors..."
+                                value={nomination.concurrent_circles || 1}
+                                onChange={(e) => updateNomination(nomination.id, 'concurrent_circles', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                            <div className="space-y-2 sm:col-span-2">
                               <Label>Description</Label>
                               <Input
                                 placeholder="Optional description..."
@@ -610,7 +655,7 @@ export default function BattleSettings() {
               Back
             </Button>
           )}
-          
+
           <Button
             type="button"
             variant="outline"
@@ -621,7 +666,7 @@ export default function BattleSettings() {
             <Save className="w-5 h-5 mr-2" />
             {saving ? "Saving..." : "Save"}
           </Button>
-          
+
           {currentStep < STEPS.length && (
             <Button
               type="button"
@@ -633,7 +678,7 @@ export default function BattleSettings() {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           )}
-          
+
           {currentStep === STEPS.length && (
             <Button
               type="button"

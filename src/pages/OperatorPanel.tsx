@@ -9,11 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye, 
-  Palette, MessageSquare, Timer, 
+import {
+  ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye,
+  Palette, MessageSquare, Timer,
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight
+  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SliderVoting from "@/components/SliderVoting";
 import ScreenTemplates from "@/components/ScreenTemplates";
+import JudgeAssignmentsModal from "@/components/JudgeAssignmentsModal";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
@@ -38,6 +39,20 @@ interface Dancer {
   id: string;
   name: string;
   city: string | null;
+}
+
+interface Judge {
+  id: string;
+  name: string;
+}
+
+interface JudgeVote {
+  id: string;
+  judge_id: string;
+  vote_for: string | null;
+  slider_technique: number | null;
+  slider_musicality: number | null;
+  slider_performance: number | null;
 }
 
 interface ScreenState {
@@ -72,6 +87,13 @@ interface ScreenState {
   sound_enabled: boolean;
   show_template: boolean;
   active_template_id: string | null;
+  bracket_style: string;
+  font_family: string;
+  primary_color: string | null;
+  secondary_color: string | null;
+  active_selection_dancers?: string[] | null;
+  next_selection_dancers?: string[] | null;
+  next_match_id?: string | null;
 }
 
 const THEME_PRESETS = {
@@ -92,7 +114,10 @@ export default function OperatorPanel() {
   const [screenState, setScreenState] = useState<ScreenState | null>(null);
   const [nominations, setNominations] = useState<any[]>([]);
   const [selectedNomination, setSelectedNomination] = useState<string>("");
-  
+
+  const currentNomination = nominations.find((n) => n.id === selectedNomination);
+  const currentNominationIndex = nominations.findIndex((n) => n.id === selectedNomination);
+
   // Screen settings
   const [showJudges, setShowJudges] = useState(true);
   const [showTimer, setShowTimer] = useState(false);
@@ -109,9 +134,13 @@ export default function OperatorPanel() {
   const [judgingMode, setJudgingMode] = useState<string>("simple");
   const [voteCount, setVoteCount] = useState(0);
   const [totalJudges, setTotalJudges] = useState(0);
+  const [judges, setJudges] = useState<Judge[]>([]);
+  const [judgeVotes, setJudgeVotes] = useState<JudgeVote[]>([]);
+  const [selectionScores, setSelectionScores] = useState<any[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Customization settings
+  const [aspectRatio, setAspectRatio] = useState("auto");
   const [backgroundType, setBackgroundType] = useState("solid");
   const [backgroundColor, setBackgroundColor] = useState("#1a1a2e");
   const [gradientFrom, setGradientFrom] = useState("#1a1a2e");
@@ -127,6 +156,13 @@ export default function OperatorPanel() {
   const [themePreset, setThemePreset] = useState("dark");
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  // New Engine settings
+  const [bracketStyle, setBracketStyle] = useState("solid");
+  const [fontFamily, setFontFamily] = useState("display");
+  const [primaryColor, setPrimaryColor] = useState("");
+  const [secondaryColor, setSecondaryColor] = useState("");
+  const [showLivePreview, setShowLivePreview] = useState(false);
+
   const { playSound, preloadAll } = useSoundEffects(soundEnabled);
 
   useEffect(() => {
@@ -140,59 +176,198 @@ export default function OperatorPanel() {
   }, [id]);
 
   useEffect(() => {
+    if (!id) return;
+
+    const channelId = Math.random().toString(36).substring(7);
+    const screenChannel = supabase
+      .channel(`operator-screen-updates-${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'screen_state'
+        },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(screenChannel);
+    };
+  }, [id]);
+
+  useEffect(() => {
     if (selectedNomination) {
       loadMatches();
     }
+  }, [selectedNomination]);
+
+  useEffect(() => {
+    if (!selectedNomination) return;
+
+    const channelId = Math.random().toString(36).substring(7);
+    const nominationDataChannel = supabase
+      .channel(`operator-nomination-updates-${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches'
+        },
+        () => loadMatches()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dancers'
+        },
+        () => loadMatches()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(nominationDataChannel);
+    };
   }, [selectedNomination]);
 
   // Real-time vote subscription
   useEffect(() => {
     if (!screenState?.current_match_id) {
       setVoteCount(0);
+      setJudgeVotes([]);
       return;
     }
 
-    const loadVoteCount = async () => {
-      const { count } = await supabase
+    const loadVotes = async () => {
+      if (!screenState?.current_match_id) return;
+      const { data: votes } = await supabase
         .from("match_votes")
-        .select("*", { count: "exact", head: true })
+        .select("*")
         .eq("match_id", screenState.current_match_id)
         .eq("round_number", currentRound);
-      
-      setVoteCount(count || 0);
+
+      if (votes) {
+        setVoteCount(votes.length);
+        setJudgeVotes(votes);
+      } else {
+        setVoteCount(0);
+        setJudgeVotes([]);
+      }
     };
 
-    const loadJudgeCount = async () => {
-      const { count } = await supabase
+    const loadJudges = async () => {
+      const { data: roles } = await supabase
         .from("user_roles")
-        .select("*", { count: "exact", head: true })
+        .select("user_id")
         .eq("battle_id", id)
         .eq("role", "judge");
-      
-      setTotalJudges(count || 0);
+
+      if (roles) {
+        setTotalJudges(roles.length);
+        const judgeProfiles = await Promise.all(
+          roles.map(async (r) => {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id, full_name")
+              .eq("id", r.user_id)
+              .maybeSingle();
+            return { id: r.user_id, name: data?.full_name || "Unknown Judge" };
+          })
+        );
+        setJudges(judgeProfiles);
+      } else {
+        setTotalJudges(0);
+        setJudges([]);
+      }
     };
 
-    loadVoteCount();
-    loadJudgeCount();
+    loadVotes();
+    loadJudges();
 
-    const channel = supabase
-      .channel('vote-updates')
+    const channelId = Math.random().toString(36).substring(7);
+    const voteChannel = supabase
+      .channel(`operator-vote-updates-${channelId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'match_votes',
-          filter: `match_id=eq.${screenState.current_match_id}`
+          table: 'match_votes'
         },
-        () => loadVoteCount()
+        () => loadVotes()
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(voteChannel);
     };
   }, [screenState?.current_match_id, currentRound, id]);
+
+  // Real-time selection scores subscription
+  useEffect(() => {
+    if (currentNomination?.phase !== 'selection' || !screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) {
+      setSelectionScores([]);
+      return;
+    }
+
+    const loadSelectionScores = async () => {
+      if (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) return;
+
+      // Load judges for this battle if not already loaded (handles case where matches haven't loaded them yet)
+      if (judges.length === 0) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("battle_id", id)
+          .eq("role", "judge");
+
+        if (roles) {
+          setTotalJudges(roles.length);
+          const judgeProfiles = await Promise.all(
+            roles.map(async (r) => {
+              const { data } = await supabase.from("profiles").select("id, full_name").eq("id", r.user_id).maybeSingle();
+              return { id: r.user_id, name: data?.full_name || "Unknown Judge" };
+            })
+          );
+          setJudges(judgeProfiles);
+        }
+      }
+
+      const { data: scores } = await supabase
+        .from("selection_scores")
+        .select("*")
+        .eq("nomination_id", selectedNomination)
+        .in("dancer_id", screenState.active_selection_dancers);
+
+      setSelectionScores(scores || []);
+    };
+
+    loadSelectionScores();
+
+    const channelId = Math.random().toString(36).substring(7);
+    const scoreChannel = supabase
+      .channel(`operator-selection-scores-${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'selection_scores'
+        },
+        () => loadSelectionScores()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(scoreChannel);
+    };
+  }, [currentNomination?.phase, screenState?.active_selection_dancers, selectedNomination, id]);
 
   const loadData = async () => {
     try {
@@ -206,14 +381,17 @@ export default function OperatorPanel() {
         setSelectedNomination(nominationsData[0].id);
       }
 
-      const { data: stateData } = await supabase
+      const { data: stateDataArray } = await supabase
         .from("screen_state")
         .select("*")
         .eq("battle_id", id)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      const stateData = stateDataArray && stateDataArray.length > 0 ? stateDataArray[0] : null;
 
       if (stateData) {
-        setScreenState(stateData as ScreenState);
+        setScreenState(stateData as unknown as ScreenState);
         setShowJudges(stateData.show_judges);
         setShowTimer(stateData.show_timer);
         setTimerMinutes(Math.floor(stateData.timer_seconds / 60));
@@ -225,6 +403,7 @@ export default function OperatorPanel() {
         setVotesRight(stateData.votes_right);
         setShowBracket(stateData.show_bracket || false);
         setBracketLayout((stateData as any).bracket_layout || "symmetric");
+        setAspectRatio((stateData as any).aspect_ratio || "auto");
         setBackgroundType(stateData.background_type || "solid");
         setBackgroundColor(stateData.background_color || "#1a1a2e");
         setGradientFrom(stateData.background_gradient_from || "#1a1a2e");
@@ -238,6 +417,10 @@ export default function OperatorPanel() {
         setShowRoundInfo(stateData.show_round_info !== false);
         setTimerRunning(stateData.timer_running || false);
         setThemePreset(stateData.theme_preset || "dark");
+        setBracketStyle((stateData as any).bracket_style || "solid");
+        setFontFamily((stateData as any).font_family || "display");
+        setPrimaryColor((stateData as any).primary_color || "");
+        setSecondaryColor((stateData as any).secondary_color || "");
       } else {
         await createScreenState();
       }
@@ -301,12 +484,13 @@ export default function OperatorPanel() {
           current_round: 1,
           votes_left: 0,
           votes_right: 0,
+          // Removed bracket_style & font_family from initial insert to prevent crash (unmigrated DBs)
         })
         .select()
         .single();
 
       if (error) throw error;
-      setScreenState(data as ScreenState);
+      setScreenState(data as unknown as ScreenState);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -320,15 +504,32 @@ export default function OperatorPanel() {
     if (!screenState) return;
 
     try {
+      // Optimistically update the UI to prevent unmigrated DB lag or realtime broadcast drops
+      setScreenState(prev => prev ? { ...prev, ...updates } : null);
+
+      // Filter out experimental design columns to prevent crashing unmigrated databases
+      const safeUpdates = { ...updates } as any;
+      delete safeUpdates.bracket_style;
+      delete safeUpdates.font_family;
+      delete safeUpdates.primary_color;
+      delete safeUpdates.secondary_color;
+      delete safeUpdates.theme_preset; // Just in case this is also unmigrated
+
       const { error } = await supabase
         .from("screen_state")
-        .update(updates)
+        .update(safeUpdates)
         .eq("id", screenState.id);
 
-      if (error) throw error;
+      if (error) {
+        // Log the error to console and throw
+        console.error("SUPABASE UPDATE ERROR:", error);
+        loadData();
+        throw error;
+      }
     } catch (error: any) {
+      alert(`DB ERROR: ${error.message} \n ${JSON.stringify(error)}`);
       toast({
-        title: "Error",
+        title: "Error updating screen",
         description: error.message,
         variant: "destructive",
       });
@@ -345,38 +546,32 @@ export default function OperatorPanel() {
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from("screen_state")
-        .update({
-          current_match_id: matchId,
-          nomination_id: selectedNomination || null,
-          show_winner: false,
-          current_round: 1,
-          votes_left: 0,
-          votes_right: 0,
-        })
-        .eq("id", screenState.id);
+    // Force local React state immediately so UI drops the bracket instantly
+    setShowBracket(false);
+    setCurrentRound(1);
+    setVotesLeft(0);
+    setVotesRight(0);
+    setShowCustomMessage(false);
 
-      if (error) throw error;
-      
-      setCurrentRound(1);
-      setVotesLeft(0);
-      setVotesRight(0);
-      
-      toast({
-        title: "Match started",
-        description: "Match is now live",
-      });
-      
-      await loadData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    const matchIndex = matches.findIndex(m => m.id === matchId);
+    const nextMatchId = matchIndex >= 0 && matchIndex < matches.length - 1 ? matches[matchIndex + 1].id : null;
+
+    await updateScreenState({
+      current_match_id: matchId,
+      next_match_id: nextMatchId,
+      nomination_id: selectedNomination || null,
+      show_winner: false,
+      show_bracket: false,
+      show_custom_message: false,
+      current_round: 1,
+      votes_left: 0,
+      votes_right: 0,
+    });
+
+    toast({
+      title: "Match started",
+      description: "Match is now live",
+    });
   };
 
   const applySettings = async () => {
@@ -388,7 +583,8 @@ export default function OperatorPanel() {
       rounds_to_win: roundsToWin,
       show_battle_name: showBattleName,
       show_round_info: showRoundInfo,
-    });
+      aspect_ratio: aspectRatio,
+    } as any);
     toast({ title: "Settings applied" });
   };
 
@@ -402,7 +598,11 @@ export default function OperatorPanel() {
       font_size: fontSize,
       animation_style: animationStyle,
       theme_preset: themePreset,
-    });
+      bracket_style: bracketStyle,
+      font_family: fontFamily,
+      primary_color: primaryColor || null,
+      secondary_color: secondaryColor || null,
+    } as any);
     toast({ title: "Design applied" });
   };
 
@@ -486,6 +686,11 @@ export default function OperatorPanel() {
   };
 
   const nextRound = async () => {
+    const maxRounds = currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5;
+    if (currentRound >= maxRounds) {
+      toast({ title: "Maximum rounds reached", description: "This battle has hit the round limit based on its settings.", variant: "destructive" });
+      return;
+    }
     const newRound = currentRound + 1;
     setCurrentRound(newRound);
     playSound("roundStart");
@@ -510,6 +715,65 @@ export default function OperatorPanel() {
   const declareWinner = async () => {
     playSound("winner");
     await updateScreenState({ show_winner: true });
+  };
+
+  const triggerTieBreaker = async () => {
+    playSound("timerStart"); // A loud sound
+    await updateScreenState({
+      custom_message: "TIE BREAKER!\nONE MORE ROUND",
+      show_custom_message: true,
+      animation_style: "scale", // A poppy animation
+      theme_preset: "neon", // Switch to neon for a sick look
+    });
+
+    // Optional: auto-revert after 6 seconds
+    setTimeout(async () => {
+      await updateScreenState({
+        show_custom_message: false,
+      });
+    }, 6000);
+  };
+
+  const setJudgeVote = async (judgeId: string, voteFor: string | null) => {
+    if (!currentMatch) return;
+    if (!window.confirm("Are you sure you want to manually set this judge's vote?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("match_votes")
+        .upsert({
+          match_id: currentMatch.id,
+          judge_id: judgeId,
+          round_number: currentRound,
+          vote_for: voteFor,
+        }, {
+          onConflict: 'match_id,judge_id,round_number'
+        });
+
+      if (error) throw error;
+      toast({ title: "Vote Overridden", description: "Successfully updated judge's vote." });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const clearJudgeVote = async (judgeId: string) => {
+    if (!currentMatch) return;
+    if (!window.confirm("Are you sure you want to clear this judge's vote?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("match_votes")
+        .delete()
+        .eq("match_id", currentMatch.id)
+        .eq("judge_id", judgeId)
+        .eq("round_number", currentRound);
+
+      if (error) throw error;
+      toast({ title: "Vote Cleared", description: "Judge's vote has been deleted." });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const showTemplate = async (template: any) => {
@@ -557,25 +821,55 @@ export default function OperatorPanel() {
   };
 
   const currentMatch = getCurrentMatch();
-  const currentNomination = nominations.find(n => n.id === selectedNomination);
-  const currentNominationIndex = nominations.findIndex(n => n.id === selectedNomination);
 
   const goToNextNomination = useCallback(() => {
     if (nominations.length <= 1) return;
     const nextIndex = (currentNominationIndex + 1) % nominations.length;
-    setSelectedNomination(nominations[nextIndex].id);
+    const nextNomId = nominations[nextIndex].id;
+    setSelectedNomination(nextNomId);
+    updateScreenState({ nomination_id: nextNomId });
   }, [nominations, currentNominationIndex]);
 
   const goToPrevNomination = useCallback(() => {
     if (nominations.length <= 1) return;
     const prevIndex = currentNominationIndex <= 0 ? nominations.length - 1 : currentNominationIndex - 1;
-    setSelectedNomination(nominations[prevIndex].id);
+    const prevNomId = nominations[prevIndex].id;
+    setSelectedNomination(prevNomId);
+    updateScreenState({ nomination_id: prevNomId });
   }, [nominations, currentNominationIndex]);
 
   const swipeHandlers = useSwipeGesture({
     onSwipeLeft: goToNextNomination,
     onSwipeRight: goToPrevNomination,
   });
+
+  const selectionFormat = currentNomination?.selection_format || 1;
+  const concurrentCircles = currentNomination?.concurrent_circles || 1;
+  const totalDancersPerHeat = selectionFormat * concurrentCircles;
+
+  const heats = [];
+  if (currentNomination?.phase === 'selection') {
+    for (let i = 0; i < dancers.length; i += totalDancersPerHeat) {
+      heats.push(dancers.slice(i, i + totalDancersPerHeat));
+    }
+  }
+
+  const startHeat = async (heatIndex: number) => {
+    const heatDancers = heats[heatIndex].map(d => d.id);
+    const nextHeatDancers = heats[heatIndex + 1]?.map(d => d.id) || [];
+
+    await updateScreenState({
+      current_match_id: null,
+      active_selection_dancers: heatDancers,
+      next_selection_dancers: nextHeatDancers,
+      show_custom_message: false,
+      show_bracket: false,
+      timer_running: false,
+      timer_end_time: null,
+    });
+
+    toast({ title: "Heat Live", description: `Heat ${heatIndex + 1} is now on stage.` });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -585,8 +879,18 @@ export default function OperatorPanel() {
           <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          
+
           <div className="flex items-center gap-2">
+            <Button
+              variant={showLivePreview ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              className="text-primary hover:text-primary hover:bg-primary/10"
+              title="Toggle Live Preview"
+            >
+              <Monitor className="h-4 w-4" />
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -594,7 +898,7 @@ export default function OperatorPanel() {
             >
               {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="hidden sm:flex">
@@ -661,7 +965,7 @@ export default function OperatorPanel() {
                         dancerLeft={{ name: getDancerName(currentMatch.dancer_left_id), city: null }}
                         dancerRight={{ name: getDancerName(currentMatch.dancer_right_id), city: null }}
                         currentRound={currentRound}
-                        onSubmit={() => {}}
+                        onSubmit={() => { }}
                         disabled
                       />
                     )}
@@ -732,6 +1036,21 @@ export default function OperatorPanel() {
                           className="w-20"
                         />
                       </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Aspect Ratio</Label>
+                        <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                          <SelectTrigger className="w-[100px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">Auto (Fill)</SelectItem>
+                            <SelectItem value="16:9">16:9 (TV)</SelectItem>
+                            <SelectItem value="4:3">4:3 (Old TV)</SelectItem>
+                            <SelectItem value="1:1">1:1 (Square)</SelectItem>
+                            <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Button onClick={applySettings} size="sm" className="w-full">Apply Display</Button>
                     </div>
                   </div>
@@ -787,7 +1106,46 @@ export default function OperatorPanel() {
                       {backgroundType === "image" && (
                         <Input placeholder="Image URL" value={backgroundImageUrl} onChange={(e) => setBackgroundImageUrl(e.target.value)} />
                       )}
-                      <Button onClick={applyDesign} size="sm" className="w-full">Apply Theme</Button>
+
+                      {/* Advanced Styling */}
+                      <Select value={bracketStyle} onValueChange={setBracketStyle}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Bracket Style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="solid">Solid Base</SelectItem>
+                          <SelectItem value="glass">Glassmorphism</SelectItem>
+                          <SelectItem value="neon">Neon Wireframe</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={fontFamily} onValueChange={setFontFamily}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Typography" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="display">Display (Modern)</SelectItem>
+                          <SelectItem value="sans">Sans (Clean)</SelectItem>
+                          <SelectItem value="mono">Mono (Tech)</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex gap-2">
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">Left Color</Label>
+                          <div className="flex gap-2">
+                            <Input type="color" value={primaryColor || "#ff0000"} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-8 p-1" />
+                          </div>
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">Right Color</Label>
+                          <div className="flex gap-2">
+                            <Input type="color" value={secondaryColor || "#0000ff"} onChange={(e) => setSecondaryColor(e.target.value)} className="w-10 h-8 p-1" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button onClick={applyDesign} size="sm" className="w-full mt-2">Apply Theme & Styles</Button>
                     </div>
                   </div>
 
@@ -829,6 +1187,8 @@ export default function OperatorPanel() {
               </SheetContent>
             </Sheet>
 
+            <JudgeAssignmentsModal battleId={id!} />
+
             <Button onClick={openScreen} size="sm" className="gap-1">
               <Monitor className="h-4 w-4" />
               <span className="hidden sm:inline">Screen</span>
@@ -837,7 +1197,7 @@ export default function OperatorPanel() {
         </div>
       </div>
 
-      <div 
+      <div
         className="px-3 py-4 space-y-4 max-w-4xl mx-auto"
         {...swipeHandlers}
       >
@@ -845,15 +1205,15 @@ export default function OperatorPanel() {
         {nominations.length > 1 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={goToPrevNomination}
                 className="h-8 w-8"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <div className="flex-1 overflow-x-auto mx-2">
                 <div className="flex gap-2 justify-center min-w-max">
                   {nominations.map((nom, index) => (
@@ -861,7 +1221,10 @@ export default function OperatorPanel() {
                       key={nom.id}
                       variant={selectedNomination === nom.id ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedNomination(nom.id)}
+                      onClick={() => {
+                        setSelectedNomination(nom.id);
+                        updateScreenState({ nomination_id: nom.id });
+                      }}
                       className="shrink-0"
                     >
                       {nom.name}
@@ -869,25 +1232,24 @@ export default function OperatorPanel() {
                   ))}
                 </div>
               </div>
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
+
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={goToNextNomination}
                 className="h-8 w-8"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            
+
             {/* Swipe indicator */}
             <div className="flex justify-center gap-1">
               {nominations.map((nom, index) => (
-                <div 
+                <div
                   key={nom.id}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    selectedNomination === nom.id ? 'bg-primary w-4' : 'bg-muted-foreground/30'
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-all ${selectedNomination === nom.id ? 'bg-primary w-4' : 'bg-muted-foreground/30'
+                    }`}
                 />
               ))}
             </div>
@@ -902,8 +1264,70 @@ export default function OperatorPanel() {
           </div>
         )}
 
+        {/* Active Selection Heat Control */}
+        {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
+          <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 border-primary/30">
+            <div className="space-y-3 text-center">
+              <Badge className="bg-green-500 mb-2">LIVE HEAT</Badge>
+              <div className="flex flex-wrap justify-center items-center gap-4">
+                {screenState.active_selection_dancers.map((dId, index) => (
+                  <div key={dId} className="flex items-center">
+                    <span className="text-xl sm:text-2xl font-bold">{getDancerName(dId)}</span>
+                    {index < (screenState.active_selection_dancers?.length || 0) - 1 && <span className="mx-4 text-muted-foreground">•</span>}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center gap-2 mt-4">
+                <Button variant="outline" onClick={() => updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] })} className="text-destructive border-destructive/50 hover:bg-destructive/10">
+                  Stop Heat
+                </Button>
+              </div>
+
+              {/* Judge Status for Heat */}
+              {screenState.show_judges && judges.length > 0 && (
+                <div className="pt-4 border-t border-border/50 text-left mt-4">
+                  <div className="text-sm font-semibold mb-2">Judges Status</div>
+                  <div className="space-y-1">
+                    {judges.map(judge => {
+                      const scoresByThisJudge = selectionScores.filter(s => s.judge_id === judge.id);
+                      const scoredCount = scoresByThisJudge.length;
+                      const totalNeeded = screenState.active_selection_dancers!.length;
+                      const isDone = scoredCount === totalNeeded;
+
+                      return (
+                        <div key={judge.id} className="flex flex-col p-2 bg-background/50 rounded border text-sm">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-medium">{judge.name}</span>
+                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-green-500 hover:bg-green-600" : ""}>
+                              {isDone ? "Done" : `${scoredCount} / ${totalNeeded} scored`}
+                            </Badge>
+                          </div>
+                          {scoresByThisJudge.length > 0 && (
+                            <div className="flex gap-2 text-[10px] text-muted-foreground flex-wrap">
+                              {screenState.active_selection_dancers!.map(dId => {
+                                const s = scoresByThisJudge.find(score => score.dancer_id === dId);
+                                if (!s) return null;
+                                const totalScore = (s.score_technique || 0) + (s.score_musicality || 0) + (s.score_performance || 0);
+                                return (
+                                  <span key={dId} className="bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                    {getDancerName(dId).substring(0, 8)}: {totalScore}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
         {/* Active Match Control */}
-        {currentMatch && (
+        {currentNomination?.phase !== 'selection' && currentMatch && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 border-primary/30">
             <div className="space-y-3">
               {/* Match info */}
@@ -934,17 +1358,17 @@ export default function OperatorPanel() {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-4 gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => addScore('left')} 
+                <Button
+                  variant="outline"
+                  onClick={() => addScore('left')}
                   className="border-primary/50 text-primary h-12 flex-col gap-0.5"
                 >
                   <span className="text-lg font-bold">+1</span>
                   <span className="text-[10px] uppercase">Red</span>
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => addScore('right')} 
+                <Button
+                  variant="outline"
+                  onClick={() => addScore('right')}
                   className="border-secondary/50 text-secondary h-12 flex-col gap-0.5"
                 >
                   <span className="text-lg font-bold">+1</span>
@@ -961,39 +1385,123 @@ export default function OperatorPanel() {
                     <span className="text-[10px] uppercase">Stop</span>
                   </Button>
                 )}
-                <Button onClick={nextRound} variant="outline" className="h-12 flex-col gap-0.5">
+                <Button
+                  onClick={nextRound}
+                  variant="outline"
+                  className="h-12 flex-col gap-0.5"
+                  disabled={currentRound >= (currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5)}
+                >
                   <SkipForward className="h-5 w-5" />
                   <span className="text-[10px] uppercase">Next</span>
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={resetMatch} className="gap-1">
+              {/* Judges Status List */}
+              {judges.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Judges Status</h4>
+                  <div className="space-y-2">
+                    {judges.map(judge => {
+                      const vote = judgeVotes.find(v => v.judge_id === judge.id);
+                      let voteDisplay = "Thinking...";
+                      let voteColor = "text-muted-foreground";
+
+                      if (vote) {
+                        if (vote.vote_for === currentMatch.dancer_left_id) {
+                          voteDisplay = `Voted ${getDancerName(currentMatch.dancer_left_id)}`;
+                          voteColor = "text-primary font-medium";
+                        } else if (vote.vote_for === currentMatch.dancer_right_id) {
+                          voteDisplay = `Voted ${getDancerName(currentMatch.dancer_right_id)}`;
+                          voteColor = "text-secondary font-medium";
+                        } else {
+                          voteDisplay = "Voted Tie/Skip";
+                          voteColor = "text-foreground font-medium";
+                        }
+                      }
+
+                      return (
+                        <div key={judge.id} className="flex items-center justify-between bg-background/50 p-2 rounded border border-border/50 text-sm">
+                          <span className="font-medium">{judge.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={voteColor}>{voteDisplay}</span>
+
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                  <Settings className="h-3 w-3" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-48 p-2" align="end">
+                                <div className="space-y-1">
+                                  <div className="text-xs font-semibold mb-2 px-2 text-muted-foreground">Override Vote</div>
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start h-8 text-primary font-bold"
+                                    onClick={() => setJudgeVote(judge.id, currentMatch.dancer_left_id)}
+                                  >
+                                    Set: Red
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start h-8 text-secondary font-bold"
+                                    onClick={() => setJudgeVote(judge.id, currentMatch.dancer_right_id)}
+                                  >
+                                    Set: Blue
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start h-8"
+                                    onClick={() => setJudgeVote(judge.id, null)}
+                                  >
+                                    Set: Tie/Skip
+                                  </Button>
+                                  <div className="border-t border-border/50 my-1" />
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start h-8 text-destructive"
+                                    onClick={() => clearJudgeVote(judge.id)}
+                                  >
+                                    Clear Vote
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+
+              <div className="grid grid-cols-4 gap-2">
+                <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
                   <RotateCcw className="h-4 w-4" />
-                  Reset
+                  <span className="text-[10px] uppercase">Reset</span>
                 </Button>
-                <Button onClick={declareWinner} className="gap-1 bg-gradient-to-r from-primary to-secondary">
+                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 bg-red-600 hover:bg-red-700 animate-pulse-soft">
+                  <span className="text-xl font-bold">X</span>
+                  <span className="text-[10px] uppercase">Tie Break</span>
+                </Button>
+                <Button onClick={declareWinner} className="gap-1 flex-col h-14 bg-gradient-to-r from-primary to-secondary">
                   <Trophy className="h-4 w-4" />
-                  Winner
+                  <span className="text-[10px] uppercase">Winner</span>
                 </Button>
-                <div className="flex gap-1">
-                  <Button 
-                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"} 
+                <div className="flex flex-col gap-1 h-14 justify-center">
+                  <Button
+                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
                     onClick={() => toggleBracket("symmetric")}
-                    className="gap-1 flex-1"
-                    size="sm"
+                    className="flex-1 min-h-0 py-0 text-[10px]"
                   >
-                    <Layout className="h-3 w-3" />
-                    <span className="text-[10px]">←|→</span>
+                    ←|→
                   </Button>
-                  <Button 
-                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"} 
+                  <Button
+                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
                     onClick={() => toggleBracket("linear")}
-                    className="gap-1 flex-1"
-                    size="sm"
+                    className="flex-1 min-h-0 py-0 text-[10px]"
                   >
-                    <Layout className="h-3 w-3" />
-                    <span className="text-[10px]">→→→</span>
+                    →→→
                   </Button>
                 </div>
               </div>
@@ -1001,67 +1509,112 @@ export default function OperatorPanel() {
           </Card>
         )}
 
-        {/* Matches List */}
+        {/* Matches / Heats List */}
         <div className="space-y-2">
           <h2 className="font-semibold text-lg flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Matches
+            {currentNomination?.phase === 'selection' ? "Selection Heats" : "Matches"}
           </h2>
-          
-          {matches.length === 0 ? (
-            <Card className="p-8 text-center text-muted-foreground">
-              No matches yet
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {matches.map((match) => {
-                const isActive = screenState?.current_match_id === match.id;
-                const hasWinner = match.winner_id !== null;
-                
-                return (
-                  <Card
-                    key={match.id}
-                    className={`p-3 cursor-pointer transition-all ${
-                      isActive 
-                        ? 'ring-2 ring-primary bg-primary/5' 
-                        : hasWinner 
-                          ? 'opacity-60' 
-                          : 'hover:border-primary/50'
-                    }`}
-                    onClick={() => showMatch(match.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="shrink-0 text-xs">
-                        {match.round}
-                      </Badge>
-                      
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
-                          {getDancerName(match.dancer_left_id)}
-                        </span>
-                        <span className="text-muted-foreground shrink-0">vs</span>
-                        <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
-                          {getDancerName(match.dancer_right_id)}
-                        </span>
-                      </div>
 
-                      {isActive && (
-                        <Badge className="shrink-0 bg-green-500">LIVE</Badge>
-                      )}
-                      {hasWinner && !isActive && (
-                        <Badge variant="secondary" className="shrink-0">Done</Badge>
-                      )}
-                      {!isActive && !hasWinner && (
-                        <Button size="sm" variant="ghost" className="shrink-0 gap-1">
-                          <Play className="h-3 w-3" />
-                          Start
-                        </Button>
-                      )}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+          {currentNomination?.phase === 'selection' ? (
+            heats.length === 0 ? (
+              <Card className="p-8 text-center text-muted-foreground">
+                No dancers registered for this category yet.
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {heats.map((heat, index) => {
+                  const isActive = screenState?.active_selection_dancers?.length &&
+                    screenState.active_selection_dancers.length > 0 &&
+                    screenState.active_selection_dancers[0] === heat[0].id;
+
+                  return (
+                    <Card
+                      key={`heat-${index}`}
+                      className={`p-3 cursor-pointer transition-all ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                      onClick={() => startHeat(index)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className="shrink-0 text-xs text-muted-foreground w-16 text-center">
+                          Heat {index + 1}
+                        </Badge>
+                        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0 px-2">
+                          {heat.map((d, i) => (
+                            <div key={d.id} className="flex items-center">
+                              <span className="font-medium truncate">{d.name}</span>
+                              {i < heat.length - 1 && <span className="mx-2 text-muted-foreground text-xs opacity-50">•</span>}
+                            </div>
+                          ))}
+                        </div>
+                        {isActive ? (
+                          <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                        ) : (
+                          <Button size="sm" variant="ghost" className="shrink-0 gap-1">
+                            <Play className="h-3 w-3" />
+                            Start
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            matches.length === 0 ? (
+              <Card className="p-8 text-center text-muted-foreground">
+                No matches yet
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {matches.map((match) => {
+                  const isActive = screenState?.current_match_id === match.id;
+                  const hasWinner = match.winner_id !== null;
+
+                  return (
+                    <Card
+                      key={match.id}
+                      className={`p-3 cursor-pointer transition-all ${isActive
+                        ? 'ring-2 ring-primary bg-primary/5'
+                        : hasWinner
+                          ? 'opacity-60'
+                          : 'hover:border-primary/50'
+                        }`}
+                      onClick={() => showMatch(match.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className="shrink-0 text-xs">
+                          {match.round}
+                        </Badge>
+
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
+                            {getDancerName(match.dancer_left_id)}
+                          </span>
+                          <span className="text-muted-foreground shrink-0">vs</span>
+                          <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
+                            {getDancerName(match.dancer_right_id)}
+                          </span>
+                        </div>
+
+                        {isActive && (
+                          <Badge className="shrink-0 bg-green-500">LIVE</Badge>
+                        )}
+                        {hasWinner && !isActive && (
+                          <Badge variant="secondary" className="shrink-0">Done</Badge>
+                        )}
+                        {!isActive && !hasWinner && (
+                          <Button size="sm" variant="ghost" className="shrink-0 gap-1">
+                            <Play className="h-3 w-3" />
+                            Start
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
           )}
         </div>
       </div>

@@ -18,12 +18,12 @@ interface DancerPhotoUploadProps {
   compact?: boolean;
 }
 
-export default function DancerPhotoUpload({ 
-  dancerId, 
-  currentPhotoUrl, 
+export default function DancerPhotoUpload({
+  dancerId,
+  currentPhotoUrl,
   dancerName,
   onPhotoUpdated,
-  compact = false 
+  compact = false
 }: DancerPhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl);
@@ -33,21 +33,11 @@ export default function DancerPhotoUpload({
   const { toast } = useToast();
 
   const processAndUploadFile = async (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Error",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "Image must be smaller than 5MB",
+        description: "Media must be smaller than 10MB",
         variant: "destructive",
       });
       return;
@@ -56,17 +46,18 @@ export default function DancerPhotoUpload({
     try {
       setUploading(true);
 
-      // Create a unique file name
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const isVideo = ['mp4', 'webm', 'mov'].includes(fileExt);
+
       const fileName = `${dancerId}-${Date.now()}.${fileExt}`;
       const filePath = `dancers/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('dancer-photos')
-        .upload(filePath, file, { 
+        .from('media') // use generic media bucket
+        .upload(filePath, file, {
           upsert: true,
-          contentType: file.type 
+          contentType: file.type
         });
 
       if (uploadError) {
@@ -76,16 +67,19 @@ export default function DancerPhotoUpload({
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('dancer-photos')
+        .from('media')
         .getPublicUrl(filePath);
 
-      // Add cache buster to URL
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
 
       // Update dancer record
+      const updatePayload = isVideo
+        ? { video_url: urlWithCacheBuster, photo_url: null }
+        : { photo_url: urlWithCacheBuster, video_url: null };
+
       const { error: updateError } = await supabase
         .from('dancers')
-        .update({ photo_url: urlWithCacheBuster })
+        .update(updatePayload)
         .eq('id', dancerId);
 
       if (updateError) {
@@ -97,14 +91,14 @@ export default function DancerPhotoUpload({
       onPhotoUpdated(urlWithCacheBuster);
 
       toast({
-        title: "Photo uploaded",
-        description: `${dancerName}'s photo has been updated`,
+        title: "Media uploaded",
+        description: `${dancerName}'s media has been updated`,
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload photo",
+        description: error.message || "Failed to upload media",
         variant: "destructive",
       });
     } finally {
@@ -136,7 +130,7 @@ export default function DancerPhotoUpload({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     const file = e.dataTransfer.files?.[0];
     if (file) {
       await processAndUploadFile(file);
@@ -179,12 +173,12 @@ export default function DancerPhotoUpload({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/mp4,video/webm,video/quicktime"
             capture="environment"
             onChange={handleFileSelect}
             className="hidden"
           />
-          <div 
+          <div
             className={`
               w-10 h-10 rounded-full overflow-hidden cursor-pointer
               bg-gradient-to-br from-primary to-primary/60 
@@ -200,20 +194,31 @@ export default function DancerPhotoUpload({
             onDrop={handleDrop}
           >
             {previewUrl ? (
-              <img 
-                src={previewUrl} 
-                alt={dancerName} 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '';
-                  setPreviewUrl(null);
-                }}
-              />
+              previewUrl.match(/\.(mp4|webm|mov)(\?.*)?$/i) ? (
+                <video
+                  src={previewUrl}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt={dancerName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '';
+                    setPreviewUrl(null);
+                  }}
+                />
+              )
             ) : (
               <User className="w-5 h-5 text-primary-foreground" />
             )}
           </div>
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -229,15 +234,27 @@ export default function DancerPhotoUpload({
             </DialogHeader>
             <div className="flex flex-col gap-4">
               {previewUrl && (
-                <img 
-                  src={previewUrl} 
-                  alt={dancerName}
-                  className="w-full rounded-lg object-cover max-h-80"
-                />
+                previewUrl.match(/\.(mp4|webm|mov)(\?.*)?$/i) ? (
+                  <video
+                    src={previewUrl}
+                    className="w-full rounded-lg object-cover max-h-80"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt={dancerName}
+                    className="w-full rounded-lg object-cover max-h-80"
+                  />
+                )
               )}
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     setShowPreview(false);
@@ -248,8 +265,8 @@ export default function DancerPhotoUpload({
                   <RotateCcw className="w-4 h-4" />
                   Change
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => {
                     removePhoto();
@@ -273,14 +290,14 @@ export default function DancerPhotoUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/mp4,video/webm,video/quicktime"
         capture="environment"
         onChange={handleFileSelect}
         className="hidden"
       />
-      
+
       <div className="flex items-center gap-3">
-        <div 
+        <div
           className={`
             w-16 h-16 rounded-xl overflow-hidden cursor-pointer relative group
             bg-gradient-to-br from-primary/20 to-secondary/20 
@@ -297,15 +314,26 @@ export default function DancerPhotoUpload({
         >
           {previewUrl ? (
             <>
-              <img 
-                src={previewUrl} 
-                alt={dancerName} 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '';
-                  setPreviewUrl(null);
-                }}
-              />
+              {previewUrl.match(/\.(mp4|webm|mov)(\?.*)?$/i) ? (
+                <video
+                  src={previewUrl}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt={dancerName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '';
+                    setPreviewUrl(null);
+                  }}
+                />
+              )}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <ZoomIn className="w-5 h-5 text-white" />
               </div>
@@ -319,11 +347,11 @@ export default function DancerPhotoUpload({
             </div>
           )}
         </div>
-        
+
         <div className="flex flex-col gap-1">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="gap-1"
@@ -331,11 +359,11 @@ export default function DancerPhotoUpload({
             <Camera className="w-3 h-3" />
             {uploading ? 'Uploading...' : (previewUrl ? 'Change' : 'Upload')}
           </Button>
-          
+
           {previewUrl && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={removePhoto}
               disabled={uploading}
               className="gap-1 text-destructive hover:text-destructive"
@@ -355,15 +383,27 @@ export default function DancerPhotoUpload({
           </DialogHeader>
           <div className="flex flex-col gap-4">
             {previewUrl && (
-              <img 
-                src={previewUrl} 
-                alt={dancerName}
-                className="w-full rounded-lg object-cover max-h-80"
-              />
+              previewUrl.match(/\.(mp4|webm|mov)(\?.*)?$/i) ? (
+                <video
+                  src={previewUrl}
+                  className="w-full rounded-lg object-cover max-h-80"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt={dancerName}
+                  className="w-full rounded-lg object-cover max-h-80"
+                />
+              )
             )}
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   setShowPreview(false);
@@ -374,8 +414,8 @@ export default function DancerPhotoUpload({
                 <RotateCcw className="w-4 h-4" />
                 Change Photo
               </Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 size="sm"
                 onClick={() => {
                   removePhoto();

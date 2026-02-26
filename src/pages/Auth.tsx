@@ -59,6 +59,54 @@ const Auth = () => {
     }
   };
 
+  const handleQuickAuth = async (role: "Organizer" | "Judge") => {
+    setLoading(true);
+
+    // Check if we already have a saved test account for this role
+    const storageKey = `test_${role.toLowerCase()}_credentials`;
+    const savedCreds = localStorage.getItem(storageKey);
+
+    try {
+      if (savedCreds) {
+        // Try logging in with saved credentials
+        const { email, password } = JSON.parse(savedCreds);
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (!error) {
+          toast.success(`Welcome back Test ${role}!`);
+          navigate("/dashboard");
+          return;
+        }
+        // If login fails, we'll fall through and create a new one
+      }
+
+      // Create a brand new test account
+      const randomId = Math.floor(Math.random() * 10000);
+      const testEmail = `test_${role.toLowerCase()}_${randomId}@switchboard.com`;
+      const testPassword = "password123";
+
+      const { error } = await supabase.auth.signUp({
+        email: testEmail,
+        password: testPassword,
+        options: {
+          data: {
+            full_name: `Test ${role} ${randomId}`,
+          },
+        },
+      });
+      if (error) throw error;
+
+      // Save for next time
+      localStorage.setItem(storageKey, JSON.stringify({ email: testEmail, password: testPassword }));
+
+      toast.success(`Created and logged in as Test ${role}`);
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to handle test account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-card">
       <Card className="w-full max-w-md border-border/50 backdrop-blur-sm">
@@ -75,8 +123,8 @@ const Auth = () => {
             {isLogin ? "Sign In" : "Sign Up"}
           </CardTitle>
           <CardDescription>
-            {isLogin 
-              ? "Sign in to continue" 
+            {isLogin
+              ? "Sign in to continue"
               : "Create an organizer account"}
           </CardDescription>
         </CardHeader>
@@ -118,13 +166,34 @@ const Auth = () => {
                 minLength={6}
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-primary hover:bg-primary/90 glow-primary"
               disabled={loading}
             >
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => handleQuickAuth("Organizer")}
+                disabled={loading}
+              >
+                ⚡ Test Organizer
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => handleQuickAuth("Judge")}
+                disabled={loading}
+              >
+                ⚖️ Test Judge/Dancer
+              </Button>
+            </div>
           </form>
           <div className="mt-4 text-center">
             <button
@@ -132,8 +201,8 @@ const Auth = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {isLogin 
-                ? "Don't have an account? Sign up" 
+              {isLogin
+                ? "Don't have an account? Sign up"
                 : "Already have an account? Sign in"}
             </button>
           </div>

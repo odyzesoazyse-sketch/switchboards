@@ -7,8 +7,8 @@ import { User, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface SliderVotingProps {
   matchId: string;
-  dancerLeft: { name: string; city?: string | null };
-  dancerRight: { name: string; city?: string | null };
+  dancerLeft: { name: string; city?: string | null; photo_url?: string | null; video_url?: string | null };
+  dancerRight: { name: string; city?: string | null; photo_url?: string | null; video_url?: string | null };
   currentRound: number;
   onSubmit: (matchId: string, technique: number, musicality: number, performance: number, round: number) => void;
   disabled?: boolean;
@@ -43,8 +43,14 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-4 card-red">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <User className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+              {dancerLeft.video_url ? (
+                <video src={dancerLeft.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+              ) : dancerLeft.photo_url ? (
+                <img src={dancerLeft.photo_url} alt={dancerLeft.name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-5 h-5 text-primary" />
+              )}
             </div>
             <div className="overflow-hidden">
               <div className="font-display font-bold text-primary truncate">{dancerLeft.name}</div>
@@ -56,8 +62,14 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
         </Card>
         <Card className="p-4 card-blue">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-              <User className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center overflow-hidden shrink-0">
+              {dancerRight.video_url ? (
+                <video src={dancerRight.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+              ) : dancerRight.photo_url ? (
+                <img src={dancerRight.photo_url} alt={dancerRight.name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-5 h-5 text-secondary" />
+              )}
             </div>
             <div className="overflow-hidden">
               <div className="font-display font-bold text-secondary truncate">{dancerRight.name}</div>
@@ -166,7 +178,7 @@ export default function SliderVoting({ matchId, dancerLeft, dancerRight, current
               {total > 0 ? `+${total}` : total}
             </span>
           </div>
-          
+
           <div className={`text-center py-3 rounded-xl mb-6 ${getSliderBackground(total)}`}>
             <span className={`font-display font-semibold ${getValueColor(total)}`}>
               {total < 0 && `${dancerLeft.name} wins`}

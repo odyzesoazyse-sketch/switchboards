@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary test and utility scripts
+test_*.js
+test_*.node.js
+test_*.mjs
+*.cjs
+check_*.mjs
+check_*.js
+patch_*.js
+patch_*.mjs
+sim_*.mjs
+cols.txt
+supabase-status.json
+supabase/.branches/
+supabase/.temp/
+update_script.js

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trophy, Users, Timer, Sparkles, CheckCircle, TrendingUp, Zap, Shield, ArrowRight, Globe } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
@@ -14,32 +15,33 @@ const Index = () => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 
+          <h1
             className="text-2xl font-display font-bold tracking-tight cursor-pointer"
             onClick={() => navigate("/")}
           >
             SWITCHBOARD
           </h1>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => navigate("/world-events")}
               className="hidden sm:inline-flex"
             >
               <Globe className="w-4 h-4 mr-2" />
               World Events
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => navigate("/world-ranking")}
               className="hidden sm:inline-flex"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
               Rankings
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => navigate("/battles")}
               className="hidden sm:inline-flex"
             >
@@ -56,11 +58,11 @@ const Index = () => {
       <section className="relative pt-32 pb-20 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 bg-grid opacity-50" />
-        <div 
+        <div
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30"
           style={{ background: 'var(--gradient-red-glow)' }}
         />
-        <div 
+        <div
           className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-30"
           style={{ background: 'var(--gradient-blue-glow)' }}
         />
@@ -86,7 +88,7 @@ const Index = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <Button 
+              <Button
                 onClick={() => navigate("/world-events")}
                 size="lg"
                 className="text-lg px-8 h-14 bg-gradient-to-r from-primary to-secondary text-white hover-lift"
@@ -94,7 +96,7 @@ const Index = () => {
                 <Globe className="mr-2 w-5 h-5" />
                 Explore World Events
               </Button>
-              <Button 
+              <Button
                 onClick={() => navigate("/battles")}
                 size="lg"
                 variant="outline"
@@ -133,7 +135,7 @@ const Index = () => {
               A complete toolkit for running professional breakdance battles
             </p>
           </div>
-          
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {[
               {
@@ -173,7 +175,7 @@ const Index = () => {
                 color: "secondary"
               },
             ].map((feature, i) => (
-              <Card 
+              <Card
                 key={i}
                 className={`p-6 hover-lift border-border/50 hover:border-${feature.color}/30 transition-all group`}
               >
@@ -198,7 +200,7 @@ const Index = () => {
                 Get your battle running in four simple steps
               </p>
             </div>
-            
+
             <div className="space-y-8">
               {[
                 {
@@ -227,7 +229,7 @@ const Index = () => {
                 },
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 items-start animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                  <div 
+                  <div
                     className={`flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-display font-bold text-xl
                       ${item.color === 'primary' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}
                   >
@@ -256,15 +258,15 @@ const Index = () => {
               Join the community of organizers using SWITCHBOARD for fair, transparent judging.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={() => navigate("/battles")} 
+              <Button
+                onClick={() => navigate("/battles")}
                 size="lg"
                 className="text-lg px-8 h-14 bg-background text-foreground hover:bg-background/90"
               >
                 Browse Battles
               </Button>
-              <Button 
-                onClick={() => navigate("/auth")} 
+              <Button
+                onClick={() => navigate("/auth")}
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 h-14 border-2 border-background/30 text-background hover:bg-background/10"

@@ -15,6 +15,7 @@ interface Dancer {
   name: string;
   city: string | null;
   photo_url?: string | null;
+  video_url?: string | null;
 }
 
 interface TournamentBracketProps {
@@ -41,12 +42,12 @@ const EXPECTED_MATCHES: Record<string, number> = {
   final: 1,
 };
 
-export default function TournamentBracket({ 
-  matches, 
-  dancers, 
+export default function TournamentBracket({
+  matches,
+  dancers,
   layout = "symmetric",
   activeMatchId,
-  isLightTheme = false 
+  isLightTheme = false
 }: TournamentBracketProps) {
   const getDancer = (dancerId: string | null): Dancer | null => {
     if (!dancerId) return null;
@@ -69,14 +70,14 @@ export default function TournamentBracket({
     return ROUND_ORDER.map(round => {
       const existingMatches = getMatchesByRound(round);
       const expectedCount = EXPECTED_MATCHES[round];
-      
+
       // Fill in placeholders for missing matches
       const allMatches: (BracketMatch | null)[] = [];
       for (let i = 1; i <= expectedCount; i++) {
         const existingMatch = existingMatches.find(m => m.position === i);
         allMatches.push(existingMatch || null);
       }
-      
+
       return {
         key: round,
         label: ROUND_LABELS[round],
@@ -87,7 +88,7 @@ export default function TournamentBracket({
   };
 
   const roundsData = createRoundsWithPlaceholders();
-  
+
   // Check if we have any matches at all
   const hasAnyMatches = roundsData.some(r => r.hasMatches);
 
@@ -179,7 +180,9 @@ export default function TournamentBracket({
         {/* Left/Top dancer */}
         <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} ${leftWon ? 'opacity-100' : rightWon ? 'opacity-40' : ''}`}>
           <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-primary/20 flex items-center justify-center overflow-hidden shrink-0`}>
-            {leftDancer?.photo_url ? (
+            {leftDancer?.video_url ? (
+              <video src={leftDancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+            ) : leftDancer?.photo_url ? (
               <img src={leftDancer.photo_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-primary`} />
@@ -196,7 +199,9 @@ export default function TournamentBracket({
         {/* Right/Bottom dancer */}
         <div className={`flex items-center gap-2 ${compact ? 'py-1' : 'py-2'} ${rightWon ? 'opacity-100' : leftWon ? 'opacity-40' : ''}`}>
           <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-secondary/20 flex items-center justify-center overflow-hidden shrink-0`}>
-            {rightDancer?.photo_url ? (
+            {rightDancer?.video_url ? (
+              <video src={rightDancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+            ) : rightDancer?.photo_url ? (
               <img src={rightDancer.photo_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-secondary`} />
@@ -215,7 +220,7 @@ export default function TournamentBracket({
   if (layout === "linear") {
     const baseMatchHeight = 80; // Height of one match card
     const baseGap = 8; // Base gap between matches in first round
-    
+
     return (
       <div className="w-full overflow-x-auto py-4">
         <div className="flex gap-6 md:gap-8 lg:gap-12 min-w-max items-center">
@@ -225,16 +230,16 @@ export default function TournamentBracket({
             const multiplier = Math.pow(2, roundIndex);
             const totalHeight = EXPECTED_MATCHES.round_of_16 * (baseMatchHeight + baseGap) - baseGap;
             const matchSpacing = matchCount > 1 ? (totalHeight - matchCount * baseMatchHeight) / (matchCount - 1) : 0;
-            
+
             return (
               <div key={round.key} className="flex flex-col items-center">
                 <div className={`text-xs font-bold ${round.hasMatches ? mutedColor : 'text-gray-400'} mb-4 px-3 py-1 rounded-full ${isLightTheme ? 'bg-gray-100' : 'bg-white/10'}`}>
                   {round.label}
                 </div>
-                
-                <div 
+
+                <div
                   className="flex flex-col"
-                  style={{ 
+                  style={{
                     gap: `${matchSpacing}px`,
                     height: round.key === 'final' ? 'auto' : `${totalHeight}px`,
                     justifyContent: 'space-around'
@@ -243,10 +248,10 @@ export default function TournamentBracket({
                   {round.matches.map((match, idx) => (
                     <div key={match?.id || `empty-${round.key}-${idx}`} className="relative flex items-center">
                       {renderMatchCard(match, true)}
-                      
+
                       {/* Connector line to next round */}
                       {roundIndex < roundsData.length - 1 && (
-                        <div 
+                        <div
                           className={`absolute top-1/2 -right-6 md:-right-8 lg:-right-12 w-6 md:w-8 lg:w-12 h-0.5 ${isLightTheme ? 'bg-gray-300' : 'bg-white/20'}`}
                           style={{ transform: 'translateY(-50%)' }}
                         />
@@ -276,7 +281,7 @@ export default function TournamentBracket({
   return (
     <div className="w-full overflow-x-auto py-4">
       <div className="flex items-center justify-center gap-2 md:gap-4 lg:gap-6 min-w-max">
-        
+
         {/* Left 1/8 */}
         {round16 && (
           <div className="flex flex-col items-center">
@@ -336,7 +341,7 @@ export default function TournamentBracket({
             </div>
             <div className="relative">
               {renderMatchCard(finals.matches[0], false)}
-              
+
               {finals.matches[0]?.winner_id && (
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2">
                   <Trophy className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
