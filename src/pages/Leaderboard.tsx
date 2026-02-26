@@ -160,9 +160,9 @@ export default function Leaderboard() {
               <Card 
                 key={dancer.id} 
                 className={`transition-all ${
-                  index === 0 ? "border-yellow-500/50 bg-yellow-500/5" :
-                  index === 1 ? "border-gray-400/50 bg-gray-400/5" :
-                  index === 2 ? "border-amber-600/50 bg-amber-600/5" : ""
+                  index === 0 ? "border-primary/50 bg-primary/5" :
+                  index === 1 ? "border-muted-foreground/50 bg-muted/10" :
+                  index === 2 ? "border-secondary/50 bg-secondary/5" : ""
                 }`}
               >
                 <CardContent className="p-4">
