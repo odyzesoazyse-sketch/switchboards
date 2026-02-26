@@ -441,7 +441,7 @@ export default function BattlePublic() {
         )}
 
         {/* Judge Application Section */}
-        {user && (!isJudge || isJudge) && (
+        {user && (
           <Card className="mt-8 border-border/50 bg-secondary/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

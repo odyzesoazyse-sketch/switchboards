@@ -142,44 +142,44 @@ const Index = () => {
                 icon: Users,
                 title: "Role-Based Access",
                 description: "Organizers, judges, selectors — each with their own interface and permissions",
-                color: "primary"
+                isPrimary: true
               },
               {
                 icon: Timer,
                 title: "Real-time Scoring",
                 description: "Judges vote from their devices, results update instantly on the big screen",
-                color: "secondary"
+                isPrimary: false
               },
               {
                 icon: TrendingUp,
                 title: "Two-Phase System",
                 description: "Selection round with criteria scoring, then Olympic bracket for top-16",
-                color: "primary"
+                isPrimary: true
               },
               {
                 icon: Sparkles,
                 title: "Live Visualization",
                 description: "Big screen display with vote animations and tournament bracket view",
-                color: "secondary"
+                isPrimary: false
               },
               {
                 icon: Shield,
                 title: "Fair Judging",
                 description: "Anonymous judge voting, automatic counting, no manipulation possible",
-                color: "primary"
+                isPrimary: true
               },
               {
                 icon: CheckCircle,
                 title: "Full Control",
                 description: "Operator panel for managing matches, rounds, and screen display",
-                color: "secondary"
+                isPrimary: false
               },
             ].map((feature, i) => (
               <Card
                 key={i}
-                className={`p-6 hover-lift border-border/50 hover:border-${feature.color}/30 transition-all group`}
+                className={`p-6 hover-lift border-border/50 transition-all group ${feature.isPrimary ? 'hover:border-primary/30' : 'hover:border-secondary/30'}`}
               >
-                <feature.icon className={`w-10 h-10 mb-4 text-${feature.color} group-hover:scale-110 transition-transform`} />
+                <feature.icon className={`w-10 h-10 mb-4 group-hover:scale-110 transition-transform ${feature.isPrimary ? 'text-primary' : 'text-secondary'}`} />
                 <h3 className="text-lg font-display font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
               </Card>

@@ -556,7 +556,7 @@ export default function OperatorPanel() {
         throw error;
       }
     } catch (error: any) {
-      alert(`DB ERROR: ${error.message} \n ${JSON.stringify(error)}`);
+      console.error(`DB ERROR: ${error.message}`, error);
       toast({
         title: "Error updating screen",
         description: error.message,
