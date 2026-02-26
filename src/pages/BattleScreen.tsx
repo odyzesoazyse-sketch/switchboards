@@ -442,18 +442,16 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
           .eq("battle_id", id)
           .eq("role", "judge");
 
-        if (judgesData) {
-          const judgeProfiles = await Promise.all(
-            judgesData.map(async (j) => {
-              const { data } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .eq("id", j.user_id)
-                .single();
-              return data;
-            })
-          );
-          setJudges(judgeProfiles.filter(Boolean) as Judge[]);
+        if (judgesData && judgesData.length > 0) {
+          const judgeUserIds = judgesData.map(j => j.user_id);
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", judgeUserIds);
+          
+          setJudges((profiles || []).filter(Boolean) as Judge[]);
+        } else {
+          setJudges([]);
         }
       }
     } catch (error) {
