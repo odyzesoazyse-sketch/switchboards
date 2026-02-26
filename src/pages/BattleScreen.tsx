@@ -165,7 +165,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
   useEffect(() => {
     if (!id) return;
-    loadScreenState();
+    loadScreenState(true);
 
     const channelId = Math.random().toString(36).substring(7);
 

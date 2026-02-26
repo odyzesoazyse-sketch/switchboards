@@ -273,14 +273,14 @@ export default function JudgePanel() {
           setActiveCircleView(0);
         }
 
-        const { data: existingScores } = await supabase
-          .from("selection_scores" as any)
+      const { data: existingScores } = await supabase
+          .from("selection_scores")
           .select("*")
           .eq("nomination_id", screenStates.nomination_id)
           .eq("judge_id", user.id)
-          .in("dancer_id", screenStates.active_selection_dancers) as any;
+          .in("dancer_id", screenStates.active_selection_dancers);
 
-        setHeatScores(existingScores as any[] || []);
+        setHeatScores((existingScores || []) as HeatScore[]);
         setLoading(false);
         return;
       }
