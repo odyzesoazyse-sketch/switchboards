@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -248,55 +228,6 @@ export type Database = {
           },
         ]
       }
-      judge_assignments: {
-        Row: {
-          battle_id: string
-          created_at: string
-          id: string
-          judge_id: string
-          nomination_id: string | null
-          phase: string | null
-        }
-        Insert: {
-          battle_id: string
-          created_at?: string
-          id?: string
-          judge_id: string
-          nomination_id?: string | null
-          phase?: string | null
-        }
-        Update: {
-          battle_id?: string
-          created_at?: string
-          id?: string
-          judge_id?: string
-          nomination_id?: string | null
-          phase?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "judge_assignments_battle_id_fkey"
-            columns: ["battle_id"]
-            isOneToOne: false
-            referencedRelation: "battles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "judge_assignments_judge_id_fkey"
-            columns: ["judge_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "judge_assignments_nomination_id_fkey"
-            columns: ["nomination_id"]
-            isOneToOne: false
-            referencedRelation: "nominations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       judge_ratings: {
         Row: {
           battle_id: string
@@ -482,7 +413,6 @@ export type Database = {
         Row: {
           allow_ties: boolean | null
           battle_id: string
-          concurrent_circles: number
           created_at: string
           description: string | null
           id: string
@@ -492,14 +422,11 @@ export type Database = {
           name: string
           phase: Database["public"]["Enums"]["battle_phase"]
           rounds_to_win: number | null
-          selection_format: number
           top_count: number | null
-          vote_per_round: boolean
         }
         Insert: {
           allow_ties?: boolean | null
           battle_id: string
-          concurrent_circles?: number
           created_at?: string
           description?: string | null
           id?: string
@@ -509,14 +436,11 @@ export type Database = {
           name: string
           phase?: Database["public"]["Enums"]["battle_phase"]
           rounds_to_win?: number | null
-          selection_format?: number
           top_count?: number | null
-          vote_per_round?: boolean
         }
         Update: {
           allow_ties?: boolean | null
           battle_id?: string
-          concurrent_circles?: number
           created_at?: string
           description?: string | null
           id?: string
@@ -526,9 +450,7 @@ export type Database = {
           name?: string
           phase?: Database["public"]["Enums"]["battle_phase"]
           rounds_to_win?: number | null
-          selection_format?: number
           top_count?: number | null
-          vote_per_round?: boolean
         }
         Relationships: [
           {
@@ -647,7 +569,7 @@ export type Database = {
         }
         Insert: {
           battles_count?: number | null
-          category: string
+          category?: string
           created_at?: string
           id?: string
           losses_count?: number | null
@@ -719,7 +641,6 @@ export type Database = {
       }
       screen_state: {
         Row: {
-          active_selection_dancers: string[] | null
           active_template_id: string | null
           animation_style: string | null
           background_color: string | null
@@ -729,21 +650,15 @@ export type Database = {
           background_type: string | null
           battle_id: string
           bracket_layout: string | null
-          bracket_style: string | null
           created_at: string
           current_match_id: string | null
           current_round: number | null
           custom_message: string | null
-          font_family: string | null
           font_size: string | null
           id: string
           match_status: string | null
-          next_match_id: string | null
-          next_selection_dancers: string[] | null
           nomination_id: string | null
-          primary_color: string | null
           rounds_to_win: number | null
-          secondary_color: string | null
           show_battle_name: boolean | null
           show_bracket: boolean | null
           show_custom_message: boolean | null
@@ -763,7 +678,6 @@ export type Database = {
           votes_right: number | null
         }
         Insert: {
-          active_selection_dancers?: string[] | null
           active_template_id?: string | null
           animation_style?: string | null
           background_color?: string | null
@@ -773,21 +687,15 @@ export type Database = {
           background_type?: string | null
           battle_id: string
           bracket_layout?: string | null
-          bracket_style?: string | null
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null
           custom_message?: string | null
-          font_family?: string | null
           font_size?: string | null
           id?: string
           match_status?: string | null
-          next_match_id?: string | null
-          next_selection_dancers?: string[] | null
           nomination_id?: string | null
-          primary_color?: string | null
           rounds_to_win?: number | null
-          secondary_color?: string | null
           show_battle_name?: boolean | null
           show_bracket?: boolean | null
           show_custom_message?: boolean | null
@@ -807,7 +715,6 @@ export type Database = {
           votes_right?: number | null
         }
         Update: {
-          active_selection_dancers?: string[] | null
           active_template_id?: string | null
           animation_style?: string | null
           background_color?: string | null
@@ -817,21 +724,15 @@ export type Database = {
           background_type?: string | null
           battle_id?: string
           bracket_layout?: string | null
-          bracket_style?: string | null
           created_at?: string
           current_match_id?: string | null
           current_round?: number | null
           custom_message?: string | null
-          font_family?: string | null
           font_size?: string | null
           id?: string
           match_status?: string | null
-          next_match_id?: string | null
-          next_selection_dancers?: string[] | null
           nomination_id?: string | null
-          primary_color?: string | null
           rounds_to_win?: number | null
-          secondary_color?: string | null
           show_battle_name?: boolean | null
           show_bracket?: boolean | null
           show_custom_message?: boolean | null
@@ -930,54 +831,6 @@ export type Database = {
             columns: ["battle_id"]
             isOneToOne: false
             referencedRelation: "battles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      selection_scores: {
-        Row: {
-          created_at: string
-          dancer_id: string | null
-          id: string
-          judge_id: string | null
-          nomination_id: string | null
-          score_musicality: number | null
-          score_performance: number | null
-          score_technique: number | null
-        }
-        Insert: {
-          created_at?: string
-          dancer_id?: string | null
-          id?: string
-          judge_id?: string | null
-          nomination_id?: string | null
-          score_musicality?: number | null
-          score_performance?: number | null
-          score_technique?: number | null
-        }
-        Update: {
-          created_at?: string
-          dancer_id?: string | null
-          id?: string
-          judge_id?: string | null
-          nomination_id?: string | null
-          score_musicality?: number | null
-          score_performance?: number | null
-          score_technique?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "selection_scores_dancer_id_fkey"
-            columns: ["dancer_id"]
-            isOneToOne: false
-            referencedRelation: "dancers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "selection_scores_nomination_id_fkey"
-            columns: ["nomination_id"]
-            isOneToOne: false
-            referencedRelation: "nominations"
             referencedColumns: ["id"]
           },
         ]
@@ -1166,9 +1019,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: [
@@ -1183,4 +1033,3 @@ export const Constants = {
     },
   },
 } as const
-
