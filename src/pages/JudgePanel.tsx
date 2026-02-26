@@ -13,32 +13,32 @@ function HeatSliderVoting({ onSubmit }: { onSubmit: (t: number, m: number, p: nu
   const [performance, setPerformance] = useState(5);
 
   return (
-    <div className="space-y-6 mt-4">
-      <div className="space-y-3">
+    <div className="space-y-8 mt-4">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Technique</span>
-          <span className="font-mono text-primary font-bold">{technique}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{technique}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={technique} onChange={e => setTechnique(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={technique} onChange={e => setTechnique(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Musicality</span>
-          <span className="font-mono text-primary font-bold">{musicality}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{musicality}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={musicality} onChange={e => setMusicality(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={musicality} onChange={e => setMusicality(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Performance</span>
-          <span className="font-mono text-primary font-bold">{performance}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{performance}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={performance} onChange={e => setPerformance(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={performance} onChange={e => setPerformance(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <Button onClick={() => onSubmit(technique, musicality, performance)} className="w-full h-12 bg-primary">
+      <Button onClick={() => onSubmit(technique, musicality, performance)} className="w-full h-14 bg-primary text-lg font-bold touch-manipulation active:scale-95 transition-transform">
         Submit Score
       </Button>
     </div>
@@ -1143,32 +1143,35 @@ export default function JudgePanel() {
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
               {/* Left Dancer - Red */}
               <button
-                className="group"
-                onClick={() => activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id)}
+                className="group touch-manipulation"
+                onClick={() => {
+                  activeMatch.dancer_left_id && submitVote(activeMatch.dancer_left_id);
+                  if (navigator.vibrate) navigator.vibrate(50);
+                }}
               >
-                <Card className="p-6 sm:p-8 text-center card-red hover:border-primary transition-all active:scale-95 hover:shadow-glow-red">
-                  <div className="space-y-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors overflow-hidden shrink-0">
+                <Card className="p-4 sm:p-8 text-center card-red hover:border-primary transition-all active:scale-[0.92] hover:shadow-glow-red min-h-[200px] sm:min-h-[280px] flex items-center justify-center">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors overflow-hidden shrink-0">
                       {activeMatch.dancer_left?.video_url ? (
                         <video src={activeMatch.dancer_left.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                       ) : activeMatch.dancer_left?.photo_url ? (
                         <img src={activeMatch.dancer_left.photo_url} alt={activeMatch.dancer_left.name || "Red"} className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+                        <User className="w-12 h-12 sm:w-14 sm:h-14 text-primary" />
                       )}
                     </div>
                     <div>
-                      <div className="text-xl sm:text-2xl font-display font-bold text-primary truncate">
+                      <div className="text-lg sm:text-2xl font-display font-bold text-primary truncate">
                         {activeMatch.dancer_left?.name || "Waiting"}
                       </div>
                       {activeMatch.dancer_left?.city && (
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                           {activeMatch.dancer_left.city}
                         </div>
                       )}
                     </div>
-                    <div className="pt-2">
-                      <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                    <div className="pt-1 sm:pt-2">
+                      <span className="inline-block px-4 py-2.5 rounded-full bg-primary/10 text-primary font-bold text-sm sm:text-base">
                         Tap to Vote
                       </span>
                     </div>
@@ -1178,32 +1181,35 @@ export default function JudgePanel() {
 
               {/* Right Dancer - Blue */}
               <button
-                className="group"
-                onClick={() => activeMatch.dancer_right_id && submitVote(activeMatch.dancer_right_id)}
+                className="group touch-manipulation"
+                onClick={() => {
+                  activeMatch.dancer_right_id && submitVote(activeMatch.dancer_right_id);
+                  if (navigator.vibrate) navigator.vibrate(50);
+                }}
               >
-                <Card className="p-6 sm:p-8 text-center card-blue hover:border-secondary transition-all active:scale-95 hover:shadow-glow-blue">
-                  <div className="space-y-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors overflow-hidden shrink-0">
+                <Card className="p-4 sm:p-8 text-center card-blue hover:border-secondary transition-all active:scale-[0.92] hover:shadow-glow-blue min-h-[200px] sm:min-h-[280px] flex items-center justify-center">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors overflow-hidden shrink-0">
                       {activeMatch.dancer_right?.video_url ? (
                         <video src={activeMatch.dancer_right.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                       ) : activeMatch.dancer_right?.photo_url ? (
                         <img src={activeMatch.dancer_right.photo_url} alt={activeMatch.dancer_right.name || "Blue"} className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-secondary" />
+                        <User className="w-12 h-12 sm:w-14 sm:h-14 text-secondary" />
                       )}
                     </div>
                     <div>
-                      <div className="text-xl sm:text-2xl font-display font-bold text-secondary truncate">
+                      <div className="text-lg sm:text-2xl font-display font-bold text-secondary truncate">
                         {activeMatch.dancer_right?.name || "Waiting"}
                       </div>
                       {activeMatch.dancer_right?.city && (
-                        <div className="text-sm text-muted-foreground mt-1">
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                           {activeMatch.dancer_right.city}
                         </div>
                       )}
                     </div>
-                    <div className="pt-2">
-                      <span className="inline-block px-4 py-2 rounded-full bg-secondary/10 text-secondary font-semibold text-sm">
+                    <div className="pt-1 sm:pt-2">
+                      <span className="inline-block px-4 py-2.5 rounded-full bg-secondary/10 text-secondary font-bold text-sm sm:text-base">
                         Tap to Vote
                       </span>
                     </div>

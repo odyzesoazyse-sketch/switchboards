@@ -1404,9 +1404,9 @@ export default function OperatorPanel() {
               {/* Status */}
               <div className="flex items-center justify-center gap-3 text-sm">
                 <Badge variant="outline">Round {currentRound}</Badge>
-                <div className="flex items-center gap-1">
-                  <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-                  <span className="text-muted-foreground">{voteCount}/{totalJudges} votes</span>
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]'} animate-pulse`} />
+                  <span className={`font-bold ${voteCount === totalJudges && totalJudges > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{voteCount}/{totalJudges} votes</span>
                 </div>
               </div>
 
@@ -1474,11 +1474,13 @@ export default function OperatorPanel() {
                       }
 
                       return (
-                        <div key={judge.id} className="flex items-center justify-between bg-background/50 p-2 rounded border border-border/50 text-sm">
-                          <span className="font-medium">{judge.name}</span>
+                        <div key={judge.id} className={`flex items-center justify-between p-2.5 rounded-lg border text-sm transition-all ${vote ? 'bg-background/50 border-border/50' : 'bg-yellow-500/5 border-yellow-500/20'}`}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${vote ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
+                            <span className="font-medium">{judge.name}</span>
+                          </div>
                           <div className="flex items-center gap-2">
                             <span className={voteColor}>{voteDisplay}</span>
-
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -1488,35 +1490,11 @@ export default function OperatorPanel() {
                               <PopoverContent className="w-48 p-2" align="end">
                                 <div className="space-y-1">
                                   <div className="text-xs font-semibold mb-2 px-2 text-muted-foreground">Override Vote</div>
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-8 text-primary font-bold"
-                                    onClick={() => setJudgeVote(judge.id, currentMatch.dancer_left_id)}
-                                  >
-                                    Set: Red
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-8 text-secondary font-bold"
-                                    onClick={() => setJudgeVote(judge.id, currentMatch.dancer_right_id)}
-                                  >
-                                    Set: Blue
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-8"
-                                    onClick={() => setJudgeVote(judge.id, null)}
-                                  >
-                                    Set: Tie/Skip
-                                  </Button>
+                                  <Button variant="ghost" className="w-full justify-start h-8 text-primary font-bold" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_left_id)}>Set: Red</Button>
+                                  <Button variant="ghost" className="w-full justify-start h-8 text-secondary font-bold" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_right_id)}>Set: Blue</Button>
+                                  <Button variant="ghost" className="w-full justify-start h-8" onClick={() => setJudgeVote(judge.id, null)}>Set: Tie/Skip</Button>
                                   <div className="border-t border-border/50 my-1" />
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-8 text-destructive"
-                                    onClick={() => clearJudgeVote(judge.id)}
-                                  >
-                                    Clear Vote
-                                  </Button>
+                                  <Button variant="ghost" className="w-full justify-start h-8 text-destructive" onClick={() => clearJudgeVote(judge.id)}>Clear Vote</Button>
                                 </div>
                               </PopoverContent>
                             </Popover>
