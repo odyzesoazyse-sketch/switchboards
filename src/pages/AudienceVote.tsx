@@ -299,7 +299,7 @@ export default function AudienceVote() {
 
       {/* Footer */}
       <div className="text-center mt-6 text-xs text-muted-foreground">
-        <p>Powered by BattleBoard</p>
+        <p>{t("audience.poweredBy")}</p>
       </div>
     </div>
   );
