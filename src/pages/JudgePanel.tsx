@@ -974,14 +974,6 @@ export default function JudgePanel() {
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-12"
-                onClick={openSchedule}
-              >
-                <CalendarDays className="h-5 w-5" />
-                Schedule
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 h-12"
                 onClick={() => navigate("/")}
               >
                 <Home className="h-5 w-5" />
