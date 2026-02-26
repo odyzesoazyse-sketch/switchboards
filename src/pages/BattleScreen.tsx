@@ -282,7 +282,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
   const loadScreenState = async (isInitial = false) => {
     try {
-      if (isInitial) setLoading(true);
+
 
       const { data: battleData } = await supabase
         .from("battles")
