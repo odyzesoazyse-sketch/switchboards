@@ -1404,9 +1404,9 @@ export default function OperatorPanel() {
               {/* Status */}
               <div className="flex items-center justify-center gap-3 text-sm">
                 <Badge variant="outline">Round {currentRound}</Badge>
-                <div className="flex items-center gap-1">
-                  <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-                  <span className="text-muted-foreground">{voteCount}/{totalJudges} votes</span>
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]'} animate-pulse`} />
+                  <span className={`font-bold ${voteCount === totalJudges && totalJudges > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{voteCount}/{totalJudges} votes</span>
                 </div>
               </div>
 
