@@ -274,11 +274,11 @@ export default function JudgePanel() {
         }
 
         const { data: existingScores } = await supabase
-          .from("selection_scores")
+          .from("selection_scores" as any)
           .select("*")
           .eq("nomination_id", screenStates.nomination_id)
           .eq("judge_id", user.id)
-          .in("dancer_id", screenStates.active_selection_dancers);
+          .in("dancer_id", screenStates.active_selection_dancers) as any;
 
         setHeatScores(existingScores as any[] || []);
         setLoading(false);
