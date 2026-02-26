@@ -198,6 +198,20 @@ export default function BattlePublic() {
         .select("*", { count: "exact", head: true })
         .eq("nomination_id", selectedNomination);
 
+      // Check for duplicate name
+      const { data: existingDancer } = await supabase
+        .from("dancers")
+        .select("id")
+        .eq("nomination_id", selectedNomination)
+        .ilike("name", formData.name.trim())
+        .maybeSingle();
+
+      if (existingDancer) {
+        toast.error("A dancer with this name is already registered in this category");
+        setSubmitting(false);
+        return;
+      }
+
       const { error } = await supabase.from("dancers").insert({
         nomination_id: selectedNomination,
         name: formData.name.trim(),
@@ -441,7 +455,7 @@ export default function BattlePublic() {
         )}
 
         {/* Judge Application Section */}
-        {user && (!isJudge || isJudge) && (
+        {user && (
           <Card className="mt-8 border-border/50 bg-secondary/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

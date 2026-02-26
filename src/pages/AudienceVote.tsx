@@ -220,9 +220,9 @@ export default function AudienceVote() {
       <div className="flex-1 flex flex-col gap-4 max-w-lg mx-auto w-full">
         <AnimatePresence mode="wait">
           {[
-            { dancer: leftDancer, side: "left" as const, color: "primary" },
-            { dancer: rightDancer, side: "right" as const, color: "secondary" },
-          ].map(({ dancer, side, color }) => {
+            { dancer: leftDancer, side: "left" as const, isPrimary: true },
+            { dancer: rightDancer, side: "right" as const, isPrimary: false },
+          ].map(({ dancer, side, isPrimary }) => {
             if (!dancer) return null;
             const isVotedFor = votedFor === dancer.id;
             const pct = side === "left" ? leftPct : rightPct;
@@ -238,27 +238,31 @@ export default function AudienceVote() {
                 <Card
                   className={`relative overflow-hidden cursor-pointer transition-all touch-manipulation active:scale-[0.98] ${
                     isVotedFor
-                      ? `border-${color} ring-2 ring-${color}/50 shadow-lg`
+                      ? isPrimary
+                        ? "border-primary ring-2 ring-primary/50 shadow-lg"
+                        : "border-secondary ring-2 ring-secondary/50 shadow-lg"
                       : hasVoted
                       ? "opacity-60"
-                      : `border-${color}/30 hover:border-${color}/60`
+                      : isPrimary
+                        ? "border-primary/30 hover:border-primary/60"
+                        : "border-secondary/30 hover:border-secondary/60"
                   }`}
                   onClick={() => !hasVoted && vote(dancer.id)}
                 >
                   {/* Background progress bar */}
                   {hasVoted && (
                     <div
-                      className={`absolute inset-y-0 left-0 bg-${color}/10 transition-all duration-1000`}
+                      className={`absolute inset-y-0 left-0 transition-all duration-1000 ${isPrimary ? 'bg-primary/10' : 'bg-secondary/10'}`}
                       style={{ width: `${pct}%` }}
                     />
                   )}
 
                   <div className="relative p-6 flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-xl bg-${color}/10 border-2 border-${color}/20 flex items-center justify-center overflow-hidden shrink-0`}>
+                    <div className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center overflow-hidden shrink-0 ${isPrimary ? 'bg-primary/10 border-primary/20' : 'bg-secondary/10 border-secondary/20'}`}>
                       {dancer.photo_url ? (
                         <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
                       ) : (
-                        <User className={`w-8 h-8 text-${color}`} />
+                        <User className={`w-8 h-8 ${isPrimary ? 'text-primary' : 'text-secondary'}`} />
                       )}
                     </div>
 
@@ -271,11 +275,11 @@ export default function AudienceVote() {
 
                     {hasVoted ? (
                       <div className="text-right shrink-0">
-                        <div className={`text-2xl font-display font-bold text-${color}`}>{pct}%</div>
+                        <div className={`text-2xl font-display font-bold ${isPrimary ? 'text-primary' : 'text-secondary'}`}>{pct}%</div>
                         <div className="text-xs text-muted-foreground">{count} votes</div>
                       </div>
                     ) : (
-                      <Badge className={`bg-${color} text-${color}-foreground shrink-0`}>
+                      <Badge className={isPrimary ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}>
                         Vote
                       </Badge>
                     )}
@@ -284,7 +288,7 @@ export default function AudienceVote() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className={`absolute top-2 right-2 w-6 h-6 rounded-full bg-${color} flex items-center justify-center`}
+                        className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${isPrimary ? 'bg-primary' : 'bg-secondary'}`}
                       >
                         <Check className="w-4 h-4 text-white" />
                       </motion.div>

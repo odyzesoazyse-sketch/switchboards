@@ -219,7 +219,7 @@ const CreateBattle = () => {
       if (nominationsError) throw nominationsError;
 
       toast.success("Battle created!");
-      navigate("/dashboard");
+      navigate(`/battle/${battle.id}`);
     } catch (error: any) {
       console.error("Error creating battle:", error);
       toast.error(error.message || "Error creating battle");

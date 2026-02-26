@@ -556,7 +556,7 @@ export default function OperatorPanel() {
         throw error;
       }
     } catch (error: any) {
-      alert(`DB ERROR: ${error.message} \n ${JSON.stringify(error)}`);
+      console.error(`DB ERROR: ${error.message}`, error);
       toast({
         title: "Error updating screen",
         description: error.message,
@@ -764,6 +764,9 @@ export default function OperatorPanel() {
       toast({ title: "Tie!", description: "Scores are equal — use Tie Break first.", variant: "destructive" });
       return;
     }
+
+    const winnerName = getDancerName(winnerId);
+    if (!window.confirm(`Confirm winner: ${winnerName}?\n\nScore: ${votesLeft} : ${votesRight}`)) return;
 
     try {
       // Save winner to match

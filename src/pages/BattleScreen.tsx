@@ -230,7 +230,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
       supabase.removeChannel(dancersChannel);
       supabase.removeChannel(matchesChannel);
     };
-  }, [id, screenState?.current_match_id]);
+  }, [id]);
 
   const loadVotes = async () => {
     const matchId = currentMatchIdRef.current;
@@ -345,22 +345,20 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         if (matchData) {
           setCurrentMatch(matchData);
 
-          if (matchData.dancer_left_id) {
-            const { data: leftData } = await supabase
+          // Batch load both dancers in parallel
+          const dancerIds = [matchData.dancer_left_id, matchData.dancer_right_id].filter(Boolean);
+          if (dancerIds.length > 0) {
+            const { data: dancersData } = await supabase
               .from("dancers")
               .select("*")
-              .eq("id", matchData.dancer_left_id)
-              .single();
-            setLeftDancer(leftData);
-          }
-
-          if (matchData.dancer_right_id) {
-            const { data: rightData } = await supabase
-              .from("dancers")
-              .select("*")
-              .eq("id", matchData.dancer_right_id)
-              .single();
-            setRightDancer(rightData);
+              .in("id", dancerIds);
+            
+            const dancersMap = new Map(dancersData?.map(d => [d.id, d]) || []);
+            setLeftDancer(matchData.dancer_left_id ? (dancersMap.get(matchData.dancer_left_id) as Dancer) || null : null);
+            setRightDancer(matchData.dancer_right_id ? (dancersMap.get(matchData.dancer_right_id) as Dancer) || null : null);
+          } else {
+            setLeftDancer(null);
+            setRightDancer(null);
           }
         }
       } else {
@@ -369,7 +367,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         setRightDancer(null);
       }
 
-      // Load Next Match
+      // Load Next Match with batched dancer query
       if (stateData.next_match_id) {
         const { data: nextMatchData } = await supabase
           .from("matches")
@@ -378,14 +376,16 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
           .single();
         if (nextMatchData) {
           setNextMatch(nextMatchData);
-          if (nextMatchData.dancer_left_id) {
-            const { data } = await supabase.from("dancers").select("*").eq("id", nextMatchData.dancer_left_id).single();
-            setNextLeftDancer(data);
-          } else { setNextLeftDancer(null); }
-          if (nextMatchData.dancer_right_id) {
-            const { data } = await supabase.from("dancers").select("*").eq("id", nextMatchData.dancer_right_id).single();
-            setNextRightDancer(data);
-          } else { setNextRightDancer(null); }
+          const nextDancerIds = [nextMatchData.dancer_left_id, nextMatchData.dancer_right_id].filter(Boolean);
+          if (nextDancerIds.length > 0) {
+            const { data: nextDancers } = await supabase.from("dancers").select("*").in("id", nextDancerIds);
+            const map = new Map(nextDancers?.map(d => [d.id, d]) || []);
+            setNextLeftDancer(nextMatchData.dancer_left_id ? (map.get(nextMatchData.dancer_left_id) as Dancer) || null : null);
+            setNextRightDancer(nextMatchData.dancer_right_id ? (map.get(nextMatchData.dancer_right_id) as Dancer) || null : null);
+          } else {
+            setNextLeftDancer(null);
+            setNextRightDancer(null);
+          }
         }
       } else {
         setNextMatch(null); setNextLeftDancer(null); setNextRightDancer(null);
@@ -442,18 +442,16 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
           .eq("battle_id", id)
           .eq("role", "judge");
 
-        if (judgesData) {
-          const judgeProfiles = await Promise.all(
-            judgesData.map(async (j) => {
-              const { data } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .eq("id", j.user_id)
-                .single();
-              return data;
-            })
-          );
-          setJudges(judgeProfiles.filter(Boolean) as Judge[]);
+        if (judgesData && judgesData.length > 0) {
+          const judgeUserIds = judgesData.map(j => j.user_id);
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", judgeUserIds);
+          
+          setJudges((profiles || []).filter(Boolean) as Judge[]);
+        } else {
+          setJudges([]);
         }
       }
     } catch (error) {
