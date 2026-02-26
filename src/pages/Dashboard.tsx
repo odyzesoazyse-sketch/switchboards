@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, Users, Trophy, Gavel, Trash2, Search } from "lucide-react";
+import { Plus, Calendar, Users, Trophy, Gavel, Trash2, Search, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
