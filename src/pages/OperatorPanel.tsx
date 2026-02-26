@@ -1321,7 +1321,7 @@ export default function OperatorPanel() {
         {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 border-primary/30">
             <div className="space-y-3 text-center">
-              <Badge className="bg-green-500 mb-2">LIVE HEAT</Badge>
+              <Badge className="bg-primary mb-2">LIVE HEAT</Badge>
               <div className="flex flex-wrap justify-center items-center gap-4">
                 {screenState.active_selection_dancers.map((dId, index) => (
                   <div key={dId} className="flex items-center">
