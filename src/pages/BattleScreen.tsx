@@ -345,22 +345,20 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         if (matchData) {
           setCurrentMatch(matchData);
 
-          if (matchData.dancer_left_id) {
-            const { data: leftData } = await supabase
+          // Batch load both dancers in parallel
+          const dancerIds = [matchData.dancer_left_id, matchData.dancer_right_id].filter(Boolean);
+          if (dancerIds.length > 0) {
+            const { data: dancersData } = await supabase
               .from("dancers")
               .select("*")
-              .eq("id", matchData.dancer_left_id)
-              .single();
-            setLeftDancer(leftData);
-          }
-
-          if (matchData.dancer_right_id) {
-            const { data: rightData } = await supabase
-              .from("dancers")
-              .select("*")
-              .eq("id", matchData.dancer_right_id)
-              .single();
-            setRightDancer(rightData);
+              .in("id", dancerIds);
+            
+            const dancersMap = new Map(dancersData?.map(d => [d.id, d]) || []);
+            setLeftDancer(matchData.dancer_left_id ? (dancersMap.get(matchData.dancer_left_id) as Dancer) || null : null);
+            setRightDancer(matchData.dancer_right_id ? (dancersMap.get(matchData.dancer_right_id) as Dancer) || null : null);
+          } else {
+            setLeftDancer(null);
+            setRightDancer(null);
           }
         }
       } else {
