@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Check, Users, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Dancer {
   id: string;
@@ -32,6 +33,7 @@ function getSessionId(): string {
 
 export default function AudienceVote() {
   const { id } = useParams();
+  const { t } = useLanguage();
   const [battleName, setBattleName] = useState("");
   const [matchId, setMatchId] = useState<string | null>(null);
   const [leftDancer, setLeftDancer] = useState<Dancer | null>(null);
@@ -196,8 +198,8 @@ export default function AudienceVote() {
             <Trophy className="w-10 h-10 text-muted-foreground" />
           </div>
           <h1 className="text-2xl font-display font-bold">{battleName}</h1>
-          <p className="text-muted-foreground">No active match right now. Stay tuned!</p>
-          <Badge variant="outline" className="animate-pulse">Waiting for match...</Badge>
+          <p className="text-muted-foreground">{t("audience.noMatch")}</p>
+          <Badge variant="outline" className="animate-pulse">{t("audience.waitingMatch")}</Badge>
         </div>
       </div>
     );
@@ -297,7 +299,7 @@ export default function AudienceVote() {
 
       {/* Footer */}
       <div className="text-center mt-6 text-xs text-muted-foreground">
-        <p>Powered by BattleBoard</p>
+        <p>{t("audience.poweredBy")}</p>
       </div>
     </div>
   );

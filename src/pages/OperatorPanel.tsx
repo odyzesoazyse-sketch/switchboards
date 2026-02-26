@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -163,12 +163,40 @@ export default function OperatorPanel() {
   const [primaryColor, setPrimaryColor] = useState("");
   const [secondaryColor, setSecondaryColor] = useState("");
   const [showLivePreview, setShowLivePreview] = useState(false);
-
+  const [showAudienceQR, setShowAudienceQR] = useState(true);
+  const [autoAdvanceOnTimer, setAutoAdvanceOnTimer] = useState(false);
+  const timerEndRef = useRef<string | null>(null);
   const { playSound, preloadAll } = useSoundEffects(soundEnabled);
 
   useEffect(() => {
     preloadAll();
   }, [preloadAll]);
+
+  // Auto-advance when timer ends
+  useEffect(() => {
+    if (!autoAdvanceOnTimer || !screenState?.timer_running || !screenState?.timer_end_time) {
+      timerEndRef.current = null;
+      return;
+    }
+
+    timerEndRef.current = screenState.timer_end_time;
+
+    const checkTimer = () => {
+      if (!timerEndRef.current) return;
+      const endTime = new Date(timerEndRef.current).getTime();
+      const now = Date.now();
+      if (now >= endTime) {
+        // Timer ended - auto advance
+        playSound("timerEnd");
+        toast({ title: "⏱️ Timer ended!", description: "Auto-advancing to next round..." });
+        nextRound();
+        stopTimer();
+      }
+    };
+
+    const interval = setInterval(checkTimer, 1000);
+    return () => clearInterval(interval);
+  }, [autoAdvanceOnTimer, screenState?.timer_running, screenState?.timer_end_time]);
 
   useEffect(() => {
     if (id) {
@@ -1025,6 +1053,14 @@ export default function OperatorPanel() {
                       <div className="flex items-center justify-between">
                         <Label>Show Score</Label>
                         <Switch checked={showScore} onCheckedChange={setShowScore} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Audience QR on Screen</Label>
+                        <Switch checked={showAudienceQR} onCheckedChange={setShowAudienceQR} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Auto-advance on timer end</Label>
+                        <Switch checked={autoAdvanceOnTimer} onCheckedChange={setAutoAdvanceOnTimer} />
                       </div>
                       <div className="flex items-center justify-between">
                         <Label>Rounds to Win</Label>
