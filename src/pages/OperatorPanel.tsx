@@ -765,6 +765,9 @@ export default function OperatorPanel() {
       return;
     }
 
+    const winnerName = getDancerName(winnerId);
+    if (!window.confirm(`Confirm winner: ${winnerName}?\n\nScore: ${votesLeft} : ${votesRight}`)) return;
+
     try {
       // Save winner to match
       const { error: matchError } = await supabase
