@@ -13,32 +13,32 @@ function HeatSliderVoting({ onSubmit }: { onSubmit: (t: number, m: number, p: nu
   const [performance, setPerformance] = useState(5);
 
   return (
-    <div className="space-y-6 mt-4">
-      <div className="space-y-3">
+    <div className="space-y-8 mt-4">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Technique</span>
-          <span className="font-mono text-primary font-bold">{technique}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{technique}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={technique} onChange={e => setTechnique(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={technique} onChange={e => setTechnique(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Musicality</span>
-          <span className="font-mono text-primary font-bold">{musicality}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{musicality}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={musicality} onChange={e => setMusicality(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={musicality} onChange={e => setMusicality(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center px-1">
           <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Performance</span>
-          <span className="font-mono text-primary font-bold">{performance}/10</span>
+          <span className="font-mono text-primary font-bold text-lg">{performance}/10</span>
         </div>
-        <input type="range" min="1" max="10" value={performance} onChange={e => setPerformance(parseInt(e.target.value))} className="w-full accent-primary h-2 bg-muted rounded-full appearance-none" />
+        <input type="range" min="1" max="10" value={performance} onChange={e => setPerformance(parseInt(e.target.value))} className="w-full accent-primary h-3 bg-muted rounded-full appearance-none touch-manipulation" style={{ minHeight: '44px' }} />
       </div>
 
-      <Button onClick={() => onSubmit(technique, musicality, performance)} className="w-full h-12 bg-primary">
+      <Button onClick={() => onSubmit(technique, musicality, performance)} className="w-full h-14 bg-primary text-lg font-bold touch-manipulation active:scale-95 transition-transform">
         Submit Score
       </Button>
     </div>
