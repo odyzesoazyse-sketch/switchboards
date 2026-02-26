@@ -1333,7 +1333,6 @@ export default function OperatorPanel() {
                       if (error) throw error;
 
                       if (phase === "bracket") {
-                        // Clear selection dancers from screen when switching to bracket
                         await updateScreenState({
                           active_selection_dancers: [],
                           next_selection_dancers: [],
@@ -1341,7 +1340,6 @@ export default function OperatorPanel() {
                       }
 
                       if (phase === "selection") {
-                        // Clear match when switching to selection
                         await updateScreenState({
                           current_match_id: null,
                           next_match_id: null,
@@ -1362,6 +1360,68 @@ export default function OperatorPanel() {
             })}
           </div>
         )}
+
+        {/* Screen Control Bar - always visible */}
+        <Card className="p-3 border-dashed">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mr-1">Screen:</span>
+            
+            {screenState?.current_match_id && currentMatch && !showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                {getDancerName(currentMatch.dancer_left_id)} vs {getDancerName(currentMatch.dancer_right_id)}
+              </Badge>
+            )}
+            {showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <Layout className="h-3 w-3" />
+                Bracket
+              </Badge>
+            )}
+            {screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && !showBracket && (
+              <Badge variant="secondary" className="gap-1">
+                <Users className="h-3 w-3" />
+                Heat Live
+              </Badge>
+            )}
+            {!screenState?.current_match_id && !showBracket && (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) && (
+              <span className="text-xs text-muted-foreground italic">Empty</span>
+            )}
+
+            <div className="flex-1" />
+
+            {currentNomination?.phase === 'bracket' && matches.length > 0 && (
+              <div className="flex gap-1">
+                <Button
+                  variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleBracket("symmetric")}
+                  className="h-7 text-[10px] px-2"
+                >
+                  ←|→
+                </Button>
+                <Button
+                  variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleBracket("linear")}
+                  className="h-7 text-[10px] px-2"
+                >
+                  →→→
+                </Button>
+              </div>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearScreen}
+              className="h-7 text-[10px] px-2 text-destructive hover:text-destructive"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          </div>
+        </Card>
 
         {/* Active Selection Heat Control */}
         {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
