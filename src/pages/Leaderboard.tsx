@@ -102,9 +102,9 @@ export default function Leaderboard() {
   };
 
   const getRankIcon = (index: number) => {
-    if (index === 0) return <Crown className="w-6 h-6 text-yellow-500" />;
-    if (index === 1) return <Medal className="w-6 h-6 text-gray-400" />;
-    if (index === 2) return <Medal className="w-6 h-6 text-amber-600" />;
+    if (index === 0) return <Crown className="w-6 h-6 text-primary" />;
+    if (index === 1) return <Medal className="w-6 h-6 text-muted-foreground" />;
+    if (index === 2) return <Medal className="w-6 h-6 text-secondary" />;
     return <span className="w-6 h-6 flex items-center justify-center font-bold text-muted-foreground">{index + 1}</span>;
   };
 
