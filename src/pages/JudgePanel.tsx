@@ -405,10 +405,10 @@ export default function JudgePanel() {
 
       // Check judge assignments
       const { data: assignments } = await supabase
-        .from("judge_assignments")
+        .from("judge_assignments" as any)
         .select("nomination_id, battle_id")
         .in("battle_id", battleIds)
-        .eq("judge_id", user.id);
+        .eq("judge_id", user.id) as any;
 
       const assignedByBattle = assignments?.reduce((acc, curr) => {
         if (!acc[curr.battle_id]) acc[curr.battle_id] = [];
