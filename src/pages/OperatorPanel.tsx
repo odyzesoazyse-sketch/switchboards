@@ -1351,7 +1351,7 @@ export default function OperatorPanel() {
                         <div key={judge.id} className="flex flex-col p-2 bg-background/50 rounded border text-sm">
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">{judge.name}</span>
-                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-green-500 hover:bg-green-600" : ""}>
+                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-primary hover:bg-primary/90" : ""}>
                               {isDone ? "Done" : `${scoredCount} / ${totalNeeded} scored`}
                             </Badge>
                           </div>
