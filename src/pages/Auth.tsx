@@ -174,26 +174,28 @@ const Auth = () => {
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
 
-            <div className="flex gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => handleQuickAuth("Organizer")}
-                disabled={loading}
-              >
-                ⚡ Test Organizer
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => handleQuickAuth("Judge")}
-                disabled={loading}
-              >
-                ⚖️ Test Judge/Dancer
-              </Button>
-            </div>
+            {process.env.NODE_ENV === 'development' && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleQuickAuth("Organizer")}
+                  disabled={loading}
+                >
+                  ⚡ Test Organizer
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleQuickAuth("Judge")}
+                  disabled={loading}
+                >
+                  ⚖️ Test Judge/Dancer
+                </Button>
+              </div>
+            )}
           </form>
           <div className="mt-4 text-center">
             <button
