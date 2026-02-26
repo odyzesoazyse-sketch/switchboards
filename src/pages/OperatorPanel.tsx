@@ -1267,8 +1267,8 @@ export default function OperatorPanel() {
 
         {/* Quick Phase Switch */}
         {currentNomination && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
             {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
               const isCurrent = currentNomination.phase === phase;
               const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
@@ -1277,7 +1277,7 @@ export default function OperatorPanel() {
                   key={phase}
                   variant={isCurrent ? "default" : "outline"}
                   size="sm"
-                  className={`text-xs h-7 px-2 ${isCurrent ? "" : "opacity-60"}`}
+                  className={`text-[10px] sm:text-xs h-6 sm:h-7 px-1.5 sm:px-2 ${isCurrent ? "" : "opacity-60"}`}
                   onClick={async () => {
                     if (isCurrent) return;
                     try {
@@ -1411,7 +1411,7 @@ export default function OperatorPanel() {
               </div>
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => addScore('left')}
@@ -1529,7 +1529,7 @@ export default function OperatorPanel() {
               )}
 
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>

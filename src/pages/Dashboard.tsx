@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, Users, Trophy, Gavel, Trash2, Search } from "lucide-react";
+import { Plus, Calendar, Users, Trophy, Gavel, Trash2, Search, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -135,30 +135,33 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card">
       <header className="border-b border-border/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">SWITCHBOARD</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground shrink-0">SWITCHBOARD</h1>
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <span className="text-xs sm:text-sm text-muted-foreground truncate max-w-[120px] sm:max-w-none hidden sm:inline">{user?.email}</span>
             {isJudge && (
-              <Button variant="outline" onClick={() => navigate("/judge")}>
-                <Gavel className="w-4 h-4 mr-2" />
-                Judge Panel
+              <Button variant="outline" size="sm" onClick={() => navigate("/judge")} className="shrink-0">
+                <Gavel className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Judge Panel</span>
               </Button>
             )}
-            <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">My Battles</h2>
-            <p className="text-muted-foreground">Manage your breakdance events</p>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8 gap-2">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">My Battles</h2>
+            <p className="text-muted-foreground text-sm sm:text-base">Manage your events</p>
           </div>
-          <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90 glow-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Battle
+          <Button onClick={() => navigate("/battle/create")} size="sm" className="bg-primary hover:bg-primary/90 glow-primary shrink-0">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Create Battle</span>
           </Button>
         </div>
 
@@ -181,7 +184,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {battles.map((battle) => (
               <Card
                 key={battle.id}
