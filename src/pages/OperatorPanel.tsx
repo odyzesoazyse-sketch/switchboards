@@ -339,10 +339,10 @@ export default function OperatorPanel() {
         }
       }
 
-      const { data: scores } = await (supabase
-        .from("selection_scores" as any)
+      const { data: scores } = await supabase
+        .from("selection_scores")
         .select("*")
-        .eq("nomination_id", selectedNomination) as any)
+        .eq("nomination_id", selectedNomination)
         .in("dancer_id", screenState.active_selection_dancers);
 
       setSelectionScores(scores || []);
