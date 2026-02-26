@@ -555,7 +555,7 @@ export default function JudgePanel() {
       if (!user) return;
 
       const { error } = await supabase
-        .from("selection_scores")
+        .from("selection_scores" as any)
         .upsert({
           nomination_id: activeHeat.nomination_id,
           dancer_id: dancerId,
