@@ -252,7 +252,7 @@ export default function JudgePanel() {
           .from("nominations")
           .select("name, concurrent_circles")
           .eq("id", screenStates.nomination_id)
-          .single();
+          .single() as any;
 
         const orderedDancers = screenStates.active_selection_dancers.map((id: string) => dancers?.find(d => d.id === id)).filter(Boolean) as Dancer[];
 
