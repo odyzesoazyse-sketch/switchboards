@@ -1474,11 +1474,11 @@ export default function OperatorPanel() {
                       }
 
                       return (
-                        <div key={judge.id} className="flex items-center justify-between bg-background/50 p-2 rounded border border-border/50 text-sm">
-                          <span className="font-medium">{judge.name}</span>
+                        <div key={judge.id} className={`flex items-center justify-between p-2.5 rounded-lg border text-sm transition-all ${vote ? 'bg-background/50 border-border/50' : 'bg-yellow-500/5 border-yellow-500/20'}`}>
                           <div className="flex items-center gap-2">
-                            <span className={voteColor}>{voteDisplay}</span>
-
+                            <div className={`w-2 h-2 rounded-full ${vote ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
+                            <span className="font-medium">{judge.name}</span>
+                          </div>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-6 w-6">
