@@ -772,28 +772,58 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         isObs={isObs}
       >
         <div className={`h-full w-full flex items-center justify-center p-4 sm:p-6 md:p-8`}>
-          <div className={`text-center space-y-4 sm:space-y-6 md:space-y-8 animate-scale-in ${animationClass} w-full max-w-lg`}>
-            <div className="flex items-center justify-center gap-2 sm:gap-4 text-white">
-              <Trophy className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
+          <motion.div
+            className={`text-center space-y-4 sm:space-y-6 md:space-y-8 w-full max-w-lg`}
+            initial={{ scale: 0.3, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15, duration: 0.8 }}
+          >
+            <motion.div
+              className="flex items-center justify-center gap-2 sm:gap-4 text-white"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, -15, 15, -10, 10, 0], scale: [1, 1.2, 1] }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              >
+                <Trophy className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
+              </motion.div>
               <h1
                 className={`${fontClass} font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl`}
                 style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
               >
                 WINNER
               </h1>
-              <Trophy className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
-            </div>
+              <motion.div
+                animate={{ rotate: [0, 15, -15, 10, -10, 0], scale: [1, 1.2, 1] }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              >
+                <Trophy className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
+              </motion.div>
+            </motion.div>
 
-            <div className={`bg-black/60 ${blurClass} rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 mx-auto`}>
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-xl sm:rounded-2xl bg-white/10 flex items-center justify-center mb-4 sm:mb-6 overflow-hidden">
+            <motion.div
+              className={`bg-black/60 ${blurClass} rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 mx-auto`}
+              initial={{ y: 30, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
+            >
+              <motion.div
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-xl sm:rounded-2xl bg-white/10 flex items-center justify-center mb-4 sm:mb-6 overflow-hidden"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
+              >
                 {winner?.video_url ? (
                   <video src={winner.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                 ) : winner?.photo_url ? (
-                  <img src={winner.photo_url} alt={winner.name} className="w-full h-full object- cover" />
+                  <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white" />
                 )}
-              </div>
+              </motion.div>
               <h2
                 className={`${fontClass} font-bold text-white mb-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl`}
                 style={{ fontSize: `calc(1.75rem * ${fontScale.name})` }}
@@ -803,19 +833,22 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
               {winner?.city && (
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/70">{winner.city}</p>
               )}
-            </div>
+            </motion.div>
 
             {screenState.show_score && (
-              <div
+              <motion.div
                 className={`${fontClass} font-bold text-white/90 text-2xl sm:text-3xl md:text-4xl`}
                 style={{ fontSize: `calc(1.75rem * ${fontScale.name})` }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
               >
                 {screenState.votes_left} — {screenState.votes_right}
-              </div>
+              </motion.div>
             )}
 
             {renderVoteBreakdown()}
-          </div>
+          </motion.div>
         </div>
       </ScreenWrapper>
     );
