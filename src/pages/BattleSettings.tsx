@@ -106,11 +106,13 @@ export default function BattleSettings() {
 
       if (nominationsError) throw nominationsError;
 
-      setNominations((nominationsData || []).map((n, i) => ({
+      setNominations((nominationsData || []).map((n: any, i: number) => ({
         ...n,
         judging_criteria: Array.isArray(n.judging_criteria)
           ? n.judging_criteria as unknown as JudgingCriterion[]
           : [],
+        selection_format: n.selection_format || 1,
+        concurrent_circles: n.concurrent_circles || 1,
         isOpen: i === 0
       })));
     } catch (error: any) {

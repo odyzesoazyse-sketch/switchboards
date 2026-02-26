@@ -301,7 +301,7 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
       if (stateError) throw stateError;
 
-      let existingState = existingStates && existingStates.length > 0 ? existingStates[0] : null;
+      let existingState = existingStates && existingStates.length > 0 ? existingStates[0] as any : null;
 
       let stateData = existingState;
 
