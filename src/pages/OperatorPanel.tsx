@@ -1612,7 +1612,7 @@ export default function OperatorPanel() {
               )}
 
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
                   <RotateCcw className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Reset</span>
@@ -1625,22 +1625,6 @@ export default function OperatorPanel() {
                   <Trophy className="h-4 w-4" />
                   <span className="text-[10px] uppercase">Winner</span>
                 </Button>
-                <div className="flex flex-col gap-1 h-14 justify-center">
-                  <Button
-                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
-                    onClick={() => toggleBracket("symmetric")}
-                    className="flex-1 min-h-0 py-0 text-[10px]"
-                  >
-                    ←|→
-                  </Button>
-                  <Button
-                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
-                    onClick={() => toggleBracket("linear")}
-                    className="flex-1 min-h-0 py-0 text-[10px]"
-                  >
-                    →→→
-                  </Button>
-                </div>
               </div>
             </div>
           </Card>
