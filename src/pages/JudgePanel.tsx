@@ -298,7 +298,7 @@ export default function JudgePanel() {
           )
         `)
         .eq("id", screenStates.current_match_id)
-        .single();
+        .single() as any;
 
       if (!matchData) {
         setActiveMatch(null);
