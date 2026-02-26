@@ -153,15 +153,15 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">My Battles</h2>
-            <p className="text-muted-foreground">Manage your breakdance events</p>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8 gap-2">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">My Battles</h2>
+            <p className="text-muted-foreground text-sm sm:text-base">Manage your events</p>
           </div>
-          <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90 glow-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Battle
+          <Button onClick={() => navigate("/battle/create")} size="sm" className="bg-primary hover:bg-primary/90 glow-primary shrink-0">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Create Battle</span>
           </Button>
         </div>
 
