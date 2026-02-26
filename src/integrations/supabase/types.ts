@@ -49,6 +49,45 @@ export type Database = {
           },
         ]
       }
+      audience_votes: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          session_id: string
+          vote_for: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          session_id: string
+          vote_for?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          session_id?: string
+          vote_for?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audience_votes_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audience_votes_vote_for_fkey"
+            columns: ["vote_for"]
+            isOneToOne: false
+            referencedRelation: "dancers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       battles: {
         Row: {
           created_at: string
