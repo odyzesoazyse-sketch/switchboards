@@ -83,9 +83,7 @@ const Dashboard = () => {
         setBattles(organizerBattles);
       }
 
-      if (hasJudgeRole) {
-        setIsJudge(true);
-      }
+      // Judge-only users are auto-redirected above
     } catch (error: any) {
       toast.error("Error loading data");
     } finally {
