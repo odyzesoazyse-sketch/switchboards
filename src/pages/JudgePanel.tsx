@@ -863,6 +863,19 @@ export default function JudgePanel() {
                 <History className="h-5 w-5" />
                 Vote History
               </Button>
+              {activeHeat && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-12 text-primary"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.open(`/cypher-swipe/${activeHeat.nomination_id}`, '_blank');
+                  }}
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Cypher Swipe
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-12"
