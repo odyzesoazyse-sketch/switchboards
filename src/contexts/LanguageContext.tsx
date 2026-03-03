@@ -25,11 +25,11 @@ const translations: Translations = {
   "hero.title2": { en: "Fast.", es: "Rápido.", ru: "Быстро.", fr: "Rapide.", pt: "Rápido." },
   "hero.title3": { en: "Flawless.", es: "Perfecto.", ru: "Безупречно.", fr: "Parfait.", pt: "Perfeito." },
   "hero.subtitle": { 
-    en: "The modern judging system for breakdance battles. Real-time voting, live visualization, and transparent scoring.",
-    es: "El sistema de jurado moderno para batallas de breakdance. Votación en tiempo real, visualización en vivo y puntuación transparente.",
-    ru: "Современная система судейства для брейк-данс баттлов. Голосование в реальном времени, живая визуализация и прозрачная оценка.",
-    fr: "Le système de jury moderne pour les battles de breakdance. Vote en temps réel, visualisation en direct et notation transparente.",
-    pt: "O sistema moderno de arbitragem para batalhas de breakdance. Votação em tempo real, visualização ao vivo e pontuação transparente."
+    en: "Professional judging system for all battle dance styles — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking and more.",
+    es: "Sistema profesional de jurado para todos los estilos de batalla — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking y más.",
+    ru: "Система судейства для всех стилей батловых танцев — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking и других.",
+    fr: "Système de jugement professionnel pour tous les styles de danse battle — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking et plus.",
+    pt: "Sistema profissional de arbitragem para todos os estilos de dança battle — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking e mais."
   },
   "hero.findBattle": { en: "Find a Battle", es: "Buscar Batalla", ru: "Найти Баттл", fr: "Trouver un Battle", pt: "Encontrar Batalha" },
   "hero.organize": { en: "Organize Event", es: "Organizar Evento", ru: "Организовать Событие", fr: "Organiser un Événement", pt: "Organizar Evento" },
