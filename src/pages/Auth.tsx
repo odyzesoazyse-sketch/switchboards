@@ -116,7 +116,7 @@ const Auth = () => {
               SWITCHBOARD
             </h1>
             <p className="text-sm text-muted-foreground">
-              Fair breakdance battle judging
+              Professional judging for all dance battle styles
             </p>
           </div>
           <CardTitle className="text-2xl">

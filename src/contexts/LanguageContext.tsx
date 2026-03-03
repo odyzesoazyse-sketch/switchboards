@@ -25,11 +25,11 @@ const translations: Translations = {
   "hero.title2": { en: "Fast.", es: "Rápido.", ru: "Быстро.", fr: "Rapide.", pt: "Rápido." },
   "hero.title3": { en: "Flawless.", es: "Perfecto.", ru: "Безупречно.", fr: "Parfait.", pt: "Perfeito." },
   "hero.subtitle": { 
-    en: "The modern judging system for breakdance battles. Real-time voting, live visualization, and transparent scoring.",
-    es: "El sistema de jurado moderno para batallas de breakdance. Votación en tiempo real, visualización en vivo y puntuación transparente.",
-    ru: "Современная система судейства для брейк-данс баттлов. Голосование в реальном времени, живая визуализация и прозрачная оценка.",
-    fr: "Le système de jury moderne pour les battles de breakdance. Vote en temps réel, visualisation en direct et notation transparente.",
-    pt: "O sistema moderno de arbitragem para batalhas de breakdance. Votação em tempo real, visualização ao vivo e pontuação transparente."
+    en: "Professional judging system for all battle dance styles — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking and more.",
+    es: "Sistema profesional de jurado para todos los estilos de batalla — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking y más.",
+    ru: "Система судейства для всех стилей батловых танцев — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking и других.",
+    fr: "Système de jugement professionnel pour tous les styles de danse battle — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking et plus.",
+    pt: "Sistema profissional de arbitragem para todos os estilos de dança battle — Breaking, Hip-Hop, Popping, Locking, Krump, Waacking e mais."
   },
   "hero.findBattle": { en: "Find a Battle", es: "Buscar Batalla", ru: "Найти Баттл", fr: "Trouver un Battle", pt: "Encontrar Batalha" },
   "hero.organize": { en: "Organize Event", es: "Organizar Evento", ru: "Организовать Событие", fr: "Organiser un Événement", pt: "Organizar Evento" },
@@ -38,7 +38,7 @@ const translations: Translations = {
   
   // Features
   "features.title": { en: "Everything You Need", es: "Todo lo que Necesitas", ru: "Всё что Нужно", fr: "Tout ce dont Vous Avez Besoin", pt: "Tudo que Você Precisa" },
-  "features.subtitle": { en: "A complete toolkit for running professional breakdance battles", es: "Un kit completo para organizar batallas de breakdance profesionales", ru: "Полный набор инструментов для проведения профессиональных баттлов", fr: "Un kit complet pour organiser des battles professionnels", pt: "Um kit completo para organizar batalhas profissionais" },
+  "features.subtitle": { en: "Complete toolkit for any dance battle style", es: "Kit completo para cualquier estilo de batalla", ru: "Полный набор инструментов для любого стиля баттла", fr: "Kit complet pour tout style de battle", pt: "Kit completo para qualquer estilo de batalha" },
   "features.roles": { en: "Role-Based Access", es: "Acceso por Roles", ru: "Доступ по Ролям", fr: "Accès par Rôles", pt: "Acesso por Funções" },
   "features.rolesDesc": { en: "Organizers, judges, selectors — each with their own interface and permissions", es: "Organizadores, jueces, selectores — cada uno con su propia interfaz", ru: "Организаторы, судьи, селекторы — у каждого свой интерфейс и права", fr: "Organisateurs, juges, sélecteurs — chacun avec son interface", pt: "Organizadores, juízes, seletores — cada um com sua interface" },
   "features.realtime": { en: "Real-time Scoring", es: "Puntuación en Tiempo Real", ru: "Оценка в Реальном Времени", fr: "Score en Temps Réel", pt: "Pontuação em Tempo Real" },
