@@ -1027,29 +1027,29 @@ export default function OperatorPanel() {
 
             {/* ── Active Match Control ── */}
             {currentNomination?.phase !== 'selection' && currentMatch && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {/* Score display - the hero element */}
-                <div className="text-center space-y-2">
-                  <div className="flex items-center justify-center gap-6">
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-8">
                     <div className="text-right flex-1 min-w-0">
-                      <div className="text-xl sm:text-2xl font-display font-black text-primary truncate">
+                      <div className="text-2xl sm:text-3xl font-display font-black text-primary truncate">
                         {getDancerName(currentMatch.dancer_left_id)}
                       </div>
                     </div>
-                    <div className="text-4xl sm:text-5xl font-display font-black tabular-nums tracking-tight shrink-0">
-                      {votesLeft}<span className="text-muted-foreground/30 mx-1">:</span>{votesRight}
+                    <div className="text-5xl sm:text-6xl font-display font-black tabular-nums tracking-tight shrink-0">
+                      {votesLeft}<span className="text-muted-foreground/20 mx-2">:</span>{votesRight}
                     </div>
                     <div className="text-left flex-1 min-w-0">
-                      <div className="text-xl sm:text-2xl font-display font-black text-secondary truncate">
+                      <div className="text-2xl sm:text-3xl font-display font-black text-secondary truncate">
                         {getDancerName(currentMatch.dancer_right_id)}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center gap-3">
-                    <Badge variant="outline" className="text-[10px]">Round {currentRound}</Badge>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-success' : 'bg-yellow-500'} animate-pulse`} />
-                      <span className="text-xs text-muted-foreground font-medium">{voteCount}/{totalJudges}</span>
+                  <div className="flex items-center justify-center gap-4">
+                    <Badge variant="outline" className="text-[10px] border-border/30">Round {currentRound}</Badge>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-neon glow-neon' : 'bg-warning'} animate-pulse`} />
+                      <span className="text-xs text-muted-foreground font-semibold tabular-nums">{voteCount}/{totalJudges}</span>
                     </div>
                   </div>
                 </div>
