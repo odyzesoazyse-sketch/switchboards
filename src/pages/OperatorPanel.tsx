@@ -533,8 +533,18 @@ export default function OperatorPanel() {
     setVotesRight(0);
     setShowCustomMessage(false);
 
-    const matchIndex = matches.findIndex(m => m.id === matchId);
-    const nextMatchId = matchIndex >= 0 && matchIndex < matches.length - 1 ? matches[matchIndex + 1].id : null;
+    // Bug fix #4: Find next match within the SAME round, not just flat index
+    const currentMatchObj = matches.find(m => m.id === matchId);
+    let nextMatchId: string | null = null;
+    if (currentMatchObj) {
+      const sameRoundMatches = matches
+        .filter(m => m.round === currentMatchObj.round)
+        .sort((a, b) => a.position - b.position);
+      const idxInRound = sameRoundMatches.findIndex(m => m.id === matchId);
+      if (idxInRound >= 0 && idxInRound < sameRoundMatches.length - 1) {
+        nextMatchId = sameRoundMatches[idxInRound + 1].id;
+      }
+    }
 
     await updateScreenState({
       current_match_id: matchId,
