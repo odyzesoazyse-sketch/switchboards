@@ -59,6 +59,11 @@ export default function AudienceVote() {
   }, [id]);
 
   useEffect(() => {
+    // Bug fix #11: Reset vote state when match changes
+    setHasVoted(false);
+    setVotedFor(null);
+    setStats({ left: 0, right: 0, total: 0 });
+
     if (!matchId) return;
     loadStats();
     checkExistingVote();

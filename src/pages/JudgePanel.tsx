@@ -192,7 +192,7 @@ export default function JudgePanel() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { error } = await supabase.from("match_votes").insert({ match_id: activeMatch.id, judge_id: user.id, vote_for: votedFor, round_number: effectiveRound });
+      const { error } = await supabase.from("match_votes").upsert({ match_id: activeMatch.id, judge_id: user.id, vote_for: votedFor, round_number: effectiveRound }, { onConflict: 'match_id,judge_id,round_number' });
       if (error) throw error;
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
       toast({ title: "Vote Submitted", description: "Your vote has been recorded" });
@@ -209,7 +209,7 @@ export default function JudgePanel() {
       const total = technique + musicality + performance;
       let votedFor = null;
       if (total !== 0) votedFor = total > 0 ? activeMatch.dancer_right_id : activeMatch.dancer_left_id;
-      const { error } = await supabase.from("match_votes").insert({ match_id: matchId, judge_id: user.id, vote_for: votedFor, round_number: effectiveRound, slider_technique: technique, slider_musicality: musicality, slider_performance: performance });
+      const { error } = await supabase.from("match_votes").upsert({ match_id: matchId, judge_id: user.id, vote_for: votedFor, round_number: effectiveRound, slider_technique: technique, slider_musicality: musicality, slider_performance: performance }, { onConflict: 'match_id,judge_id,round_number' });
       if (error) throw error;
       toast({ title: "Vote Submitted", description: "Your scores have been recorded" });
       setSubmittedVoteFor(votedFor); setHasVotedThisRound(true);
