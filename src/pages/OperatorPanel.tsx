@@ -1460,11 +1460,11 @@ export default function OperatorPanel() {
 
             {/* Messages */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <MessageSquare className="h-3.5 w-3.5" />Messages
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <MessageSquare className="h-4 w-4" />Messages
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <Card className="p-4 mt-2 space-y-3">
