@@ -1055,42 +1055,42 @@ export default function OperatorPanel() {
                 </div>
 
                 {/* Action buttons - big & clear */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
                     onClick={() => addScore('left')}
-                    className="h-16 border-primary/30 hover:border-primary hover:bg-primary/5 text-primary text-xl font-bold"
+                    className="h-20 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary text-2xl font-black rounded-xl hover-glow-red transition-all"
                   >
                     +1 Red
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => addScore('right')}
-                    className="h-16 border-secondary/30 hover:border-secondary hover:bg-secondary/5 text-secondary text-xl font-bold"
+                    className="h-20 border-secondary/30 hover:border-secondary hover:bg-secondary/10 text-secondary text-2xl font-black rounded-xl hover-glow-blue transition-all"
                   >
                     +1 Blue
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {!timerRunning ? (
-                    <Button onClick={startTimer} variant="outline" className="h-12 gap-1.5">
-                      <PlayCircle className="h-4 w-4" />
+                    <Button onClick={startTimer} variant="outline" className="h-14 gap-2 rounded-xl text-sm font-semibold">
+                      <PlayCircle className="h-5 w-5" />
                       Timer
                     </Button>
                   ) : (
-                    <Button variant="destructive" onClick={stopTimer} className="h-12 gap-1.5">
-                      <PauseCircle className="h-4 w-4" />
+                    <Button variant="destructive" onClick={stopTimer} className="h-14 gap-2 rounded-xl text-sm font-semibold animate-neon-pulse">
+                      <PauseCircle className="h-5 w-5" />
                       Stop
                     </Button>
                   )}
-                  <Button onClick={nextRound} variant="outline" className="h-12 gap-1.5"
+                  <Button onClick={nextRound} variant="outline" className="h-14 gap-2 rounded-xl text-sm font-semibold"
                     disabled={currentRound >= (currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5)}>
-                    <SkipForward className="h-4 w-4" />
+                    <SkipForward className="h-5 w-5" />
                     Next
                   </Button>
-                  <Button onClick={declareWinner} className="h-12 gap-1.5 bg-gradient-to-r from-primary to-secondary text-white">
-                    <Trophy className="h-4 w-4" />
+                  <Button onClick={declareWinner} className="h-14 gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold">
+                    <Trophy className="h-5 w-5" />
                     Winner
                   </Button>
                 </div>
