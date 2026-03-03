@@ -26,6 +26,13 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useKeyboardShortcuts, SHORTCUT_HINTS } from "@/hooks/useKeyboardShortcuts";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import BracketSetup from "@/components/BracketSetup";
+import AiTimekeeper from "@/components/AiTimekeeper";
+import LlmPostGenerator from "@/components/LlmPostGenerator";
+import NfcCheckin from "@/components/NfcCheckin";
+import CyberRoulette from "@/components/CyberRoulette";
+import LivePrizePool from "@/components/LivePrizePool";
+import SpiderChart from "@/components/SpiderChart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Match {
   id: string;
