@@ -1332,20 +1332,20 @@ export default function OperatorPanel() {
           {/* ═══════ TAB 3: SETTINGS ═══════ */}
           <TabsContent value="settings" className="px-5 py-8 space-y-8 mt-0">
             {/* Quick Actions Row */}
-            <div className="flex gap-2 flex-wrap">
-              <Button onClick={openScreen} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+            <div className="flex gap-2.5 flex-wrap">
+              <Button onClick={openScreen} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Monitor className="h-3.5 w-3.5" />Screen
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/mc`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/mc`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Mic className="h-3.5 w-3.5" />MC
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <ExternalLink className="h-3.5 w-3.5" />OBS
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 🎤 Hype
               </Button>
-              <Button onClick={() => setShowLivePreview(!showLivePreview)} variant={showLivePreview ? "default" : "outline"} size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => setShowLivePreview(!showLivePreview)} variant={showLivePreview ? "default" : "outline"} size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Eye className="h-3.5 w-3.5" />Preview
               </Button>
               <JudgeAssignmentsModal battleId={id!} />
