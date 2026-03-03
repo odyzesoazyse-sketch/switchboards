@@ -400,15 +400,14 @@ export default function JudgePanel() {
   if (hasVotedThisRound && activeMatch) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="text-center space-y-6 max-w-sm animate-scale-in">
-            {/* Voted indicator */}
-            <div className={`w-24 h-24 mx-auto rounded-2xl flex items-center justify-center border-2 ${
-              submittedVoteFor === activeMatch.dancer_left_id ? 'bg-primary/10 border-primary' :
-              submittedVoteFor === activeMatch.dancer_right_id ? 'bg-secondary/10 border-secondary' :
+        <div className="flex-1 flex flex-col items-center justify-center p-10">
+          <div className="text-center space-y-8 max-w-sm animate-scale-in">
+            <div className={`w-28 h-28 mx-auto rounded-2xl flex items-center justify-center border-2 ${
+              submittedVoteFor === activeMatch.dancer_left_id ? 'bg-primary/10 border-primary glow-red' :
+              submittedVoteFor === activeMatch.dancer_right_id ? 'bg-secondary/10 border-secondary glow-blue' :
               'bg-muted border-muted-foreground/30'
             }`}>
-              <Check className={`w-10 h-10 ${
+              <Check className={`w-12 h-12 ${
                 submittedVoteFor === activeMatch.dancer_left_id ? 'text-primary' :
                 submittedVoteFor === activeMatch.dancer_right_id ? 'text-secondary' :
                 'text-muted-foreground'
@@ -416,16 +415,16 @@ export default function JudgePanel() {
             </div>
 
             <div>
-              <h2 className="text-xl font-display font-bold mb-1 flex items-center justify-center gap-2">
-                <Check className="w-5 h-5 text-success" />Vote Recorded
+              <h2 className="text-2xl font-display font-bold mb-2 flex items-center justify-center gap-2">
+                <Check className="w-6 h-6 text-neon" />Vote Recorded
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 {submittedVoteFor === activeMatch.dancer_left_id ? activeMatch.dancer_left?.name :
                  submittedVoteFor === activeMatch.dancer_right_id ? activeMatch.dancer_right?.name : "Tie"}
               </p>
             </div>
 
-            <Button variant="outline" onClick={undoVote} className="w-full text-muted-foreground">
+            <Button variant="outline" onClick={undoVote} className="w-full h-12 rounded-xl text-muted-foreground">
               Undo / Change Vote
             </Button>
           </div>
