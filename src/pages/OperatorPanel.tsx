@@ -1360,7 +1360,7 @@ export default function OperatorPanel() {
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-3">
+                <Card className="p-5 mt-3 space-y-4 rounded-xl border-border/40">
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Battle Name</Label><Switch checked={showBattleName} onCheckedChange={setShowBattleName} /></div>
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Judges</Label><Switch checked={showJudges} onCheckedChange={setShowJudges} /></div>
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Timer</Label><Switch checked={showTimer} onCheckedChange={setShowTimer} /></div>
