@@ -172,16 +172,10 @@ const Dashboard = () => {
               <Trophy className="w-16 h-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No battles yet</h3>
               <p className="text-muted-foreground text-center mb-6">Create your first battle or find an event to join!</p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Battle
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/battles")}>
-                  <Search className="w-4 h-4 mr-2" />
-                  Find Battles
-                </Button>
-              </div>
+              <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Battle
+              </Button>
             </CardContent>
           </Card>
         ) : (
