@@ -13,7 +13,7 @@ import {
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye,
   Palette, MessageSquare, Timer,
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X
+  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X, Mic
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -1296,6 +1296,15 @@ export default function OperatorPanel() {
             <Button onClick={openScreen} size="sm" className="gap-1">
               <Monitor className="h-4 w-4" />
               <span className="hidden sm:inline">Screen</span>
+            </Button>
+            <Button
+              onClick={() => window.open(`/battle/${id}/mc`, '_blank')}
+              size="sm"
+              variant="outline"
+              className="gap-1"
+            >
+              <Mic className="h-4 w-4" />
+              <span className="hidden sm:inline">MC</span>
             </Button>
           </div>
         </div>
