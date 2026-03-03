@@ -506,29 +506,29 @@ export default function JudgePanel() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Ultra-minimal header */}
-      <div className="px-4 py-3 text-center">
-        <p className="text-xs text-muted-foreground font-medium">
+      <div className="px-5 py-4 text-center">
+        <p className="text-xs text-muted-foreground font-semibold tracking-wide">
           {activeMatch!.nomination_name} • {activeMatch!.vote_per_round === false ? "Battle" : `Round ${activeMatch!.current_round}`}
         </p>
       </div>
 
       {/* VOTING AREA — takes up all space */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-20">
+      <div className="flex-1 flex items-center justify-center px-5 pb-24">
         {activeMatch!.judging_mode === "simple" ? (
-          <div className="w-full max-w-xl space-y-4">
+          <div className="w-full max-w-xl space-y-5">
             {/* Giant vote buttons — full width, huge tap targets */}
             <button
               className="w-full touch-manipulation active:scale-[0.96] transition-transform"
               onClick={() => { activeMatch!.dancer_left_id && submitVote(activeMatch!.dancer_left_id); if (navigator.vibrate) navigator.vibrate(50); }}
             >
-              <div className="w-full rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-6 sm:p-10 text-center hover:border-primary transition-colors" style={{ minHeight: '160px' }}>
-                <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className="w-full rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-8 sm:p-12 text-center hover:border-primary hover-glow-red transition-all" style={{ minHeight: '180px' }}>
+                <div className="flex flex-col items-center justify-center h-full gap-4">
                   {activeMatch!.dancer_left?.photo_url ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mx-auto">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto">
                       <img src={activeMatch!.dancer_left.photo_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : null}
-                  <div className="text-2xl sm:text-4xl font-display font-black text-primary tracking-tight">
+                  <div className="text-3xl sm:text-5xl font-display font-black text-primary tracking-tight">
                     {activeMatch!.dancer_left?.name || "Waiting"}
                   </div>
                 </div>
@@ -536,24 +536,24 @@ export default function JudgePanel() {
             </button>
 
             {/* VS divider */}
-            <div className="flex items-center justify-center">
-              <div className="h-px flex-1 bg-border" />
-              <span className="px-4 text-lg font-display font-black text-muted-foreground/40">VS</span>
-              <div className="h-px flex-1 bg-border" />
+            <div className="flex items-center justify-center py-1">
+              <div className="h-px flex-1 bg-border/30" />
+              <span className="px-6 text-xl font-display font-black text-muted-foreground/30">VS</span>
+              <div className="h-px flex-1 bg-border/30" />
             </div>
 
             <button
               className="w-full touch-manipulation active:scale-[0.96] transition-transform"
               onClick={() => { activeMatch!.dancer_right_id && submitVote(activeMatch!.dancer_right_id); if (navigator.vibrate) navigator.vibrate(50); }}
             >
-              <div className="w-full rounded-2xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent p-6 sm:p-10 text-center hover:border-secondary transition-colors" style={{ minHeight: '160px' }}>
-                <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className="w-full rounded-2xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent p-8 sm:p-12 text-center hover:border-secondary hover-glow-blue transition-all" style={{ minHeight: '180px' }}>
+                <div className="flex flex-col items-center justify-center h-full gap-4">
                   {activeMatch!.dancer_right?.photo_url ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mx-auto">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto">
                       <img src={activeMatch!.dancer_right.photo_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : null}
-                  <div className="text-2xl sm:text-4xl font-display font-black text-secondary tracking-tight">
+                  <div className="text-3xl sm:text-5xl font-display font-black text-secondary tracking-tight">
                     {activeMatch!.dancer_right?.name || "Waiting"}
                   </div>
                 </div>
@@ -565,8 +565,8 @@ export default function JudgePanel() {
               className="w-full touch-manipulation active:scale-95"
               onClick={() => submitVote(null as any as string)}
             >
-              <div className="w-full rounded-xl border border-border/30 bg-muted/20 p-4 text-center hover:bg-muted/40 transition-colors">
-                <span className="text-base font-display font-bold text-muted-foreground">Tie / Draw</span>
+              <div className="w-full rounded-xl border border-border/20 bg-muted/10 p-5 text-center hover:bg-muted/30 transition-colors">
+                <span className="text-lg font-display font-bold text-muted-foreground/60">Tie / Draw</span>
               </div>
             </button>
           </div>
