@@ -22,6 +22,8 @@ import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
 import AudienceVote from "./pages/AudienceVote";
 import McTeleprompter from "./pages/McTeleprompter";
+import CypherSwipe from "./pages/CypherSwipe";
+import ObsOverlay from "./pages/ObsOverlay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ const App = () => (
               <Route path="/battle/:id/mc" element={<McTeleprompter />} />
               <Route path="/dancer/:id" element={<DancerProfile />} />
               <Route path="/judge" element={<JudgePanel />} />
+              <Route path="/cypher-swipe/:id" element={<CypherSwipe />} />
+              <Route path="/battle/:id/obs-overlay" element={<ObsOverlay />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
