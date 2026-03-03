@@ -1353,11 +1353,11 @@ export default function OperatorPanel() {
 
             {/* Display Settings */}
             <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Monitor className="h-3.5 w-3.5" />Display
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Monitor className="h-4 w-4" />Display
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <Card className="p-4 mt-2 space-y-3">
