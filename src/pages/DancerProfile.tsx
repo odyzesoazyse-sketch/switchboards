@@ -129,7 +129,7 @@ export default function DancerProfile() {
   const losses = recentMatches.filter(m => m.winner_id && m.winner_id !== id).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 sm:pb-0">
       <nav className="sticky top-0 z-50 glass border-b border-border/50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate(-1)} className="-ml-2">

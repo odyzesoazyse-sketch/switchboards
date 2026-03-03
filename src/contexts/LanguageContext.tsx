@@ -12,6 +12,7 @@ const translations: Translations = {
   // Navigation
   "nav.home": { en: "Home", es: "Inicio", ru: "Главная", fr: "Accueil", pt: "Início" },
   "nav.battles": { en: "Battles", es: "Batallas", ru: "Баттлы", fr: "Battles", pt: "Batalhas" },
+  "nav.judge": { en: "Judge", es: "Juez", ru: "Судья", fr: "Juge", pt: "Juiz" },
   "nav.events": { en: "Events", es: "Eventos", ru: "События", fr: "Événements", pt: "Eventos" },
   "nav.ranking": { en: "Ranking", es: "Ranking", ru: "Рейтинг", fr: "Classement", pt: "Ranking" },
   "nav.profile": { en: "Profile", es: "Perfil", ru: "Профиль", fr: "Profil", pt: "Perfil" },
