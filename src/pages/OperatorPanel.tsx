@@ -1502,7 +1502,7 @@ export default function OperatorPanel() {
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-1.5">
+                <Card className="p-5 mt-3 space-y-2 rounded-xl border-border/40">
                   {SHORTCUT_HINTS.map((hint) => (
                     <div key={hint.key} className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{hint.action}</span>
