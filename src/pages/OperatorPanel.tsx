@@ -409,6 +409,9 @@ export default function OperatorPanel() {
 
   const loadData = async () => {
     try {
+      const { data: battleInfo } = await supabase.from("battles").select("*").eq("id", id).single();
+      if (battleInfo) setBattleData(battleInfo);
+
       const { data: nominationsData } = await supabase
         .from("nominations")
         .select("*")
