@@ -173,6 +173,8 @@ export default function OperatorPanel() {
   const [showAudienceQR, setShowAudienceQR] = useState(true);
   const [autoAdvanceOnTimer, setAutoAdvanceOnTimer] = useState(false);
   const timerEndRef = useRef<string | null>(null);
+  const [showRoulette, setShowRoulette] = useState(false);
+  const [battleData, setBattleData] = useState<any>(null);
   const { playSound, preloadAll } = useSoundEffects(soundEnabled);
 
   useEffect(() => {
