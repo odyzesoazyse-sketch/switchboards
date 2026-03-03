@@ -382,7 +382,8 @@ export default function OperatorPanel() {
 
       setNominations(nominationsData || []);
       if (nominationsData && nominationsData.length > 0) {
-        setSelectedNomination(nominationsData[0].id);
+        // Bug fix #1: Only set selectedNomination if not already set (prevents reset on realtime updates)
+        setSelectedNomination(prev => prev && nominationsData.some(n => n.id === prev) ? prev : nominationsData[0].id);
       }
 
       const { data: stateDataArray } = await supabase
