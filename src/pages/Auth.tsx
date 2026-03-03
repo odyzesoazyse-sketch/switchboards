@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -62,13 +61,11 @@ const Auth = () => {
   const handleQuickAuth = async (role: "Organizer" | "Judge") => {
     setLoading(true);
 
-    // Check if we already have a saved test account for this role
     const storageKey = `test_${role.toLowerCase()}_credentials`;
     const savedCreds = localStorage.getItem(storageKey);
 
     try {
       if (savedCreds) {
-        // Try logging in with saved credentials
         const { email, password } = JSON.parse(savedCreds);
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (!error) {
@@ -76,10 +73,8 @@ const Auth = () => {
           navigate("/dashboard");
           return;
         }
-        // If login fails, we'll fall through and create a new one
       }
 
-      // Create a brand new test account
       const randomId = Math.floor(Math.random() * 10000);
       const testEmail = `test_${role.toLowerCase()}_${randomId}@switchboard.com`;
       const testPassword = "password123";
@@ -95,7 +90,6 @@ const Auth = () => {
       });
       if (error) throw error;
 
-      // Save for next time
       localStorage.setItem(storageKey, JSON.stringify({ email: testEmail, password: testPassword }));
 
       toast.success(`Created and logged in as Test ${role}`);
@@ -108,31 +102,35 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-card">
-      <Card className="w-full max-w-md border-border/50 backdrop-blur-sm">
-        <CardHeader className="space-y-1">
-          <div className="text-center mb-4">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              SWITCHBOARD
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Professional judging for all dance battle styles
-            </p>
-          </div>
-          <CardTitle className="text-2xl">
-            {isLogin ? "Sign In" : "Sign Up"}
-          </CardTitle>
-          <CardDescription>
-            {isLogin
-              ? "Sign in to continue"
-              : "Create an organizer account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background relative overflow-hidden">
+      {/* Subtle ambient glow */}
+      <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-primary pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-secondary pointer-events-none" />
+
+      <div className="w-full max-w-sm relative">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tight text-foreground mb-2">
+            SWITCHBOARD
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Professional judging for dance battles
+          </p>
+        </div>
+
+        {/* Form card */}
+        <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-sm p-8">
+          <h2 className="text-xl font-bold mb-1">
+            {isLogin ? "Welcome back" : "Create account"}
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            {isLogin ? "Sign in to continue" : "Get started as an organizer"}
+          </p>
+
+          <form onSubmit={handleAuth} className="space-y-5">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -140,11 +138,12 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required={!isLogin}
+                  className="h-12 bg-background/50 border-border/50 focus:border-primary/50"
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -152,10 +151,11 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 bg-background/50 border-border/50 focus:border-primary/50"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -164,22 +164,23 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="h-12 bg-background/50 border-border/50 focus:border-primary/50"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 glow-primary"
+              className="w-full h-12 bg-primary hover:bg-primary/90 font-bold text-sm uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.25)]"
               disabled={loading}
             >
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
 
             {process.env.NODE_ENV === 'development' && (
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2 pt-1">
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10 text-xs border-border/50"
                   onClick={() => handleQuickAuth("Organizer")}
                   disabled={loading}
                 >
@@ -188,16 +189,17 @@ const Auth = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10 text-xs border-border/50"
                   onClick={() => handleQuickAuth("Judge")}
                   disabled={loading}
                 >
-                  ⚖️ Test Judge/Dancer
+                  ⚖️ Test Judge
                 </Button>
               </div>
             )}
           </form>
-          <div className="mt-4 text-center">
+
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
@@ -208,8 +210,8 @@ const Auth = () => {
                 : "Already have an account? Sign in"}
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
