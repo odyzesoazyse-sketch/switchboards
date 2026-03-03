@@ -942,7 +942,7 @@ export default function OperatorPanel() {
           </TabsList>
 
           {/* ═══════ TAB 1: LIVE CONTROL ═══════ */}
-          <TabsContent value="live" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="live" className="px-5 py-8 space-y-8 mt-0">
             {/* Phase indicator - minimal */}
             {currentNomination && (
               <div className="flex items-center gap-2">
