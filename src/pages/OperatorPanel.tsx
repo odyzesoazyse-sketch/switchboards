@@ -870,34 +870,33 @@ export default function OperatorPanel() {
   return (
     <div className="min-h-screen bg-background" {...swipeHandlers}>
       {/* ── Minimal Header ── */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)} className="h-8 w-8">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center justify-between px-5 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)} className="h-9 w-9 rounded-xl">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="min-w-0">
-              <h1 className="text-sm font-display font-bold truncate">{battleData?.name || "Operator"}</h1>
+              <h1 className="text-base font-display font-bold tracking-tight truncate">{battleData?.name || "Operator"}</h1>
               {currentNomination && (
-                <p className="text-[11px] text-muted-foreground truncate">{currentNomination.name}</p>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{currentNomination.name}</p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Screen status indicator */}
+          <div className="flex items-center gap-2">
             {screenState?.current_match_id && currentMatch && (
-              <Badge variant="secondary" className="gap-1 text-[10px] hidden sm:flex">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <Badge className="gap-1.5 text-[10px] hidden sm:flex bg-neon/15 text-neon border-neon/30 font-bold">
+                <div className="live-dot" />
                 LIVE
               </Badge>
             )}
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSoundEnabled(!soundEnabled)}>
-              {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setSoundEnabled(!soundEnabled)}>
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
 
-            <Button onClick={openScreen} size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+            <Button onClick={openScreen} size="sm" variant="outline" className="h-9 gap-2 text-xs rounded-xl border-border/50">
               <Monitor className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Screen</span>
             </Button>
@@ -906,7 +905,7 @@ export default function OperatorPanel() {
 
         {/* Nomination pills */}
         {nominations.length > 1 && (
-          <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-5 pb-3 overflow-x-auto">
             {nominations.map((nom) => (
               <button
                 key={nom.id}
@@ -914,10 +913,10 @@ export default function OperatorPanel() {
                   setSelectedNomination(nom.id);
                   updateScreenState({ nomination_id: nom.id });
                 }}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   selectedNomination === nom.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    ? 'bg-primary text-primary-foreground shadow-glow-red'
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                 }`}
               >
                 {nom.name}
