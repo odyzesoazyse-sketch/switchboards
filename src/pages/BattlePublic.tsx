@@ -385,7 +385,7 @@ export default function BattlePublic() {
                   <div>
                     <Label className="mb-2 block">Dancer Media / Avatar</Label>
                     <MediaUploader
-                      bucket="media"
+                      bucket="dancer-photos"
                       onUploadSelect={(url, type) => setFormData(prev => ({ ...prev, mediaUrl: url, mediaType: type }))}
                       existingUrl={formData.mediaUrl}
                       existingType={formData.mediaType}
