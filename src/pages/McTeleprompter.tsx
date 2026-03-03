@@ -267,7 +267,7 @@ export default function McTeleprompter() {
                   <TournamentBracket
                     matches={allMatches}
                     dancers={allDancers}
-                    currentMatchId={screenState?.current_match_id || undefined}
+                    activeMatchId={screenState?.current_match_id || undefined}
                     layout="linear"
                   />
                 ) : (

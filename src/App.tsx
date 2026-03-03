@@ -21,6 +21,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
 import AudienceVote from "./pages/AudienceVote";
+import McTeleprompter from "./pages/McTeleprompter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
