@@ -1484,7 +1484,7 @@ export default function OperatorPanel() {
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2">
+                <Card className="p-5 mt-3 rounded-xl border-border/40">
                   <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
                   {screenState?.show_template && (
                     <Button variant="outline" onClick={hideTemplate} size="sm" className="w-full mt-3">Hide Template</Button>
