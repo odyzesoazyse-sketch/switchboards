@@ -18,15 +18,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background pb-safe">
-      {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-grid opacity-50" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: 'var(--gradient-red-glow)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: 'var(--gradient-blue-glow)' }} />
+      {/* Hero Section — bold, dark-first aesthetic */}
+      <section className="relative pt-24 sm:pt-32 pb-24 overflow-hidden">
+        {/* Subtle grid */}
+        <div className="absolute inset-0 bg-grid opacity-30" />
+        {/* Neon glows */}
+        <div className="absolute top-1/3 left-1/5 w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 bg-primary" />
+        <div className="absolute bottom-1/3 right-1/5 w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 bg-secondary" />
 
         <div className="container mx-auto px-6 relative">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Language & Theme */}
+            {/* Language & Theme — mobile only */}
             <div className="flex items-center justify-center gap-3 mb-8 sm:hidden">
               <ThemeToggle />
               <LanguageSwitcher />
@@ -39,17 +41,17 @@ const Index = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50 mb-8"
             >
               <Gavel className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">{t("hero.badge")}</span>
+              <span className="text-sm font-medium text-foreground">{t("hero.badge")}</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold mb-6"
+              className="text-5xl sm:text-7xl lg:text-8xl font-black mb-6 tracking-tight leading-[0.9]"
             >
-              <span className="text-gradient-red">{t("hero.title1")}</span>{" "}
-              <span className="text-gradient-blue">{t("hero.title2")}</span>{" "}
+              <span className="text-primary drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]">{t("hero.title1")}</span>{" "}
+              <span className="text-secondary drop-shadow-[0_0_30px_hsl(var(--secondary)/0.4)]">{t("hero.title2")}</span>{" "}
               <span className="text-foreground">{t("hero.title3")}</span>
             </motion.h1>
 
@@ -57,7 +59,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg sm:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
+              className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
               {t("hero.subtitle")}
             </motion.p>
@@ -67,12 +69,12 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-wrap justify-center gap-2 mb-10 max-w-xl mx-auto"
+              className="flex flex-wrap justify-center gap-2 mb-12 max-w-xl mx-auto"
             >
               {DANCE_STYLES.map((style) => (
                 <span
                   key={style}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border/50"
+                  className="px-3 py-1.5 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border/50 uppercase tracking-wider"
                 >
                   {style}
                 </span>
@@ -88,7 +90,7 @@ const Index = () => {
               <Button
                 onClick={() => navigate("/auth")}
                 size="lg"
-                className="text-lg px-8 h-14 bg-gradient-to-r from-primary to-secondary text-white hover-lift"
+                className="text-lg px-8 h-14 bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-wider shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
               >
                 <Trophy className="mr-2 w-5 h-5" />
                 {t("cta.startOrganizing")}
@@ -97,14 +99,15 @@ const Index = () => {
                 onClick={() => navigate("/dashboard")}
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 h-14 border-2 hover-lift"
+                className="text-lg px-8 h-14 border-2 font-bold"
               >
                 {t("dashboard.myBattles")}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
 
-            <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto">
+            {/* Stats */}
+            <div className="mt-20 grid grid-cols-3 gap-8 max-w-md mx-auto">
               {[
                 { value: "100%", label: "Transparent" },
                 { value: "Real-time", label: "Voting" },
@@ -117,8 +120,8 @@ const Index = () => {
                   transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
                   className="text-center"
                 >
-                  <div className="text-2xl sm:text-3xl font-display font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className="text-3xl sm:text-4xl font-black text-foreground">{stat.value}</div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mt-1">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -126,11 +129,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How it Works — compact visual flow */}
-      <section className="py-16 sm:py-20 bg-surface">
+      {/* How it Works */}
+      <section className="py-16 sm:py-24 bg-surface">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-display font-bold mb-3">{t("howItWorks.title")}</h2>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-5xl font-black mb-3 tracking-tight">{t("howItWorks.title")}</h2>
             <p className="text-muted-foreground">{t("howItWorks.subtitle")}</p>
           </div>
 
@@ -148,14 +151,14 @@ const Index = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: item.step * 0.1 }}
               >
-                <Card className="p-6 h-full border-border/50 hover-lift group">
+                <Card className="p-6 h-full border-border/50 hover-lift group bg-card">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
                     item.color === "primary" ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
                   }`}>
                     <item.icon className="w-6 h-6" />
                   </div>
-                  <div className="text-xs font-bold text-muted-foreground mb-1">STEP {item.step}</div>
-                  <h3 className="text-lg font-display font-semibold mb-2">{item.title}</h3>
+                  <div className="text-[10px] font-black text-muted-foreground mb-1 uppercase tracking-[0.2em]">STEP {item.step}</div>
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.desc}</p>
                 </Card>
               </motion.div>
@@ -165,10 +168,10 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 sm:py-20">
+      <section className="py-16 sm:py-24">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-display font-bold mb-3">{t("features.title")}</h2>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-5xl font-black mb-3 tracking-tight">{t("features.title")}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">{t("features.subtitle")}</p>
           </div>
 
@@ -188,13 +191,13 @@ const Index = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
               >
-                <Card className={`p-5 h-full border-border/50 transition-all group hover:shadow-lg ${
-                  feature.accent === "primary" ? "hover:border-primary/30" : "hover:border-secondary/30"
+                <Card className={`p-5 h-full border-border/50 transition-all group hover:shadow-lg bg-card ${
+                  feature.accent === "primary" ? "hover:border-primary/30 hover:shadow-[0_0_30px_hsl(var(--primary)/0.1)]" : "hover:border-secondary/30 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.1)]"
                 }`}>
                   <feature.icon className={`w-8 h-8 mb-3 transition-transform group-hover:scale-110 ${
                     feature.accent === "primary" ? "text-primary" : "text-secondary"
                   }`} />
-                  <h3 className="text-base font-display font-semibold mb-1.5">{feature.title}</h3>
+                  <h3 className="text-base font-bold mb-1.5">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">{feature.desc}</p>
                 </Card>
               </motion.div>
@@ -204,17 +207,17 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 sm:py-20 bg-foreground text-background">
+      <section className="py-16 sm:py-24 bg-foreground text-background">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-2xl mx-auto">
             <Trophy className="w-14 h-14 mx-auto mb-6 opacity-80" />
-            <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">{t("cta.title")}</h2>
-            <p className="text-lg opacity-80 mb-8">{t("cta.subtitle")}</p>
+            <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight">{t("cta.title")}</h2>
+            <p className="text-lg opacity-70 mb-8">{t("cta.subtitle")}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 onClick={() => navigate("/auth")}
                 size="lg"
-                className="text-lg px-8 h-14 bg-background text-foreground hover:bg-background/90"
+                className="text-lg px-8 h-14 bg-background text-foreground hover:bg-background/90 font-black uppercase tracking-wider"
               >
                 {t("cta.startOrganizing")}
               </Button>
@@ -222,7 +225,7 @@ const Index = () => {
                 onClick={() => navigate("/judge")}
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 h-14 border-2 border-background/30 text-background hover:bg-background/10"
+                className="text-lg px-8 h-14 border-2 border-background/30 text-background hover:bg-background/10 font-bold"
               >
                 {t("dashboard.judgePanel")}
               </Button>
