@@ -5,9 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Pricing from "./pages/Pricing";
 import Dashboard from "./pages/Dashboard";
 import CreateBattle from "./pages/CreateBattle";
 import BattleView from "./pages/BattleView";
@@ -37,26 +39,32 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/battles/:id" element={<BattlePublic />} />
               <Route path="/battles/:id/leaderboard" element={<Leaderboard />} />
-              <Route path="/battle/create" element={<CreateBattle />} />
-              <Route path="/battle/:id" element={<BattleView />} />
-              <Route path="/battle/:id/settings" element={<BattleSettings />} />
-              <Route path="/battle/:id/screen" element={<BattleScreen />} />
-              <Route path="/battle/:id/screen/obs" element={<BattleScreen isObs={true} />} />
-              <Route path="/battle/:id/operator" element={<OperatorPanel />} />
-              <Route path="/battle/:id/logs" element={<ActivityLogs />} />
-              <Route path="/battle/:id/analytics" element={<Analytics />} />
               <Route path="/battle/:id/vote" element={<AudienceVote />} />
-              <Route path="/battle/:id/mc" element={<McTeleprompter />} />
+
+              {/* Protected — organizer */}
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/battle/create" element={<ProtectedRoute><CreateBattle /></ProtectedRoute>} />
+              <Route path="/battle/:id" element={<ProtectedRoute><BattleView /></ProtectedRoute>} />
+              <Route path="/battle/:id/settings" element={<ProtectedRoute><BattleSettings /></ProtectedRoute>} />
+              <Route path="/battle/:id/screen" element={<ProtectedRoute><BattleScreen /></ProtectedRoute>} />
+              <Route path="/battle/:id/screen/obs" element={<ProtectedRoute><BattleScreen isObs={true} /></ProtectedRoute>} />
+              <Route path="/battle/:id/operator" element={<ProtectedRoute><OperatorPanel /></ProtectedRoute>} />
+              <Route path="/battle/:id/logs" element={<ProtectedRoute><ActivityLogs /></ProtectedRoute>} />
+              <Route path="/battle/:id/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              <Route path="/battle/:id/mc" element={<ProtectedRoute><McTeleprompter /></ProtectedRoute>} />
+
+              {/* Protected — judge / other */}
+              <Route path="/judge" element={<ProtectedRoute><JudgePanel /></ProtectedRoute>} />
               <Route path="/dancer/:id" element={<DancerProfile />} />
-              <Route path="/judge" element={<JudgePanel />} />
-              <Route path="/cypher-swipe/:id" element={<CypherSwipe />} />
+              <Route path="/cypher-swipe/:id" element={<ProtectedRoute><CypherSwipe /></ProtectedRoute>} />
               <Route path="/battle/:id/obs-overlay" element={<ObsOverlay />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNav />
