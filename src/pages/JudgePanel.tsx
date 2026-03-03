@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Menu, History, LogOut, X, Home, Check, User, CalendarDays } from "lucide-react";
+import { Trophy, Menu, History, LogOut, X, Home, Check, User, CalendarDays, Sparkles } from "lucide-react";
 import SliderVoting from "@/components/SliderVoting";
 
 function HeatSliderVoting({ onSubmit }: { onSubmit: (t: number, m: number, p: number) => void }) {
@@ -863,6 +863,19 @@ export default function JudgePanel() {
                 <History className="h-5 w-5" />
                 Vote History
               </Button>
+              {activeHeat && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-12 text-primary"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.open(`/cypher-swipe/${activeHeat.nomination_id}`, '_blank');
+                  }}
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Cypher Swipe
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-12"
