@@ -75,7 +75,7 @@ const Pricing = () => {
 
     if (tier === currentTier) return;
 
-    if (tier === "enterprise") {
+    if (tier === ("enterprise" as SubscriptionTier)) {
       toast.info("Contact us at hello@switchboard.app for Enterprise plans.");
       return;
     }
