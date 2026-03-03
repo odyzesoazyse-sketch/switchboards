@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Calendar, Users, Trophy, Gavel, Trash2, LogOut, Crown, CreditCard } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
+import { Card } from "@/components/ui/card";
+import { Plus, Calendar, Users, Trophy, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -31,8 +30,6 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isJudge, setIsJudge] = useState(false);
-  const { tier, maxParticipants } = useSubscription();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -86,9 +83,7 @@ const Dashboard = () => {
         setBattles(organizerBattles);
       }
 
-      if (hasJudgeRole) {
-        setIsJudge(true);
-      }
+      // Judge-only users are auto-redirected above
     } catch (error: any) {
       toast.error("Error loading data");
     } finally {
@@ -108,10 +103,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
+  // Sign-out handled by BottomNav
 
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {
@@ -142,39 +134,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
-      {/* Header — clean, minimal */}
-      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-black tracking-tight text-foreground">SWITCHBOARD</h1>
-          <div className="flex items-center gap-2">
-            {/* Plan badge */}
-            <button
-              onClick={() => navigate("/pricing")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                tier === "pro"
-                  ? "bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25"
-                  : tier === "enterprise"
-                    ? "bg-neon/15 text-neon border border-neon/20 hover:bg-neon/25"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {tier === "free" ? <CreditCard className="w-3 h-3" /> : <Crown className="w-3 h-3" />}
-              {tier.toUpperCase()}
-            </button>
-            {isJudge && (
-              <Button variant="ghost" size="sm" onClick={() => navigate("/judge")} className="text-muted-foreground hover:text-foreground">
-                <Gavel className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline text-sm">Judge</span>
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background pb-20 sm:pb-0 sm:pt-14">
       <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Title + Create */}
         <div className="flex items-end justify-between mb-10 gap-4">
