@@ -1224,7 +1224,7 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* ═══════ TAB 2: BRACKET / PARTICIPANTS ═══════ */}
-          <TabsContent value="bracket" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="bracket" className="px-5 py-8 space-y-8 mt-0">
             {/* Screen output control */}
             <div className="flex items-center gap-2 flex-wrap">
               {currentNomination?.phase === 'bracket' && matches.length > 0 && (
