@@ -375,19 +375,19 @@ export default function JudgePanel() {
   if (!activeMatch && !activeHeat) {
     return (
       <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-neon/3 rounded-full blur-[100px]" />
 
-        <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-          <div className="text-center space-y-6 max-w-xs">
-            <div className="relative mx-auto w-20 h-20">
-              <div className="absolute inset-0 rounded-2xl bg-muted animate-pulse" />
-              <div className="absolute inset-0 rounded-2xl border-2 border-primary/20 animate-[spin_4s_linear_infinite]" />
+        <div className="flex-1 flex flex-col items-center justify-center p-10 relative z-10">
+          <div className="text-center space-y-8 max-w-xs">
+            <div className="relative mx-auto w-24 h-24">
+              <div className="absolute inset-0 rounded-2xl bg-muted/50 animate-pulse" />
+              <div className="absolute inset-0 rounded-2xl border-2 border-neon/20 animate-[spin_4s_linear_infinite]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Trophy className="w-8 h-8 text-muted-foreground" />
+                <Trophy className="w-9 h-9 text-muted-foreground/60" />
               </div>
             </div>
-            <h1 className="text-3xl font-display font-black tracking-tight">Waiting</h1>
-            <p className="text-muted-foreground text-sm">The operator will start the next match soon.</p>
+            <h1 className="text-4xl font-display font-black tracking-tight">Waiting</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">The operator will start the next match soon.</p>
           </div>
         </div>
 
