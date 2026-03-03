@@ -21,6 +21,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
 import AudienceVote from "./pages/AudienceVote";
+import McTeleprompter from "./pages/McTeleprompter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/battle/:id/logs" element={<ActivityLogs />} />
               <Route path="/battle/:id/analytics" element={<Analytics />} />
               <Route path="/battle/:id/vote" element={<AudienceVote />} />
+              <Route path="/battle/:id/mc" element={<McTeleprompter />} />
               <Route path="/dancer/:id" element={<DancerProfile />} />
               <Route path="/judge" element={<JudgePanel />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
