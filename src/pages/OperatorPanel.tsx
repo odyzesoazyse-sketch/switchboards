@@ -870,34 +870,33 @@ export default function OperatorPanel() {
   return (
     <div className="min-h-screen bg-background" {...swipeHandlers}>
       {/* ── Minimal Header ── */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)} className="h-8 w-8">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center justify-between px-5 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)} className="h-9 w-9 rounded-xl">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="min-w-0">
-              <h1 className="text-sm font-display font-bold truncate">{battleData?.name || "Operator"}</h1>
+              <h1 className="text-base font-display font-bold tracking-tight truncate">{battleData?.name || "Operator"}</h1>
               {currentNomination && (
-                <p className="text-[11px] text-muted-foreground truncate">{currentNomination.name}</p>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{currentNomination.name}</p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Screen status indicator */}
+          <div className="flex items-center gap-2">
             {screenState?.current_match_id && currentMatch && (
-              <Badge variant="secondary" className="gap-1 text-[10px] hidden sm:flex">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <Badge className="gap-1.5 text-[10px] hidden sm:flex bg-neon/15 text-neon border-neon/30 font-bold">
+                <div className="live-dot" />
                 LIVE
               </Badge>
             )}
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSoundEnabled(!soundEnabled)}>
-              {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setSoundEnabled(!soundEnabled)}>
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
 
-            <Button onClick={openScreen} size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+            <Button onClick={openScreen} size="sm" variant="outline" className="h-9 gap-2 text-xs rounded-xl border-border/50">
               <Monitor className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Screen</span>
             </Button>
@@ -906,7 +905,7 @@ export default function OperatorPanel() {
 
         {/* Nomination pills */}
         {nominations.length > 1 && (
-          <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+          <div className="flex items-center gap-1.5 px-5 pb-3 overflow-x-auto">
             {nominations.map((nom) => (
               <button
                 key={nom.id}
@@ -914,10 +913,10 @@ export default function OperatorPanel() {
                   setSelectedNomination(nom.id);
                   updateScreenState({ nomination_id: nom.id });
                 }}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   selectedNomination === nom.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    ? 'bg-primary text-primary-foreground shadow-glow-red'
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                 }`}
               >
                 {nom.name}
@@ -928,22 +927,22 @@ export default function OperatorPanel() {
       </div>
 
       {/* ── Main Content: 3-tab layout ── */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pb-8">
         <Tabs defaultValue="live" className="w-full">
-          <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0 gap-0">
-            <TabsTrigger value="live" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+          <TabsList className="w-full rounded-none border-b border-border/30 bg-transparent h-auto p-0 gap-0">
+            <TabsTrigger value="live" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:text-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Live Control
             </TabsTrigger>
-            <TabsTrigger value="bracket" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+            <TabsTrigger value="bracket" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Bracket
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+            <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Settings
             </TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1: LIVE CONTROL ═══════ */}
-          <TabsContent value="live" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="live" className="px-5 py-8 space-y-8 mt-0">
             {/* Phase indicator - minimal */}
             {currentNomination && (
               <div className="flex items-center gap-2">
@@ -982,11 +981,11 @@ export default function OperatorPanel() {
 
             {/* ── Active Selection Heat Control ── */}
             {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
-              <Card className="p-5 border-primary/20 bg-primary/5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">LIVE HEAT</span>
+              <Card className="p-6 border-neon/20 bg-neon/5 rounded-xl">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="live-dot" />
+                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-neon">LIVE HEAT</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] })} className="text-destructive text-xs h-7">
                     Stop Heat
@@ -1028,85 +1027,85 @@ export default function OperatorPanel() {
 
             {/* ── Active Match Control ── */}
             {currentNomination?.phase !== 'selection' && currentMatch && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {/* Score display - the hero element */}
-                <div className="text-center space-y-2">
-                  <div className="flex items-center justify-center gap-6">
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-8">
                     <div className="text-right flex-1 min-w-0">
-                      <div className="text-xl sm:text-2xl font-display font-black text-primary truncate">
+                      <div className="text-2xl sm:text-3xl font-display font-black text-primary truncate">
                         {getDancerName(currentMatch.dancer_left_id)}
                       </div>
                     </div>
-                    <div className="text-4xl sm:text-5xl font-display font-black tabular-nums tracking-tight shrink-0">
-                      {votesLeft}<span className="text-muted-foreground/30 mx-1">:</span>{votesRight}
+                    <div className="text-5xl sm:text-6xl font-display font-black tabular-nums tracking-tight shrink-0">
+                      {votesLeft}<span className="text-muted-foreground/20 mx-2">:</span>{votesRight}
                     </div>
                     <div className="text-left flex-1 min-w-0">
-                      <div className="text-xl sm:text-2xl font-display font-black text-secondary truncate">
+                      <div className="text-2xl sm:text-3xl font-display font-black text-secondary truncate">
                         {getDancerName(currentMatch.dancer_right_id)}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center gap-3">
-                    <Badge variant="outline" className="text-[10px]">Round {currentRound}</Badge>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-success' : 'bg-yellow-500'} animate-pulse`} />
-                      <span className="text-xs text-muted-foreground font-medium">{voteCount}/{totalJudges}</span>
+                  <div className="flex items-center justify-center gap-4">
+                    <Badge variant="outline" className="text-[10px] border-border/30">Round {currentRound}</Badge>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-neon glow-neon' : 'bg-warning'} animate-pulse`} />
+                      <span className="text-xs text-muted-foreground font-semibold tabular-nums">{voteCount}/{totalJudges}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Action buttons - big & clear */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
                     onClick={() => addScore('left')}
-                    className="h-16 border-primary/30 hover:border-primary hover:bg-primary/5 text-primary text-xl font-bold"
+                    className="h-20 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary text-2xl font-black rounded-xl hover-glow-red transition-all"
                   >
                     +1 Red
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => addScore('right')}
-                    className="h-16 border-secondary/30 hover:border-secondary hover:bg-secondary/5 text-secondary text-xl font-bold"
+                    className="h-20 border-secondary/30 hover:border-secondary hover:bg-secondary/10 text-secondary text-2xl font-black rounded-xl hover-glow-blue transition-all"
                   >
                     +1 Blue
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {!timerRunning ? (
-                    <Button onClick={startTimer} variant="outline" className="h-12 gap-1.5">
-                      <PlayCircle className="h-4 w-4" />
+                    <Button onClick={startTimer} variant="outline" className="h-14 gap-2 rounded-xl text-sm font-semibold">
+                      <PlayCircle className="h-5 w-5" />
                       Timer
                     </Button>
                   ) : (
-                    <Button variant="destructive" onClick={stopTimer} className="h-12 gap-1.5">
-                      <PauseCircle className="h-4 w-4" />
+                    <Button variant="destructive" onClick={stopTimer} className="h-14 gap-2 rounded-xl text-sm font-semibold animate-neon-pulse">
+                      <PauseCircle className="h-5 w-5" />
                       Stop
                     </Button>
                   )}
-                  <Button onClick={nextRound} variant="outline" className="h-12 gap-1.5"
+                  <Button onClick={nextRound} variant="outline" className="h-14 gap-2 rounded-xl text-sm font-semibold"
                     disabled={currentRound >= (currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5)}>
-                    <SkipForward className="h-4 w-4" />
+                    <SkipForward className="h-5 w-5" />
                     Next
                   </Button>
-                  <Button onClick={declareWinner} className="h-12 gap-1.5 bg-gradient-to-r from-primary to-secondary text-white">
-                    <Trophy className="h-4 w-4" />
+                  <Button onClick={declareWinner} className="h-14 gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold">
+                    <Trophy className="h-5 w-5" />
                     Winner
                   </Button>
                 </div>
 
                 {/* Secondary actions */}
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={resetMatch} className="text-xs flex-1 h-9">
-                    <RotateCcw className="h-3 w-3 mr-1" />
+                <div className="flex gap-2 pt-2">
+                  <Button variant="ghost" size="sm" onClick={resetMatch} className="text-xs flex-1 h-10 rounded-xl">
+                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                     Reset
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={triggerTieBreaker} className="text-xs flex-1 h-9 text-destructive">
+                  <Button variant="ghost" size="sm" onClick={triggerTieBreaker} className="text-xs flex-1 h-10 rounded-xl text-destructive">
                     Tie Break
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={clearScreen} className="text-xs flex-1 h-9">
-                    <X className="h-3 w-3 mr-1" />
+                  <Button variant="ghost" size="sm" onClick={clearScreen} className="text-xs flex-1 h-10 rounded-xl">
+                    <X className="h-3.5 w-3.5 mr-1.5" />
                     Clear
                   </Button>
                 </div>
@@ -1225,7 +1224,7 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* ═══════ TAB 2: BRACKET / PARTICIPANTS ═══════ */}
-          <TabsContent value="bracket" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="bracket" className="px-5 py-8 space-y-8 mt-0">
             {/* Screen output control */}
             <div className="flex items-center gap-2 flex-wrap">
               {currentNomination?.phase === 'bracket' && matches.length > 0 && (
@@ -1331,22 +1330,22 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* ═══════ TAB 3: SETTINGS ═══════ */}
-          <TabsContent value="settings" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="settings" className="px-5 py-8 space-y-8 mt-0">
             {/* Quick Actions Row */}
-            <div className="flex gap-2 flex-wrap">
-              <Button onClick={openScreen} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+            <div className="flex gap-2.5 flex-wrap">
+              <Button onClick={openScreen} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Monitor className="h-3.5 w-3.5" />Screen
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/mc`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/mc`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Mic className="h-3.5 w-3.5" />MC
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <ExternalLink className="h-3.5 w-3.5" />OBS
               </Button>
-              <Button onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')} variant="outline" size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 🎤 Hype
               </Button>
-              <Button onClick={() => setShowLivePreview(!showLivePreview)} variant={showLivePreview ? "default" : "outline"} size="sm" className="gap-1.5 text-xs h-9">
+              <Button onClick={() => setShowLivePreview(!showLivePreview)} variant={showLivePreview ? "default" : "outline"} size="sm" className="gap-2 text-xs h-10 rounded-xl">
                 <Eye className="h-3.5 w-3.5" />Preview
               </Button>
               <JudgeAssignmentsModal battleId={id!} />
@@ -1354,14 +1353,14 @@ export default function OperatorPanel() {
 
             {/* Display Settings */}
             <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Monitor className="h-3.5 w-3.5" />Display
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Monitor className="h-4 w-4" />Display
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-3">
+                <Card className="p-5 mt-3 space-y-4 rounded-xl border-border/40">
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Battle Name</Label><Switch checked={showBattleName} onCheckedChange={setShowBattleName} /></div>
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Judges</Label><Switch checked={showJudges} onCheckedChange={setShowJudges} /></div>
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Timer</Label><Switch checked={showTimer} onCheckedChange={setShowTimer} /></div>
@@ -1392,14 +1391,14 @@ export default function OperatorPanel() {
 
             {/* Theme & Design */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Palette className="h-3.5 w-3.5" />Theme & Design
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Palette className="h-4 w-4" />Theme & Design
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-3">
+                <Card className="p-5 mt-3 space-y-4 rounded-xl border-border/40">
                   <Select value={themePreset} onValueChange={applyThemePreset}>
                     <SelectTrigger><SelectValue placeholder="Theme" /></SelectTrigger>
                     <SelectContent>
@@ -1461,14 +1460,14 @@ export default function OperatorPanel() {
 
             {/* Messages */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <MessageSquare className="h-3.5 w-3.5" />Messages
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <MessageSquare className="h-4 w-4" />Messages
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-3">
+                <Card className="p-5 mt-3 space-y-4 rounded-xl border-border/40">
                   <div className="flex items-center justify-between"><Label className="text-sm">Show Message</Label><Switch checked={showCustomMessage} onCheckedChange={setShowCustomMessage} /></div>
                   <Textarea placeholder="Message to display..." value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} rows={2} />
                   <Button onClick={sendCustomMessage} size="sm" className="w-full">Send Message</Button>
@@ -1478,14 +1477,14 @@ export default function OperatorPanel() {
 
             {/* Templates */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Layout className="h-3.5 w-3.5" />Templates
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Layout className="h-4 w-4" />Templates
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2">
+                <Card className="p-5 mt-3 rounded-xl border-border/40">
                   <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
                   {screenState?.show_template && (
                     <Button variant="outline" onClick={hideTemplate} size="sm" className="w-full mt-3">Hide Template</Button>
@@ -1496,14 +1495,14 @@ export default function OperatorPanel() {
 
             {/* Keyboard shortcuts */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Keyboard className="h-3.5 w-3.5" />Shortcuts
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Keyboard className="h-4 w-4" />Shortcuts
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <Card className="p-4 mt-2 space-y-1.5">
+                <Card className="p-5 mt-3 space-y-2 rounded-xl border-border/40">
                   {SHORTCUT_HINTS.map((hint) => (
                     <div key={hint.key} className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{hint.action}</span>
@@ -1516,11 +1515,11 @@ export default function OperatorPanel() {
 
             {/* ═══ Event OS Tools ═══ */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Zap className="h-3.5 w-3.5 text-primary" />Event OS
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-3">
+                <span className="section-label">
+                  <Zap className="h-4 w-4 text-neon" />Event OS
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <Tabs defaultValue="tools" className="mt-2">

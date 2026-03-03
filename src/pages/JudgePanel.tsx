@@ -375,19 +375,19 @@ export default function JudgePanel() {
   if (!activeMatch && !activeHeat) {
     return (
       <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-neon/3 rounded-full blur-[100px]" />
 
-        <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-          <div className="text-center space-y-6 max-w-xs">
-            <div className="relative mx-auto w-20 h-20">
-              <div className="absolute inset-0 rounded-2xl bg-muted animate-pulse" />
-              <div className="absolute inset-0 rounded-2xl border-2 border-primary/20 animate-[spin_4s_linear_infinite]" />
+        <div className="flex-1 flex flex-col items-center justify-center p-10 relative z-10">
+          <div className="text-center space-y-8 max-w-xs">
+            <div className="relative mx-auto w-24 h-24">
+              <div className="absolute inset-0 rounded-2xl bg-muted/50 animate-pulse" />
+              <div className="absolute inset-0 rounded-2xl border-2 border-neon/20 animate-[spin_4s_linear_infinite]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Trophy className="w-8 h-8 text-muted-foreground" />
+                <Trophy className="w-9 h-9 text-muted-foreground/60" />
               </div>
             </div>
-            <h1 className="text-3xl font-display font-black tracking-tight">Waiting</h1>
-            <p className="text-muted-foreground text-sm">The operator will start the next match soon.</p>
+            <h1 className="text-4xl font-display font-black tracking-tight">Waiting</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">The operator will start the next match soon.</p>
           </div>
         </div>
 
@@ -400,15 +400,14 @@ export default function JudgePanel() {
   if (hasVotedThisRound && activeMatch) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="text-center space-y-6 max-w-sm animate-scale-in">
-            {/* Voted indicator */}
-            <div className={`w-24 h-24 mx-auto rounded-2xl flex items-center justify-center border-2 ${
-              submittedVoteFor === activeMatch.dancer_left_id ? 'bg-primary/10 border-primary' :
-              submittedVoteFor === activeMatch.dancer_right_id ? 'bg-secondary/10 border-secondary' :
+        <div className="flex-1 flex flex-col items-center justify-center p-10">
+          <div className="text-center space-y-8 max-w-sm animate-scale-in">
+            <div className={`w-28 h-28 mx-auto rounded-2xl flex items-center justify-center border-2 ${
+              submittedVoteFor === activeMatch.dancer_left_id ? 'bg-primary/10 border-primary glow-red' :
+              submittedVoteFor === activeMatch.dancer_right_id ? 'bg-secondary/10 border-secondary glow-blue' :
               'bg-muted border-muted-foreground/30'
             }`}>
-              <Check className={`w-10 h-10 ${
+              <Check className={`w-12 h-12 ${
                 submittedVoteFor === activeMatch.dancer_left_id ? 'text-primary' :
                 submittedVoteFor === activeMatch.dancer_right_id ? 'text-secondary' :
                 'text-muted-foreground'
@@ -416,16 +415,16 @@ export default function JudgePanel() {
             </div>
 
             <div>
-              <h2 className="text-xl font-display font-bold mb-1 flex items-center justify-center gap-2">
-                <Check className="w-5 h-5 text-success" />Vote Recorded
+              <h2 className="text-2xl font-display font-bold mb-2 flex items-center justify-center gap-2">
+                <Check className="w-6 h-6 text-neon" />Vote Recorded
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 {submittedVoteFor === activeMatch.dancer_left_id ? activeMatch.dancer_left?.name :
                  submittedVoteFor === activeMatch.dancer_right_id ? activeMatch.dancer_right?.name : "Tie"}
               </p>
             </div>
 
-            <Button variant="outline" onClick={undoVote} className="w-full text-muted-foreground">
+            <Button variant="outline" onClick={undoVote} className="w-full h-12 rounded-xl text-muted-foreground">
               Undo / Change Vote
             </Button>
           </div>
@@ -506,29 +505,29 @@ export default function JudgePanel() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Ultra-minimal header */}
-      <div className="px-4 py-3 text-center">
-        <p className="text-xs text-muted-foreground font-medium">
+      <div className="px-5 py-4 text-center">
+        <p className="text-xs text-muted-foreground font-semibold tracking-wide">
           {activeMatch!.nomination_name} • {activeMatch!.vote_per_round === false ? "Battle" : `Round ${activeMatch!.current_round}`}
         </p>
       </div>
 
       {/* VOTING AREA — takes up all space */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-20">
+      <div className="flex-1 flex items-center justify-center px-5 pb-24">
         {activeMatch!.judging_mode === "simple" ? (
-          <div className="w-full max-w-xl space-y-4">
+          <div className="w-full max-w-xl space-y-5">
             {/* Giant vote buttons — full width, huge tap targets */}
             <button
               className="w-full touch-manipulation active:scale-[0.96] transition-transform"
               onClick={() => { activeMatch!.dancer_left_id && submitVote(activeMatch!.dancer_left_id); if (navigator.vibrate) navigator.vibrate(50); }}
             >
-              <div className="w-full rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-6 sm:p-10 text-center hover:border-primary transition-colors" style={{ minHeight: '160px' }}>
-                <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className="w-full rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-8 sm:p-12 text-center hover:border-primary hover-glow-red transition-all" style={{ minHeight: '180px' }}>
+                <div className="flex flex-col items-center justify-center h-full gap-4">
                   {activeMatch!.dancer_left?.photo_url ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mx-auto">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto">
                       <img src={activeMatch!.dancer_left.photo_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : null}
-                  <div className="text-2xl sm:text-4xl font-display font-black text-primary tracking-tight">
+                  <div className="text-3xl sm:text-5xl font-display font-black text-primary tracking-tight">
                     {activeMatch!.dancer_left?.name || "Waiting"}
                   </div>
                 </div>
@@ -536,24 +535,24 @@ export default function JudgePanel() {
             </button>
 
             {/* VS divider */}
-            <div className="flex items-center justify-center">
-              <div className="h-px flex-1 bg-border" />
-              <span className="px-4 text-lg font-display font-black text-muted-foreground/40">VS</span>
-              <div className="h-px flex-1 bg-border" />
+            <div className="flex items-center justify-center py-1">
+              <div className="h-px flex-1 bg-border/30" />
+              <span className="px-6 text-xl font-display font-black text-muted-foreground/30">VS</span>
+              <div className="h-px flex-1 bg-border/30" />
             </div>
 
             <button
               className="w-full touch-manipulation active:scale-[0.96] transition-transform"
               onClick={() => { activeMatch!.dancer_right_id && submitVote(activeMatch!.dancer_right_id); if (navigator.vibrate) navigator.vibrate(50); }}
             >
-              <div className="w-full rounded-2xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent p-6 sm:p-10 text-center hover:border-secondary transition-colors" style={{ minHeight: '160px' }}>
-                <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className="w-full rounded-2xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-transparent p-8 sm:p-12 text-center hover:border-secondary hover-glow-blue transition-all" style={{ minHeight: '180px' }}>
+                <div className="flex flex-col items-center justify-center h-full gap-4">
                   {activeMatch!.dancer_right?.photo_url ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mx-auto">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto">
                       <img src={activeMatch!.dancer_right.photo_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : null}
-                  <div className="text-2xl sm:text-4xl font-display font-black text-secondary tracking-tight">
+                  <div className="text-3xl sm:text-5xl font-display font-black text-secondary tracking-tight">
                     {activeMatch!.dancer_right?.name || "Waiting"}
                   </div>
                 </div>
@@ -565,8 +564,8 @@ export default function JudgePanel() {
               className="w-full touch-manipulation active:scale-95"
               onClick={() => submitVote(null as any as string)}
             >
-              <div className="w-full rounded-xl border border-border/30 bg-muted/20 p-4 text-center hover:bg-muted/40 transition-colors">
-                <span className="text-base font-display font-bold text-muted-foreground">Tie / Draw</span>
+              <div className="w-full rounded-xl border border-border/20 bg-muted/10 p-5 text-center hover:bg-muted/30 transition-colors">
+                <span className="text-lg font-display font-bold text-muted-foreground/60">Tie / Draw</span>
               </div>
             </button>
           </div>

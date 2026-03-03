@@ -51,6 +51,14 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        neon: {
+          DEFAULT: "hsl(var(--neon))",
+          foreground: "hsl(var(--neon-foreground))",
+        },
         opponent: {
           left: "hsl(var(--opponent-left))",
           right: "hsl(var(--opponent-right))",
@@ -85,8 +93,10 @@ export default {
       boxShadow: {
         'glow-red': '0 0 40px hsla(0, 85%, 55%, 0.25)',
         'glow-blue': '0 0 40px hsla(217, 91%, 55%, 0.25)',
+        'glow-neon': '0 0 30px hsla(142, 80%, 55%, 0.3)',
         'glow-red-lg': '0 0 60px hsla(0, 85%, 55%, 0.4)',
         'glow-blue-lg': '0 0 60px hsla(217, 91%, 55%, 0.4)',
+        'glow-neon-lg': '0 0 50px hsla(142, 80%, 55%, 0.5)',
         'elevated': '0 4px 20px hsla(220, 20%, 10%, 0.08)',
         'elevated-lg': '0 8px 40px hsla(220, 20%, 10%, 0.12)',
       },
