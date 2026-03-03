@@ -981,11 +981,11 @@ export default function OperatorPanel() {
 
             {/* ── Active Selection Heat Control ── */}
             {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
-              <Card className="p-5 border-primary/20 bg-primary/5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">LIVE HEAT</span>
+              <Card className="p-6 border-neon/20 bg-neon/5 rounded-xl">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="live-dot" />
+                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-neon">LIVE HEAT</span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] })} className="text-destructive text-xs h-7">
                     Stop Heat
