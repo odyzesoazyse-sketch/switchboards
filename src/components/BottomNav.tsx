@@ -1,13 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Trophy, Globe, TrendingUp, User } from "lucide-react";
+import { Home, Gavel, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const navKeys = [
   { path: "/", icon: Home, labelKey: "nav.home" },
-  { path: "/battles", icon: Trophy, labelKey: "nav.battles" },
-  { path: "/world-events", icon: Globe, labelKey: "nav.events" },
-  { path: "/world-ranking", icon: TrendingUp, labelKey: "nav.ranking" },
+  { path: "/judge", icon: Gavel, labelKey: "nav.judge" },
   { path: "/dashboard", icon: User, labelKey: "nav.profile" },
 ];
 
@@ -16,7 +14,7 @@ export default function BottomNav() {
   const location = useLocation();
   const { t } = useLanguage();
 
-  const hiddenPaths = ["/auth", "/judge", "/battle/"];
+  const hiddenPaths = ["/auth", "/battle/"];
   const shouldHide = hiddenPaths.some(p => location.pathname.startsWith(p));
   if (shouldHide) return null;
 
@@ -26,7 +24,7 @@ export default function BottomNav() {
       <nav className="hidden sm:block fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex items-center h-14 gap-1">
-            <span className="font-bold text-lg tracking-tight mr-6 text-primary">SWITCHBOARD</span>
+            <span className="font-bold text-lg tracking-tight mr-6 text-primary cursor-pointer" onClick={() => navigate("/")}>SWITCHBOARD</span>
             {navKeys.map((item) => {
               const isActive = location.pathname === item.path;
               return (

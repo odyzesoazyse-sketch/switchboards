@@ -16,13 +16,10 @@ import BattleSettings from "./pages/BattleSettings";
 import OperatorPanel from "./pages/OperatorPanel";
 import JudgePanel from "./pages/JudgePanel";
 import ActivityLogs from "./pages/ActivityLogs";
-import BattlesList from "./pages/BattlesList";
 import BattlePublic from "./pages/BattlePublic";
 import Leaderboard from "./pages/Leaderboard";
 import Analytics from "./pages/Analytics";
 import DancerProfile from "./pages/DancerProfile";
-import WorldEvents from "./pages/WorldEvents";
-import WorldRanking from "./pages/WorldRanking";
 import AudienceVote from "./pages/AudienceVote";
 import NotFound from "./pages/NotFound";
 
@@ -40,9 +37,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/battles" element={<BattlesList />} />
               <Route path="/battles/:id" element={<BattlePublic />} />
-              <Route path="/world-events" element={<WorldEvents />} />
               <Route path="/battles/:id/leaderboard" element={<Leaderboard />} />
               <Route path="/battle/create" element={<CreateBattle />} />
               <Route path="/battle/:id" element={<BattleView />} />
@@ -55,7 +50,6 @@ const App = () => (
               <Route path="/battle/:id/vote" element={<AudienceVote />} />
               <Route path="/dancer/:id" element={<DancerProfile />} />
               <Route path="/judge" element={<JudgePanel />} />
-              <Route path="/world-ranking" element={<WorldRanking />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
