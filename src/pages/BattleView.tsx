@@ -415,6 +415,18 @@ export default function BattleView() {
     if (!selectedNomination) return;
 
     try {
+      // Bug fix #2: Check for existing matches before creating duplicates
+      const { data: existingMatches } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("nomination_id", selectedNomination)
+        .limit(1);
+
+      if (existingMatches && existingMatches.length > 0) {
+        toast({ title: "Bracket already exists", description: "Matches already created for this nomination.", variant: "destructive" });
+        return;
+      }
+
       const topDancers = dancers
         .sort((a, b) => (b.average_score || 0) - (a.average_score || 0))
         .slice(0, currentNomination?.top_count || 16);

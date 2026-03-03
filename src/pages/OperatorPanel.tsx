@@ -499,6 +499,8 @@ export default function OperatorPanel() {
     try {
       setScreenState(prev => prev ? { ...prev, ...updates } : null);
 
+      // Bug fix #5: Don't strip design fields - they don't exist in schema,
+      // so simply remove them to avoid DB errors (they're kept in local state only)
       const safeUpdates = { ...updates } as any;
       delete safeUpdates.bracket_style;
       delete safeUpdates.font_family;
