@@ -13,7 +13,7 @@ import {
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye,
   Palette, MessageSquare, Timer,
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X, Mic
+  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X, Mic, Zap
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
