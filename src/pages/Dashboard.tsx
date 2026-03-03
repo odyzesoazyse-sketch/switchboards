@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Calendar, Users, Trophy, Gavel, Trash2, LogOut } from "lucide-react";
+import { Plus, Calendar, Users, Trophy, Gavel, Trash2, LogOut, Crown, CreditCard } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
   const [isJudge, setIsJudge] = useState(false);
+  const { tier, maxParticipants } = useSubscription();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -145,7 +147,21 @@ const Dashboard = () => {
       <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <h1 className="text-xl font-black tracking-tight text-foreground">SWITCHBOARD</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Plan badge */}
+            <button
+              onClick={() => navigate("/pricing")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                tier === "pro"
+                  ? "bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25"
+                  : tier === "enterprise"
+                    ? "bg-neon/15 text-neon border border-neon/20 hover:bg-neon/25"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {tier === "free" ? <CreditCard className="w-3 h-3" /> : <Crown className="w-3 h-3" />}
+              {tier.toUpperCase()}
+            </button>
             {isJudge && (
               <Button variant="ghost" size="sm" onClick={() => navigate("/judge")} className="text-muted-foreground hover:text-foreground">
                 <Gavel className="w-4 h-4 sm:mr-2" />

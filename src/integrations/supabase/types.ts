@@ -569,7 +569,10 @@ export type Database = {
           id: string
           judge_avg_rating: number | null
           judge_battles_count: number | null
+          max_participants: number
           phone: string | null
+          subscription_expires_at: string | null
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           updated_at: string
         }
         Insert: {
@@ -581,7 +584,10 @@ export type Database = {
           id: string
           judge_avg_rating?: number | null
           judge_battles_count?: number | null
+          max_participants?: number
           phone?: string | null
+          subscription_expires_at?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
         }
         Update: {
@@ -593,7 +599,10 @@ export type Database = {
           id?: string
           judge_avg_rating?: number | null
           judge_battles_count?: number | null
+          max_participants?: number
           phone?: string | null
+          subscription_expires_at?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
         }
         Relationships: []
@@ -1069,6 +1078,7 @@ export type Database = {
         | "participant"
         | "spectator"
       battle_phase: "registration" | "selection" | "bracket" | "completed"
+      subscription_tier: "free" | "pro" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1205,6 +1215,7 @@ export const Constants = {
         "spectator",
       ],
       battle_phase: ["registration", "selection", "bracket", "completed"],
+      subscription_tier: ["free", "pro", "enterprise"],
     },
   },
 } as const

@@ -1,240 +1,380 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Trophy, Users, Timer, Sparkles, CheckCircle, TrendingUp, Zap, Shield, ArrowRight, Gavel, Monitor, Music } from "lucide-react";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import {
+  Zap, Shield, Monitor, BarChart3, Users, Crown,
+  ArrowRight, Check, Star, Tv, Smartphone, Gauge
+} from "lucide-react";
 
-const DANCE_STYLES = [
-  "Breaking", "Hip-Hop", "Popping", "Locking", "Krump",
-  "Waacking", "House", "Dancehall", "Vogue", "All Styles"
+const FEATURES = [
+  {
+    icon: Gauge,
+    title: "Cypher Swipe",
+    desc: "Tinder-style selection rounds. Judges swipe left or right — fast, intuitive, mobile-first.",
+    color: "text-primary",
+  },
+  {
+    icon: Tv,
+    title: "OBS Overlay",
+    desc: "Transparent broadcast layer with live scores, dancer names, and Hype Meter for streaming.",
+    color: "text-secondary",
+  },
+  {
+    icon: BarChart3,
+    title: "Hype Meter",
+    desc: "Real-time audience energy gauge. Crowd noise = live data on screen. Pure spectacle.",
+    color: "text-neon",
+  },
+  {
+    icon: Smartphone,
+    title: "Live Judging",
+    desc: "Judges vote from their phones. Scores sync instantly to the main screen and brackets.",
+    color: "text-primary",
+  },
+  {
+    icon: Monitor,
+    title: "Screen Control",
+    desc: "Operator panel controls everything: timer, brackets, animations, custom messages — one dashboard.",
+    color: "text-secondary",
+  },
+  {
+    icon: Users,
+    title: "Multi-role System",
+    desc: "Organizer, Judge, Operator, Spectator — each role gets a tailored interface. No clutter.",
+    color: "text-neon",
+  },
 ];
+
+const PLANS = [
+  {
+    name: "FREE",
+    price: "$0",
+    period: "forever",
+    desc: "Perfect for small jams",
+    features: [
+      "Up to 16 participants",
+      "Standard bracket",
+      "Basic judging modes",
+      "Mobile voting",
+      '"Powered by Switchboard" watermark',
+    ],
+    cta: "Start Free",
+    popular: false,
+  },
+  {
+    name: "PRO",
+    price: "$149",
+    period: "/month",
+    desc: "For serious organizers",
+    features: [
+      "Up to 512 participants",
+      "Custom branding & colors",
+      "OBS transparent overlay",
+      "Sponsor logo uploads",
+      "Export results (PDF/CSV)",
+      "No watermark",
+      "Priority support",
+    ],
+    cta: "Upgrade to Pro",
+    popular: true,
+  },
+  {
+    name: "ENTERPRISE",
+    price: "Custom",
+    period: "",
+    desc: "Federations & large events",
+    features: [
+      "Unlimited participants",
+      "API access",
+      "White-Glove setup",
+      "Dedicated account manager",
+      "Custom integrations",
+      "SLA guarantee",
+      "Everything in Pro",
+    ],
+    cta: "Contact Sales",
+    popular: false,
+  },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  }),
+};
 
 const Index = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
-      {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-32 pb-12 sm:pb-24 overflow-hidden">
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute top-1/3 left-1/5 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] rounded-full blur-[120px] opacity-20 bg-primary" />
-        <div className="absolute bottom-1/3 right-1/5 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] rounded-full blur-[120px] opacity-20 bg-secondary" />
-
-        <div className="container mx-auto px-4 sm:px-6 relative">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Language & Theme — mobile */}
-            <div className="flex items-center justify-center gap-3 mb-4 sm:hidden">
-              <ThemeToggle />
-              <LanguageSwitcher />
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border/50 mb-4 sm:mb-8"
-            >
-              <Gavel className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-foreground">{t("hero.badge")}</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-7xl lg:text-8xl font-black mb-3 sm:mb-6 tracking-tight leading-[0.9]"
-            >
-              <span className="text-primary drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]">{t("hero.title1")}</span>{" "}
-              <span className="text-secondary drop-shadow-[0_0_30px_hsl(var(--secondary)/0.4)]">{t("hero.title2")}</span>{" "}
-              <span className="text-foreground">{t("hero.title3")}</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm sm:text-xl text-muted-foreground mb-4 sm:mb-8 max-w-2xl mx-auto px-2"
-            >
-              {t("hero.subtitle")}
-            </motion.p>
-
-            {/* Dance style tags — smaller on mobile */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-6 sm:mb-12 max-w-xl mx-auto px-2"
-            >
-              {DANCE_STYLES.map((style) => (
-                <span
-                  key={style}
-                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold bg-muted text-muted-foreground border border-border/50 uppercase tracking-wider"
-                >
-                  {style}
-                </span>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0"
-            >
-              <Button
-                onClick={() => navigate("/auth")}
-                size="lg"
-                className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-wider shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
-              >
-                <Trophy className="mr-2 w-5 h-5" />
-                {t("cta.startOrganizing")}
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
+        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <span className="font-black text-xl tracking-tight">SWITCHBOARD</span>
+          <div className="flex items-center gap-3">
+            {isLoggedIn ? (
+              <Button onClick={() => navigate("/dashboard")} size="sm" className="gap-2">
+                Dashboard <ArrowRight className="w-4 h-4" />
               </Button>
-              <Button
-                onClick={() => navigate("/dashboard")}
-                size="lg"
-                variant="outline"
-                className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 border-2 font-bold"
-              >
-                {t("dashboard.myBattles")}
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </motion.div>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                  Sign In
+                </Button>
+                <Button size="sm" onClick={() => navigate("/auth")} className="gap-2 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                  Get Started <ArrowRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
 
-            {/* Stats */}
-            <div className="mt-10 sm:mt-20 grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto">
-              {[
-                { value: "100%", label: "Transparent" },
-                { value: "Real-time", label: "Voting" },
-                { value: "0", label: "Bias" },
-              ].map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="text-2xl sm:text-4xl font-black text-foreground">{stat.value}</div>
-                  <div className="text-[9px] sm:text-xs uppercase tracking-widest text-muted-foreground mt-1">{stat.label}</div>
-                </motion.div>
-              ))}
+      {/* Hero */}
+      <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-32 px-4">
+        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] rounded-full blur-[180px] opacity-15 bg-primary pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-secondary pointer-events-none" />
+
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-neon/30 bg-neon/5 text-neon text-xs font-bold uppercase tracking-wider mb-8">
+              <div className="live-dot" />
+              Professional Battle Judging
             </div>
+          </motion.div>
+
+          <motion.h1
+            className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            Run battles
+            <br />
+            <span className="text-gradient-red">like a pro</span>
+          </motion.h1>
+
+          <motion.p
+            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            The all-in-one platform for dance battle organizers. Real-time judging, live brackets,
+            OBS overlays, and audience engagement — all synced.
+          </motion.p>
+
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <Button
+              size="lg"
+              className="text-base px-8 py-6 gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
+              onClick={() => navigate(isLoggedIn ? "/dashboard" : "/auth")}
+            >
+              <Zap className="w-5 h-5" />
+              {isLoggedIn ? "Go to Dashboard" : "Start Free"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-base px-8 py-6 gap-2 border-border/50"
+              onClick={() => navigate("/battle/create")}
+            >
+              <Star className="w-5 h-5" />
+              Launch Simulation
+            </Button>
+          </motion.div>
+
+          <motion.div
+            className="mt-12 flex items-center justify-center gap-6 text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <span className="flex items-center gap-1.5">
+              <Shield className="w-4 h-4" /> Trusted by organizers
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="w-4 h-4" /> All dance styles
+            </span>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 sm:py-28 px-4 relative" id="features">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUp}
+            custom={0}
+          >
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
+              Everything you need to
+              <br />
+              <span className="text-gradient-mixed">run the show</span>
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              From registration to finals — one platform, zero chaos.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.title}
+                className="group p-6 sm:p-8 rounded-2xl border border-border/30 bg-card/50 hover:bg-card hover:border-border/60 transition-all duration-300 hover-lift"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUp}
+                custom={i}
+              >
+                <f.icon className={`w-8 h-8 mb-4 ${f.color}`} />
+                <h3 className="text-lg font-bold mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How it Works */}
-      <section className="py-10 sm:py-24 bg-surface">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-8 sm:mb-14">
-            <h2 className="text-2xl sm:text-5xl font-black mb-2 tracking-tight">{t("howItWorks.title")}</h2>
-            <p className="text-sm sm:text-base text-muted-foreground">{t("howItWorks.subtitle")}</p>
-          </div>
+      {/* Pricing */}
+      <section className="py-20 sm:py-28 px-4 relative" id="pricing">
+        <div className="absolute inset-0 bg-grid opacity-5 pointer-events-none" />
+        <div className="container mx-auto max-w-5xl relative z-10">
+          <motion.div
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUp}
+            custom={0}
+          >
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
+              Simple, honest pricing
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Start free. Upgrade when you're ready.
+            </p>
+          </motion.div>
 
-          <div className="grid gap-3 sm:gap-8 grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
-            {[
-              { step: 1, icon: Sparkles, title: t("howItWorks.step1"), desc: t("howItWorks.step1Desc"), color: "primary" },
-              { step: 2, icon: Users, title: t("howItWorks.step2"), desc: t("howItWorks.step2Desc"), color: "secondary" },
-              { step: 3, icon: TrendingUp, title: t("howItWorks.step3"), desc: t("howItWorks.step3Desc"), color: "primary" },
-              { step: 4, icon: Trophy, title: t("howItWorks.step4"), desc: t("howItWorks.step4Desc"), color: "secondary" },
-            ].map((item) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PLANS.map((plan, i) => (
               <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: item.step * 0.1 }}
+                key={plan.name}
+                className={`relative rounded-2xl border p-6 sm:p-8 transition-all duration-300 ${
+                  plan.popular
+                    ? "border-primary/50 bg-primary/5 shadow-[0_0_40px_hsl(var(--primary)/0.1)]"
+                    : "border-border/30 bg-card/50"
+                }`}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUp}
+                custom={i}
               >
-                <Card className="p-3 sm:p-6 h-full border-border/50 hover-lift group bg-card">
-                  <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4 transition-transform group-hover:scale-110 ${
-                    item.color === "primary" ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
-                  }`}>
-                    <item.icon className="w-4 h-4 sm:w-6 sm:h-6" />
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider">
+                    Most Popular
                   </div>
-                  <div className="text-[8px] sm:text-[10px] font-black text-muted-foreground mb-0.5 sm:mb-1 uppercase tracking-[0.2em]">STEP {item.step}</div>
-                  <h3 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2">{item.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">{item.desc}</p>
-                </Card>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black">{plan.price}</span>
+                    {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{plan.desc}</p>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm">
+                      <Check className="w-4 h-4 text-neon shrink-0 mt-0.5" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  className={`w-full ${
+                    plan.popular
+                      ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_hsl(var(--primary)/0.2)]"
+                      : "bg-muted hover:bg-muted/80 text-foreground"
+                  }`}
+                  onClick={() => navigate(plan.name === "ENTERPRISE" ? "/auth" : "/pricing")}
+                >
+                  {plan.cta}
+                </Button>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-10 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-8 sm:mb-14">
-            <h2 className="text-2xl sm:text-5xl font-black mb-2 tracking-tight">{t("features.title")}</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">{t("features.subtitle")}</p>
-          </div>
-
-          <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
-            {[
-              { icon: Users, title: t("features.roles"), desc: t("features.rolesDesc"), accent: "primary" },
-              { icon: Timer, title: t("features.realtime"), desc: t("features.realtimeDesc"), accent: "secondary" },
-              { icon: TrendingUp, title: t("features.twoPhase"), desc: t("features.twoPhaseDesc"), accent: "primary" },
-              { icon: Monitor, title: t("features.liveViz"), desc: t("features.liveVizDesc"), accent: "secondary" },
-              { icon: Shield, title: t("features.fair"), desc: t("features.fairDesc"), accent: "primary" },
-              { icon: CheckCircle, title: t("features.control"), desc: t("features.controlDesc"), accent: "secondary" },
-            ].map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-              >
-                <Card className={`p-3 sm:p-5 h-full border-border/50 transition-all group hover:shadow-lg bg-card ${
-                  feature.accent === "primary" ? "hover:border-primary/30 hover:shadow-[0_0_30px_hsl(var(--primary)/0.1)]" : "hover:border-secondary/30 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.1)]"
-                }`}>
-                  <feature.icon className={`w-6 h-6 sm:w-8 sm:h-8 mb-2 sm:mb-3 transition-transform group-hover:scale-110 ${
-                    feature.accent === "primary" ? "text-primary" : "text-secondary"
-                  }`} />
-                  <h3 className="text-xs sm:text-base font-bold mb-0.5 sm:mb-1.5">{feature.title}</h3>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">{feature.desc}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+      {/* CTA */}
+      <section className="py-20 sm:py-28 px-4">
+        <div className="container mx-auto max-w-3xl text-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            custom={0}
+          >
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-6">
+              Ready to level up
+              <br />
+              your events?
+            </h2>
+            <p className="text-muted-foreground text-lg mb-10 max-w-lg mx-auto">
+              Join organizers who run battles with precision, style, and zero paper.
+            </p>
+            <Button
+              size="lg"
+              className="text-base px-10 py-6 gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
+              onClick={() => navigate(isLoggedIn ? "/dashboard" : "/auth")}
+            >
+              <Crown className="w-5 h-5" />
+              {isLoggedIn ? "Go to Dashboard" : "Get Started — It's Free"}
+            </Button>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-10 sm:py-24 bg-foreground text-background">
-        <div className="container mx-auto px-4 sm:px-6 text-center">
-          <div className="max-w-2xl mx-auto">
-            <Trophy className="w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-4 sm:mb-6 opacity-80" />
-            <h2 className="text-2xl sm:text-5xl font-black mb-3 sm:mb-4 tracking-tight">{t("cta.title")}</h2>
-            <p className="text-sm sm:text-lg opacity-70 mb-6 sm:mb-8">{t("cta.subtitle")}</p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
-              <Button
-                onClick={() => navigate("/auth")}
-                size="lg"
-                className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 bg-background text-foreground hover:bg-background/90 font-black uppercase tracking-wider"
-              >
-                {t("cta.startOrganizing")}
-              </Button>
-              <Button
-                onClick={() => navigate("/judge")}
-                size="lg"
-                variant="outline"
-                className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 border-2 border-background/30 text-background hover:bg-background/10 font-bold"
-              >
-                {t("dashboard.judgePanel")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-6 sm:py-8 border-t border-border/50">
-        <div className="container mx-auto px-4 sm:px-6 text-center">
-          <p className="text-muted-foreground text-xs sm:text-sm">© 2026 SWITCHBOARD. Fair judging for the dance battle community.</p>
+      {/* Footer */}
+      <footer className="border-t border-border/30 py-8 px-4">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">SWITCHBOARD</span>
+          <span>© 2026 Switchboard. All rights reserved.</span>
         </div>
       </footer>
     </div>
