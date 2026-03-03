@@ -158,7 +158,8 @@ export default function BattleView() {
       setNominations(nominationsData || []);
 
       if (nominationsData && nominationsData.length > 0) {
-        setSelectedNomination(nominationsData[0].id);
+        // Bug fix #1: Only set if not already valid
+        setSelectedNomination(prev => prev && nominationsData.some(n => n.id === prev) ? prev : nominationsData[0].id);
       }
 
       if (userId && battleData?.organizer_id === userId) {
