@@ -599,6 +599,9 @@ export default function OperatorPanel() {
   };
 
   const applyDesign = async () => {
+    // Bug fix #5: Also save non-DB fields to localStorage for persistence
+    saveDesignToLocal({ bracketStyle, fontFamily, primaryColor, secondaryColor });
+    
     await updateScreenState({
       background_type: backgroundType,
       background_color: backgroundColor,
