@@ -965,184 +965,163 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
     );
   }
 
-  // Active match view
+  // Active match view — MC-style high-contrast layout
   return (
     <ScreenWrapper screenState={screenState} dynamicStyles={dynamicStyles} isObs={isObs}>
-      <div className="h-full w-full p-4 sm:p-6 md:p-8" style={dynamicStyles}>
-        <div className={`max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 ${animationClass}`}>
-          {/* Battle name */}
-          {screenState.show_battle_name && (
-            <div className="text-center">
-              <h1
-                className={`${fontClass} font-bold ${textColor} text-2xl sm:text-3xl md:text-4xl lg:text-5xl`}
-                style={{ fontSize: `calc(1.75rem * ${fontScale.name})` }}
+      <div className="h-full w-full flex flex-col items-center justify-center relative overflow-hidden" style={dynamicStyles}>
+        {/* Battle name — subtle top */}
+        {screenState.show_battle_name && (
+          <div className="absolute top-6 left-0 right-0 text-center z-10">
+            <h1
+              className={`${fontClass} font-bold ${mutedTextColor} text-lg sm:text-xl md:text-2xl uppercase tracking-[0.15em]`}
+              style={{ fontSize: `calc(1rem * ${fontScale.name})` }}
+            >
+              {battleName}
+            </h1>
+          </div>
+        )}
+
+        {/* Timer — top right, subtle */}
+        {screenState.show_timer && (
+          <div className="absolute top-6 right-8 z-10">
+            <div className={`${fontClass} font-bold tabular-nums text-2xl sm:text-3xl md:text-4xl ${
+              screenState.timer_running && timeLeft <= 10 ? 'text-red-500 animate-pulse' : mutedTextColor
+            }`} style={{ fontSize: `calc(1.5rem * ${fontScale.name})` }}>
+              {formatTime(timeLeft)}
+            </div>
+          </div>
+        )}
+
+        {/* Main content — centered */}
+        <div className={`w-full max-w-7xl mx-auto px-6 sm:px-8 md:px-12 ${animationClass}`}>
+          {/* Score — massive centered */}
+          {screenState.show_score && (
+            <div className="flex items-center justify-center gap-6 md:gap-12 mb-4 md:mb-8">
+              <span
+                className={`${fontClass} font-black leading-none tabular-nums text-primary`}
+                style={{
+                  fontSize: `calc(6rem * ${fontScale.name})`,
+                  textShadow: '0 0 40px hsl(var(--primary)/0.4), 0 0 80px hsl(var(--primary)/0.2)'
+                }}
               >
-                {battleName}
-              </h1>
+                {screenState.votes_left}
+              </span>
+              <span className={`text-3xl md:text-5xl font-black ${isLight ? 'text-gray-300' : 'text-white/15'} select-none`}>:</span>
+              <span
+                className={`${fontClass} font-black leading-none tabular-nums text-secondary`}
+                style={{
+                  fontSize: `calc(6rem * ${fontScale.name})`,
+                  textShadow: '0 0 40px hsl(var(--secondary)/0.4), 0 0 80px hsl(var(--secondary)/0.2)'
+                }}
+              >
+                {screenState.votes_right}
+              </span>
             </div>
           )}
 
-          {/* Timer */}
-          {screenState.show_timer && (
-            <div className="text-center">
-              <div className={`inline-block ${isLight ? 'bg-white/80' : 'bg-black/60'} ${blurClass} rounded-xl sm:rounded-2xl px-6 py-3 sm:px-8 sm:py-4 md:px-12 md:py-6`}>
-                <div
-                  className={`${fontClass} font-bold ${textColor} tabular-nums text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${screenState.timer_running && timeLeft <= 10 ? 'text-red-500 animate-pulse' : ''}`}
-                  style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
-                >
-                  {formatTime(timeLeft)}
-                </div>
+          {/* Dancer names — huge, side by side */}
+          <div className="flex items-start justify-between gap-4 md:gap-8 w-full">
+            {/* LEFT — RED */}
+            <div className="flex-1 text-left space-y-3">
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-black uppercase tracking-[0.2em] ${isLight ? 'text-primary/60' : 'text-primary/50'}`}>RED</span>
               </div>
-            </div>
-          )}
-
-          {/* Main battle display - responsive grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-center">
-            {/* Left dancer - Red */}
-            <Card className={`p-4 sm:p-6 md:p-8 ${mainCardBgClassLeft} ${blurClassSmall} order-1 md:order-1`}>
-              <div className="text-center space-y-3 sm:space-y-4 md:space-y-6">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 mx-auto rounded-2xl md:rounded-3xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 overflow-hidden">
-                  {leftDancer?.video_url ? (
-                    <video src={leftDancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-                  ) : leftDancer?.photo_url ? (
+              <div className="flex items-center gap-4 md:gap-6">
+                {leftDancer?.photo_url && (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-primary/30 shrink-0 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
                     <img src={leftDancer.photo_url} alt={leftDancer.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 text-primary" />
-                  )}
-                </div>
-                <div>
+                  </div>
+                )}
+                <div className="min-w-0">
                   <h2
-                    className={`${fontClass} font-bold text-primary text-xl sm:text-2xl md:text-3xl lg:text-4xl`}
-                    style={{ fontSize: `calc(1.5rem * ${fontScale.name})` }}
+                    className={`${fontClass} font-black ${textColor} leading-tight tracking-tight break-words`}
+                    style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
                   >
                     {leftDancer?.name || "Waiting"}
                   </h2>
                   {leftDancer?.city && (
-                    <p className={`text-sm sm:text-base md:text-lg lg:text-xl ${mutedTextColor} mt-1 sm:mt-2`}>{leftDancer.city}</p>
+                    <p className={`text-sm sm:text-base md:text-lg ${mutedTextColor} mt-1`}>{leftDancer.city}</p>
                   )}
                 </div>
-
-                {/* Left Dancer Stats (Player Card Overlay) */}
-                {leftDancer && (leftDancer.wins_count != null || leftDancer.battles_count != null) && (
-                  <div className={`mt-4 grid grid-cols-2 gap-2 text-sm sm:text-base ${isLight ? 'bg-white/50' : 'bg-black/30'} rounded-xl p-3 backdrop-blur-sm`}>
-                    <div className="flex flex-col items-center border-r border-primary/20">
-                      <span className={`text-xs uppercase tracking-wider ${mutedTextColor}`}>Wins</span>
-                      <span className={`font-bold text-primary ${fontClass}`}>{leftDancer.wins_count || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className={`text-xs uppercase tracking-wider ${mutedTextColor}`}>Winrate</span>
-                      <span className={`font-bold text-primary ${fontClass}`}>
-                        {leftDancer.battles_count ? Math.round(((leftDancer.wins_count || 0) / leftDancer.battles_count) * 100) : 0}%
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
-            </Card>
-
-            {/* Center - VS and score */}
-            <div className="text-center space-y-4 sm:space-y-6 md:space-y-8 order-3 md:order-2 py-4 md:py-0">
-              <div
-                className={`${fontClass} font-bold ${isLight ? 'text-gray-300' : 'text-white/30'} text-4xl sm:text-5xl md:text-6xl lg:text-7xl`}
-                style={{ fontSize: `calc(3rem * ${fontScale.name})` }}
-              >
-                VS
-              </div>
-
-              {screenState.show_score && (
-                <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8">
-                  <div
-                    className={`${fontClass} font-bold text-primary text-4xl sm:text-5xl md:text-6xl lg:text-7xl`}
-                    style={{ fontSize: `calc(3rem * ${fontScale.name})`, textShadow: '0 0 30px hsl(var(--primary)/0.5)' }}
-                  >
-                    {screenState.votes_left}
-                  </div>
-                  <div className={`text-2xl sm:text-3xl md:text-4xl ${isLight ? 'text-gray-400' : 'text-white/50'}`}>—</div>
-                  <div
-                    className={`${fontClass} font-bold text-secondary text-4xl sm:text-5xl md:text-6xl lg:text-7xl`}
-                    style={{ fontSize: `calc(3rem * ${fontScale.name})`, textShadow: '0 0 30px hsl(var(--secondary)/0.5)' }}
-                  >
-                    {screenState.votes_right}
-                  </div>
-                </div>
-              )}
-
-              {screenState.show_round_info && (
-                <div className="space-y-2 sm:space-y-4">
-                  <Badge
-                    className={`px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg md:text-xl ${isLight ? 'bg-gray-200 text-gray-900' : 'bg-black/60 text-white'} border-transparent`}
-                    style={{ fontSize: `calc(1rem * ${fontScale.name})` }}
-                  >
-                    Round {screenState.current_round}
-                  </Badge>
-
-                  <div className={`text-sm sm:text-base md:text-lg ${mutedTextColor}`}>
-                    First to {screenState.rounds_to_win} rounds wins
-                  </div>
+              {leftDancer && (leftDancer.wins_count != null || leftDancer.battles_count != null) && (
+                <div className={`flex gap-4 text-sm ${mutedTextColor}`}>
+                  <span>🏆 {leftDancer.wins_count || 0}W</span>
+                  <span>⚔️ {leftDancer.battles_count || 0}B</span>
+                  {leftDancer.battles_count ? (
+                    <span>{Math.round(((leftDancer.wins_count || 0) / leftDancer.battles_count) * 100)}% WR</span>
+                  ) : null}
                 </div>
               )}
             </div>
 
-            {/* Right dancer - Blue */}
-            <Card className={`p-4 sm:p-6 md:p-8 ${mainCardBgClassRight} ${blurClassSmall} order-2 md:order-3`}>
-              <div className="text-center space-y-3 sm:space-y-4 md:space-y-6">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 mx-auto rounded-2xl md:rounded-3xl bg-secondary/10 flex items-center justify-center border-2 border-secondary/20 overflow-hidden">
-                  {rightDancer?.video_url ? (
-                    <video src={rightDancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-                  ) : rightDancer?.photo_url ? (
+            {/* Divider */}
+            <div className={`w-px self-stretch min-h-[100px] ${isLight ? 'bg-gray-200' : 'bg-white/10'} shrink-0 mx-2`} />
+
+            {/* RIGHT — BLUE */}
+            <div className="flex-1 text-right space-y-3">
+              <div className="flex items-center gap-3 justify-end">
+                <span className={`text-xs font-black uppercase tracking-[0.2em] ${isLight ? 'text-secondary/60' : 'text-secondary/50'}`}>BLUE</span>
+              </div>
+              <div className="flex items-center gap-4 md:gap-6 flex-row-reverse">
+                {rightDancer?.photo_url && (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-secondary/30 shrink-0 shadow-[0_0_20px_hsl(var(--secondary)/0.2)]">
                     <img src={rightDancer.photo_url} alt={rightDancer.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 text-secondary" />
-                  )}
-                </div>
-                <div>
+                  </div>
+                )}
+                <div className="min-w-0">
                   <h2
-                    className={`${fontClass} font-bold text-secondary text-xl sm:text-2xl md:text-3xl lg:text-4xl`}
-                    style={{ fontSize: `calc(1.5rem * ${fontScale.name})` }}
+                    className={`${fontClass} font-black ${textColor} leading-tight tracking-tight break-words`}
+                    style={{ fontSize: `calc(2.5rem * ${fontScale.name})` }}
                   >
                     {rightDancer?.name || "Waiting"}
                   </h2>
                   {rightDancer?.city && (
-                    <p className={`text-sm sm:text-base md:text-lg lg:text-xl ${mutedTextColor} mt-1 sm:mt-2`}>{rightDancer.city}</p>
+                    <p className={`text-sm sm:text-base md:text-lg ${mutedTextColor} mt-1`}>{rightDancer.city}</p>
                   )}
                 </div>
-
-                {/* Right Dancer Stats (Player Card Overlay) */}
-                {rightDancer && (rightDancer.wins_count != null || rightDancer.battles_count != null) && (
-                  <div className={`mt-4 grid grid-cols-2 gap-2 text-sm sm:text-base ${isLight ? 'bg-white/50' : 'bg-black/30'} rounded-xl p-3 backdrop-blur-sm`}>
-                    <div className="flex flex-col items-center border-r border-secondary/20">
-                      <span className={`text-xs uppercase tracking-wider ${mutedTextColor}`}>Wins</span>
-                      <span className={`font-bold text-secondary ${fontClass}`}>{rightDancer.wins_count || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className={`text-xs uppercase tracking-wider ${mutedTextColor}`}>Winrate</span>
-                      <span className={`font-bold text-secondary ${fontClass}`}>
-                        {rightDancer.battles_count ? Math.round(((rightDancer.wins_count || 0) / rightDancer.battles_count) * 100) : 0}%
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
-            </Card>
+              {rightDancer && (rightDancer.wins_count != null || rightDancer.battles_count != null) && (
+                <div className={`flex gap-4 text-sm ${mutedTextColor} justify-end`}>
+                  <span>🏆 {rightDancer.wins_count || 0}W</span>
+                  <span>⚔️ {rightDancer.battles_count || 0}B</span>
+                  {rightDancer.battles_count ? (
+                    <span>{Math.round(((rightDancer.wins_count || 0) / rightDancer.battles_count) * 100)}% WR</span>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Voting Breakdown Table */}
-          {renderVoteBreakdown()}
-
-          {/* Next Up Overlay */}
-          {renderNextUp()}
-
-          {/* Audience Vote QR Overlay */}
-          {!isObs && (
-            <AudienceVoteOverlay
-              battleId={id!}
-              matchId={screenState.current_match_id}
-              leftDancerId={leftDancer?.id || null}
-              rightDancerId={rightDancer?.id || null}
-              isLight={isLight}
-            />
+          {/* Round info — minimal */}
+          {screenState.show_round_info && (
+            <div className="text-center mt-6 md:mt-10 space-y-1">
+              <Badge
+                className={`px-5 py-2 text-base sm:text-lg ${isLight ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white/5 text-white/60 border-white/10'}`}
+                style={{ fontSize: `calc(0.9rem * ${fontScale.name})` }}
+              >
+                Round {screenState.current_round} • First to {screenState.rounds_to_win}
+              </Badge>
+            </div>
           )}
         </div>
+
+        {/* Voting Breakdown Table */}
+        {renderVoteBreakdown()}
+
+        {/* Next Up Overlay */}
+        {renderNextUp()}
+
+        {/* Audience Vote QR Overlay */}
+        {!isObs && (
+          <AudienceVoteOverlay
+            battleId={id!}
+            matchId={screenState.current_match_id}
+            leftDancerId={leftDancer?.id || null}
+            rightDancerId={rightDancer?.id || null}
+            isLight={isLight}
+          />
+        )}
       </div>
     </ScreenWrapper>
   );
