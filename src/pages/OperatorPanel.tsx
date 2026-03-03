@@ -927,16 +927,16 @@ export default function OperatorPanel() {
       </div>
 
       {/* ── Main Content: 3-tab layout ── */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pb-8">
         <Tabs defaultValue="live" className="w-full">
-          <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0 gap-0">
-            <TabsTrigger value="live" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+          <TabsList className="w-full rounded-none border-b border-border/30 bg-transparent h-auto p-0 gap-0">
+            <TabsTrigger value="live" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-neon data-[state=active]:text-neon data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Live Control
             </TabsTrigger>
-            <TabsTrigger value="bracket" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+            <TabsTrigger value="bracket" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Bracket
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+            <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3.5 text-xs font-bold uppercase tracking-[0.1em]">
               Settings
             </TabsTrigger>
           </TabsList>
