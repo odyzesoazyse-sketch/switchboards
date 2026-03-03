@@ -126,6 +126,19 @@ export default function BracketSetup({ nominationId, dancers, topCount, onBracke
   const saveBracket = async () => {
     setSaving(true);
     try {
+      // Bug fix #2: Check for existing matches before creating duplicates
+      const { data: existingMatches } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("nomination_id", nominationId)
+        .limit(1);
+
+      if (existingMatches && existingMatches.length > 0) {
+        toast({ title: "Сетка уже существует", description: "Матчи для этой номинации уже созданы.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
       // Mark qualified dancers
       const qualifiedIds = slots.filter(s => s.dancerId).map(s => s.dancerId!);
       for (const dId of qualifiedIds) {

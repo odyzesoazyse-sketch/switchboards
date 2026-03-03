@@ -171,6 +171,16 @@ export default function OperatorPanel() {
   const [themePreset, setThemePreset] = useState("dark");
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  // Bug fix #5: Persist design settings in localStorage since columns don't exist in DB
+  const DESIGN_STORAGE_KEY = `switchboard-design-${id}`;
+  
+  const saveDesignToLocal = useCallback((settings: Record<string, any>) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem(DESIGN_STORAGE_KEY) || '{}');
+      localStorage.setItem(DESIGN_STORAGE_KEY, JSON.stringify({ ...existing, ...settings }));
+    } catch {}
+  }, [DESIGN_STORAGE_KEY]);
+
   // New Engine settings
   const [bracketStyle, setBracketStyle] = useState("solid");
   const [fontFamily, setFontFamily] = useState("display");
@@ -179,6 +189,17 @@ export default function OperatorPanel() {
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showAudienceQR, setShowAudienceQR] = useState(true);
   const [autoAdvanceOnTimer, setAutoAdvanceOnTimer] = useState(false);
+  
+  // Load design settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(DESIGN_STORAGE_KEY) || '{}');
+      if (saved.bracketStyle) setBracketStyle(saved.bracketStyle);
+      if (saved.fontFamily) setFontFamily(saved.fontFamily);
+      if (saved.primaryColor) setPrimaryColor(saved.primaryColor);
+      if (saved.secondaryColor) setSecondaryColor(saved.secondaryColor);
+    } catch {}
+  }, [DESIGN_STORAGE_KEY]);
   const timerEndRef = useRef<string | null>(null);
   const [showRoulette, setShowRoulette] = useState(false);
   const [battleData, setBattleData] = useState<any>(null);
