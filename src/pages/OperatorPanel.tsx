@@ -1858,6 +1858,176 @@ export default function OperatorPanel() {
             )
           )}
         </div>
+
+        {/* ═══════════════════ EVENT OS TOOLS ═══════════════════ */}
+        <div className="space-y-2 pt-4 border-t border-border/50">
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            Event OS
+          </h2>
+
+          <Tabs defaultValue="tools" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="tools" className="text-xs">Tools</TabsTrigger>
+              <TabsTrigger value="draw" className="text-xs">Draw</TabsTrigger>
+              <TabsTrigger value="social" className="text-xs">Social</TabsTrigger>
+              <TabsTrigger value="checkin" className="text-xs">Check-in</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="tools" className="space-y-3 mt-3">
+              {/* AI Timekeeper */}
+              {battleData && (
+                <AiTimekeeper
+                  eventStartTime={battleData.date}
+                  totalMatchesPlanned={matches.length || 8}
+                  matchesCompleted={matches.filter(m => m.winner_id).length}
+                  eventEndTime={undefined}
+                />
+              )}
+
+              {/* Live Prize Pool */}
+              <LivePrizePool
+                battleId={id!}
+                initialAmount={0}
+                currency="₽"
+              />
+
+              {/* Spider Chart for active match (VAR) */}
+              {currentMatch && (
+                <Card className="p-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">VAR Comparison</h3>
+                  <SpiderChart
+                    labels={["Technique", "Musicality", "Performance", "Originality", "Energy"]}
+                    dataA={(() => {
+                      const leftVotes = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_left_id);
+                      return [
+                        leftVotes.reduce((sum, v) => sum + (v.slider_technique || 5), 0) / (leftVotes.length || 1),
+                        leftVotes.reduce((sum, v) => sum + (v.slider_musicality || 5), 0) / (leftVotes.length || 1),
+                        leftVotes.reduce((sum, v) => sum + (v.slider_performance || 5), 0) / (leftVotes.length || 1),
+                        5, 5,
+                      ];
+                    })()}
+                    dataB={(() => {
+                      const rightVotes = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_right_id);
+                      return [
+                        rightVotes.reduce((sum, v) => sum + (v.slider_technique || 5), 0) / (rightVotes.length || 1),
+                        rightVotes.reduce((sum, v) => sum + (v.slider_musicality || 5), 0) / (rightVotes.length || 1),
+                        rightVotes.reduce((sum, v) => sum + (v.slider_performance || 5), 0) / (rightVotes.length || 1),
+                        5, 5,
+                      ];
+                    })()}
+                    nameA={getDancerName(currentMatch.dancer_left_id)}
+                    nameB={getDancerName(currentMatch.dancer_right_id)}
+                    size={200}
+                  />
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="draw" className="space-y-3 mt-3">
+              <Card className="p-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Cyber Roulette</h3>
+                <p className="text-xs text-muted-foreground mb-3">Random match draw with animation for the audience</p>
+                {dancers.length >= 2 ? (
+                  <>
+                    <Button
+                      onClick={() => setShowRoulette(true)}
+                      className="w-full gap-2 mb-4"
+                      variant={showRoulette ? "destructive" : "default"}
+                    >
+                      <Zap className="h-4 w-4" />
+                      {showRoulette ? "Stop Roulette" : "Start Roulette"}
+                    </Button>
+                    <CyberRoulette
+                      dancers={dancers.map(d => ({ id: d.id, name: d.name, photo_url: null }))}
+                      onResult={(left, right) => {
+                        setShowRoulette(false);
+                        toast({
+                          title: "🎰 Match Drawn!",
+                          description: `${left.name} vs ${right.name}`,
+                        });
+                      }}
+                      isActive={showRoulette}
+                    />
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Need at least 2 dancers</p>
+                )}
+              </Card>
+
+              {/* Cypher Swipe link */}
+              {currentNomination?.phase === 'selection' && selectedNomination && (
+                <Card className="p-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cypher Swipe Mode</h3>
+                  <p className="text-xs text-muted-foreground mb-3">Tinder-like judge selection for qualifications</p>
+                  <Button
+                    onClick={() => window.open(`/cypher-swipe/${selectedNomination}`, '_blank')}
+                    variant="outline"
+                    className="w-full gap-2"
+                  >
+                    Open Cypher Swipe
+                  </Button>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="social" className="space-y-3 mt-3">
+              <Card className="p-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Post Generator</h3>
+                <LlmPostGenerator
+                  battleName={battleData?.name || "Battle"}
+                  nominationName={currentNomination?.name || ""}
+                  matches={matches.map(m => ({
+                    round: m.round,
+                    position: m.position,
+                    dancer_left_name: getDancerName(m.dancer_left_id),
+                    dancer_right_name: getDancerName(m.dancer_right_id),
+                    winner_name: m.winner_id ? getDancerName(m.winner_id) : null,
+                  }))}
+                  date={battleData?.date ? new Date(battleData.date).toLocaleDateString() : ""}
+                />
+              </Card>
+
+              {/* OBS Overlay link */}
+              <Card className="p-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">OBS Overlay</h3>
+                <p className="text-xs text-muted-foreground mb-3">Transparent overlay for streaming</p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')}
+                    variant="outline"
+                    className="flex-1 gap-1"
+                    size="sm"
+                  >
+                    <Monitor className="h-3 w-3" />
+                    Open Overlay
+                  </Button>
+                  <Button
+                    onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')}
+                    variant="outline"
+                    className="flex-1 gap-1"
+                    size="sm"
+                  >
+                    🎤 With Hype
+                  </Button>
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="checkin" className="space-y-3 mt-3">
+              <NfcCheckin
+                onCheckin={(code) => {
+                  const dancer = dancers.find(d => d.name.toLowerCase().includes(code.toLowerCase()) || d.id === code);
+                  if (dancer) {
+                    toast({ title: "✅ Checked In", description: `${dancer.name} is ready` });
+                  } else {
+                    toast({ title: "⚠️ Not Found", description: `No dancer matching "${code}"`, variant: "destructive" });
+                  }
+                }}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
