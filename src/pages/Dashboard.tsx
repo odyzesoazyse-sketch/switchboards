@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
   const [isJudge, setIsJudge] = useState(false);
+  const { tier, maxParticipants } = useSubscription();
 
   useEffect(() => {
     const checkUser = async () => {
