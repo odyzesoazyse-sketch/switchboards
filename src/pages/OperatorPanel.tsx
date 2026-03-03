@@ -1096,16 +1096,16 @@ export default function OperatorPanel() {
                 </div>
 
                 {/* Secondary actions */}
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={resetMatch} className="text-xs flex-1 h-9">
-                    <RotateCcw className="h-3 w-3 mr-1" />
+                <div className="flex gap-2 pt-2">
+                  <Button variant="ghost" size="sm" onClick={resetMatch} className="text-xs flex-1 h-10 rounded-xl">
+                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                     Reset
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={triggerTieBreaker} className="text-xs flex-1 h-9 text-destructive">
+                  <Button variant="ghost" size="sm" onClick={triggerTieBreaker} className="text-xs flex-1 h-10 rounded-xl text-destructive">
                     Tie Break
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={clearScreen} className="text-xs flex-1 h-9">
-                    <X className="h-3 w-3 mr-1" />
+                  <Button variant="ghost" size="sm" onClick={clearScreen} className="text-xs flex-1 h-10 rounded-xl">
+                    <X className="h-3.5 w-3.5 mr-1.5" />
                     Clear
                   </Button>
                 </div>
