@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Calendar, Users, Trophy, Gavel, Trash2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -57,7 +57,6 @@ const Dashboard = () => {
 
   const loadUserData = async (userId: string) => {
     try {
-      // Check if user is organizer (has any battles)
       const { data: organizerBattles, error: battleError } = await supabase
         .from("battles")
         .select(`*, nominations (count)`)
@@ -68,7 +67,6 @@ const Dashboard = () => {
 
       const hasOrganizerBattles = organizerBattles && organizerBattles.length > 0;
 
-      // Check if user is judge for any battles
       const { data: judgeRoles } = await supabase
         .from("user_roles")
         .select("battle_id")
@@ -77,7 +75,6 @@ const Dashboard = () => {
 
       const hasJudgeRole = judgeRoles && judgeRoles.length > 0;
 
-      // If user is ONLY a judge (not organizer), redirect directly to judge panel
       if (hasJudgeRole && !hasOrganizerBattles) {
         navigate("/judge");
         return;
@@ -124,66 +121,75 @@ const Dashboard = () => {
     return labels[phase] || phase;
   };
 
+  const getPhaseColor = (phase: string) => {
+    switch (phase) {
+      case "registration": return "bg-secondary/15 text-secondary border border-secondary/20";
+      case "selection": return "bg-primary/15 text-primary border border-primary/20";
+      case "bracket": return "bg-neon/15 text-neon border border-neon/20";
+      case "completed": return "bg-muted text-muted-foreground";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card pt-0 sm:pt-14">
-      <header className="border-b border-border/50 backdrop-blur-sm sm:mt-0">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground shrink-0 sm:hidden">SWITCHBOARD</h1>
-          <h1 className="text-lg font-bold text-foreground shrink-0 hidden sm:block">My Dashboard</h1>
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <span className="text-xs sm:text-sm text-muted-foreground truncate max-w-[120px] sm:max-w-none hidden sm:inline">{user?.email}</span>
+    <div className="min-h-screen bg-background">
+      {/* Header — clean, minimal */}
+      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <h1 className="text-xl font-black tracking-tight text-foreground">SWITCHBOARD</h1>
+          <div className="flex items-center gap-3">
             {isJudge && (
-              <Button variant="outline" size="sm" onClick={() => navigate("/judge")} className="shrink-0">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/judge")} className="text-muted-foreground hover:text-foreground">
                 <Gavel className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Judge Panel</span>
+                <span className="hidden sm:inline text-sm">Judge</span>
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">
+              <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <div className="flex items-center justify-between mb-4 sm:mb-8 gap-2">
-          <div className="min-w-0">
-            <h2 className="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">My Battles</h2>
-            <p className="text-muted-foreground text-sm sm:text-base">Manage your events</p>
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Title + Create */}
+        <div className="flex items-end justify-between mb-10 gap-4">
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-1">My Battles</h2>
+            <p className="text-sm text-muted-foreground">{battles.length} events</p>
           </div>
-          <Button onClick={() => navigate("/battle/create")} size="sm" className="bg-primary hover:bg-primary/90 glow-primary shrink-0">
-            <Plus className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Create Battle</span>
+          <Button onClick={() => navigate("/battle/create")} size="sm" className="bg-primary hover:bg-primary/90 shrink-0 gap-2 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">New Battle</span>
           </Button>
         </div>
 
         {battles.length === 0 ? (
-          <Card className="border-border/50">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Trophy className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No battles yet</h3>
-              <p className="text-muted-foreground text-center mb-6">Create your first battle or find an event to join!</p>
-              <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Battle
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-6">
+              <Trophy className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No battles yet</h3>
+            <p className="text-muted-foreground text-sm mb-8 max-w-xs">Create your first battle to start organizing dance events</p>
+            <Button onClick={() => navigate("/battle/create")} className="bg-primary hover:bg-primary/90 gap-2">
+              <Plus className="w-4 h-4" />
+              Create Battle
+            </Button>
+          </div>
         ) : (
-          <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {battles.map((battle) => (
               <Card
                 key={battle.id}
-                className="border-border/50 hover:border-primary/50 transition-all cursor-pointer group relative"
+                className="group relative cursor-pointer border-border/30 bg-card/50 hover:bg-card hover:border-border/60 transition-all duration-200 hover-lift"
                 onClick={() => navigate(`/battle/${battle.id}`)}
               >
                 <AlertDialog>
@@ -191,10 +197,10 @@ const Dashboard = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-destructive hover:text-destructive"
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-muted-foreground hover:text-destructive h-8 w-8"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -212,28 +218,25 @@ const Dashboard = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <CardHeader>
-                  <CardTitle className="group-hover:text-primary transition-colors">{battle.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(battle.date).toLocaleDateString("en-US")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Users className="w-4 h-4" />
-                      <span>{battle.nominations?.[0]?.count || 0} categories</span>
+
+                <div className="p-5 sm:p-6">
+                  <h3 className="text-lg font-bold mb-3 group-hover:text-primary transition-colors pr-8">{battle.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(battle.date).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        {battle.nominations?.[0]?.count || 0}
+                      </span>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${battle.phase === "registration" ? "bg-secondary/20 text-secondary"
-                      : battle.phase === "selection" ? "bg-primary/20 text-primary"
-                        : battle.phase === "bracket" ? "bg-accent/20 text-accent"
-                          : "bg-muted text-muted-foreground"
-                      }`}>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getPhaseColor(battle.phase)}`}>
                       {getPhaseLabel(battle.phase)}
-                    </div>
+                    </span>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             ))}
           </div>

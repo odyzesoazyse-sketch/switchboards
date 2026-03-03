@@ -287,6 +287,16 @@ export default function BattleView() {
     return labels[phase] || phase;
   };
 
+  const getPhaseColor = (phase: string) => {
+    switch (phase) {
+      case "registration": return "bg-secondary/15 text-secondary";
+      case "selection": return "bg-primary/15 text-primary";
+      case "bracket": return "bg-neon/15 text-neon";
+      case "completed": return "bg-muted text-muted-foreground";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
   const getRoundMatches = (round: string) => {
     return matches.filter(m => m.round === round);
   };
@@ -460,7 +470,7 @@ export default function BattleView() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -477,33 +487,29 @@ export default function BattleView() {
 
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-8">
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        {/* Header - Compact for mobile */}
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="-ml-2">
+      {/* Header — sticky, minimal */}
+      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="-ml-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Back</span>
+            <span className="hidden sm:inline text-sm">Back</span>
           </Button>
 
-          <div className="flex items-center gap-1 sm:gap-2">
-            {/* Share buttons - compact on mobile */}
+          <div className="flex items-center gap-2">
             <div className="hidden sm:flex gap-2">
               <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
               <SocialShare url={`${window.location.origin}/battles/${id}`} title={battle.name} description={`Join ${battle.name}!`} />
             </div>
 
-            <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="outline" size="sm" className="gap-1">
+            <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="ghost" size="sm" className="text-muted-foreground">
               <Medal className="h-4 w-4" />
-              <span className="hidden sm:inline">Leaderboard</span>
             </Button>
 
-            {/* Organizer menu */}
             {isOrganizer && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">
                     <MoreVertical className="h-4 w-4" />
-                    <span className="hidden sm:inline">Manage</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -555,57 +561,58 @@ export default function BattleView() {
             )}
           </div>
         </div>
+      </header>
 
-        {/* Battle Title */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            {battle.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-            <span>{new Date(battle.date).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}</span>
-            {battle.location && <span className="truncate max-w-[150px]">📍 {battle.location}</span>}
-            <Badge variant="secondary" className="text-xs">{getPhaseLabel(battle.phase)}</Badge>
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Battle Title — clean, bold */}
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">{battle.name}</h1>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <span>{new Date(battle.date).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+            {battle.location && <span>📍 {battle.location}</span>}
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getPhaseColor(battle.phase)}`}>
+              {getPhaseLabel(battle.phase)}
+            </span>
           </div>
         </div>
 
-        {/* Judge Management - Collapsible for organizers */}
+        {/* Judge Management — collapsible, progressive disclosure */}
         {isOrganizer && (pendingApplications.length > 0 || approvedJudges.length > 0) && (
-          <Collapsible open={showJudgeSection} onOpenChange={setShowJudgeSection} className="mb-4">
+          <Collapsible open={showJudgeSection} onOpenChange={setShowJudgeSection} className="mb-6">
             <CollapsibleTrigger asChild>
-              <Card className="p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+              <Card className="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-border/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <span className="font-medium">Judges</span>
-                      <span className="text-muted-foreground text-sm ml-2">
-                        {approvedJudges.length} approved
-                        {pendingApplications.length > 0 && (
-                          <Badge variant="destructive" className="ml-2 text-xs">{pendingApplications.length} pending</Badge>
-                        )}
-                      </span>
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm">Judges</span>
+                      <span className="text-xs text-muted-foreground">{approvedJudges.length} approved</span>
+                      {pendingApplications.length > 0 && (
+                        <Badge className="bg-primary/15 text-primary text-[10px] font-bold border-0">{pendingApplications.length} pending</Badge>
+                      )}
                     </div>
                   </div>
-                  {showJudgeSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {showJudgeSection ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </div>
               </Card>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 mt-3">
-                {/* Pending Applications */}
+              <div className="grid gap-3 sm:grid-cols-2 mt-3">
                 {pendingApplications.length > 0 && (
-                  <Card className="p-3 sm:p-4">
-                    <h3 className="font-semibold text-sm mb-3">Pending Applications</h3>
+                  <Card className="p-4 border-border/30">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Pending</h3>
                     <div className="space-y-2">
                       {pendingApplications.map((app) => (
-                        <div key={app.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                        <div key={app.id} className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg">
                           <span className="text-sm font-medium truncate">{app.profiles?.full_name || app.profiles?.email}</span>
                           <div className="flex gap-1">
-                            <Button size="icon" className="h-7 w-7" onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}>
-                              <CheckCircle className="h-3 w-3" />
+                            <Button size="icon" className="h-7 w-7 bg-neon/15 text-neon hover:bg-neon/25 border-0" onClick={() => handleJudgeApplication(app.id, app.user_id, "approved")}>
+                              <CheckCircle className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}>
-                              <XCircle className="h-3 w-3" />
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleJudgeApplication(app.id, app.user_id, "rejected")}>
+                              <XCircle className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>
@@ -614,18 +621,17 @@ export default function BattleView() {
                   </Card>
                 )}
 
-                {/* Approved Judges */}
-                <Card className="p-3 sm:p-4">
-                  <h3 className="font-semibold text-sm mb-3">Approved ({approvedJudges.length})</h3>
+                <Card className="p-4 border-border/30">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Approved ({approvedJudges.length})</h3>
                   {approvedJudges.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-2">No judges yet</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No judges yet</p>
                   ) : (
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       {approvedJudges.map((judge) => (
-                        <div key={judge.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                        <div key={judge.id} className="flex items-center justify-between p-2.5 bg-muted/20 rounded-lg">
                           <span className="text-sm truncate">{judge.full_name || judge.email}</span>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeJudge(judge.id)}>
-                            <UserMinus className="h-3 w-3" />
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeJudge(judge.id)}>
+                            <UserMinus className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))}
@@ -637,20 +643,22 @@ export default function BattleView() {
           </Collapsible>
         )}
 
-        {/* Category Tabs - Scrollable on mobile */}
+        {/* Category Tabs */}
         {nominations.length > 0 && (
-          <div className="mb-4 -mx-3 px-3 overflow-x-auto">
+          <div className="mb-6 -mx-4 px-4 overflow-x-auto">
             <div className="flex gap-2 min-w-max pb-2">
               {nominations.map((nom) => (
-                <Button
+                <button
                   key={nom.id}
-                  variant={selectedNomination === nom.id ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setSelectedNomination(nom.id)}
-                  className="whitespace-nowrap"
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                    selectedNomination === nom.id
+                      ? "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
                 >
                   {nom.name}
-                </Button>
+                </button>
               ))}
             </div>
           </div>
@@ -658,39 +666,41 @@ export default function BattleView() {
 
         {/* Current Nomination Content */}
         {currentNomination && (
-          <div className="space-y-4">
-            {/* Nomination Info Card - Compact */}
-            <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <h2 className="text-lg sm:text-xl font-bold">{currentNomination.name}</h2>
-                <Badge variant="secondary" className="text-xs shrink-0">{getPhaseLabel(currentNomination.phase)}</Badge>
+          <div className="space-y-6">
+            {/* Nomination Info — minimal card */}
+            <Card className="p-5 border-border/30 bg-card/30">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <h2 className="text-xl font-bold">{currentNomination.name}</h2>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${getPhaseColor(currentNomination.phase)}`}>
+                  {getPhaseLabel(currentNomination.phase)}
+                </span>
               </div>
 
-              <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-4">
+                <span className="flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-primary" />
-                  <span>{dancers.length}/{currentNomination.max_dancers}</span>
-                </div>
-                <div className="flex items-center gap-1">
+                  {dancers.length}/{currentNomination.max_dancers} dancers
+                </span>
+                <span className="flex items-center gap-1.5">
                   <Trophy className="h-3.5 w-3.5 text-primary" />
-                  <span>Top-{currentNomination.top_count}</span>
-                </div>
+                  Top-{currentNomination.top_count}
+                </span>
               </div>
 
-              {/* Phase Actions - For organizers */}
+              {/* Phase Actions */}
               {isOrganizer && (
-                <div className="mt-4 pt-3 border-t border-border/50 flex flex-wrap gap-2">
+                <div className="pt-4 border-t border-border/20 flex flex-wrap gap-2">
                   {currentNomination.phase === "registration" && (
                     <>
-                      <Button onClick={addTestDancers} variant="outline" size="sm">Add Test</Button>
-                      <Button onClick={() => changeNominationPhase("selection")} size="sm">Start Selection</Button>
+                      <Button onClick={addTestDancers} variant="outline" size="sm" className="text-xs border-border/40">Add Test</Button>
+                      <Button onClick={() => changeNominationPhase("selection")} size="sm" className="text-xs bg-primary hover:bg-primary/90">Start Selection</Button>
                     </>
                   )}
                   {currentNomination.phase === "selection" && (
-                    <Button onClick={() => changeNominationPhase("bracket")} size="sm">Go to Bracket</Button>
+                    <Button onClick={() => changeNominationPhase("bracket")} size="sm" className="text-xs bg-primary hover:bg-primary/90">Go to Bracket</Button>
                   )}
                   {currentNomination.phase === "bracket" && (
-                    <Button onClick={() => changeNominationPhase("completed")} variant="outline" size="sm">Complete</Button>
+                    <Button onClick={() => changeNominationPhase("completed")} variant="outline" size="sm" className="text-xs">Complete</Button>
                   )}
                 </div>
               )}
@@ -698,8 +708,8 @@ export default function BattleView() {
 
             {/* Bracket View */}
             {currentNomination.phase === "bracket" && matches.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg sm:text-xl font-bold">Bracket</h3>
+              <div className="space-y-5">
+                <div className="section-label">Bracket</div>
 
                 {["final", "semifinal", "quarterfinal", "round_of_16"].map((round) => {
                   const roundMatches = getRoundMatches(round);
@@ -714,18 +724,18 @@ export default function BattleView() {
 
                   return (
                     <div key={round} className="space-y-2">
-                      <h4 className="text-sm sm:text-base font-semibold text-primary">{roundLabels[round]}</h4>
-                      <div className="grid gap-2 sm:gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{roundLabels[round]}</h4>
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {roundMatches.map((match) => {
                           const leftDancer = getDancerById(match.dancer_left_id);
                           const rightDancer = getDancerById(match.dancer_right_id);
 
                           return (
-                            <Card key={match.id} className="p-3 bg-card/80 backdrop-blur-sm border-border/50">
+                            <Card key={match.id} className="p-3 border-border/20 bg-card/30">
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex-1 text-center min-w-0">
-                                  <div className={`p-2 rounded-lg ${match.winner_id === leftDancer?.id ? "bg-primary/20 ring-1 ring-primary" : "bg-muted"}`}>
-                                    <div className="font-semibold text-xs sm:text-sm truncate">
+                                  <div className={`p-2.5 rounded-lg transition-colors ${match.winner_id === leftDancer?.id ? "bg-primary/15 ring-1 ring-primary/40" : "bg-muted/30"}`}>
+                                    <div className="font-semibold text-xs truncate">
                                       {leftDancer?.name || "—"}
                                     </div>
                                   </div>
@@ -734,11 +744,11 @@ export default function BattleView() {
                                   )}
                                 </div>
 
-                                <div className="text-base sm:text-lg font-bold text-muted-foreground shrink-0">VS</div>
+                                <div className="text-xs font-bold text-muted-foreground/50 shrink-0">VS</div>
 
                                 <div className="flex-1 text-center min-w-0">
-                                  <div className={`p-2 rounded-lg ${match.winner_id === rightDancer?.id ? "bg-secondary/20 ring-1 ring-secondary" : "bg-muted"}`}>
-                                    <div className="font-semibold text-xs sm:text-sm truncate">
+                                  <div className={`p-2.5 rounded-lg transition-colors ${match.winner_id === rightDancer?.id ? "bg-secondary/15 ring-1 ring-secondary/40" : "bg-muted/30"}`}>
+                                    <div className="font-semibold text-xs truncate">
                                       {rightDancer?.name || "—"}
                                     </div>
                                   </div>
@@ -757,61 +767,15 @@ export default function BattleView() {
               </div>
             )}
 
-            {/* Selection Participants */}
-            {dancers.length > 0 && currentNomination.phase === "selection" && (
+            {/* Participants List */}
+            {dancers.length > 0 && (currentNomination.phase === "selection" || currentNomination.phase === "registration") && (
               <div>
-                <h3 className="text-lg sm:text-xl font-bold mb-3">Participants</h3>
-                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {dancers.map((dancer, index) => (
-                    <Card key={dancer.id} className="p-3 bg-card/50 backdrop-blur-sm border-border/50">
-                      <div className="flex items-center gap-3">
-                        {isOrganizer ? (
-                          <DancerPhotoUpload
-                            dancerId={dancer.id}
-                            currentPhotoUrl={dancer.video_url || dancer.photo_url}
-                            dancerName={dancer.name}
-                            onPhotoUpdated={(url) => {
-                              const isVideo = url?.match(/\.(mp4|webm|mov)(\?.*)?$/i);
-                              setDancers(prev => prev.map(d =>
-                                d.id === dancer.id ? {
-                                  ...d,
-                                  photo_url: isVideo ? null : (url || null),
-                                  video_url: isVideo ? (url || null) : null
-                                } : d
-                              ));
-                            }}
-                            compact
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
-                            {dancer.video_url ? (
-                              <video src={dancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-                            ) : dancer.photo_url ? (
-                              <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-sm font-bold text-primary-foreground">{index + 1}</span>
-                            )}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-sm truncate">{dancer.name}</div>
-                          {dancer.city && <div className="text-xs text-muted-foreground truncate">{dancer.city}</div>}
-                        </div>
-                        {dancer.is_qualified && <Badge variant="secondary" className="text-xs shrink-0">Q</Badge>}
-                      </div>
-                    </Card>
-                  ))}
+                <div className="section-label mb-3">
+                  {currentNomination.phase === "registration" ? `Registered (${dancers.length})` : "Participants"}
                 </div>
-              </div>
-            )}
-
-            {/* Registration Participants */}
-            {dancers.length > 0 && currentNomination.phase === "registration" && (
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold mb-3">Registered ({dancers.length})</h3>
-                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {dancers.map((dancer, index) => (
-                    <Card key={dancer.id} className="p-3 bg-card/50 backdrop-blur-sm border-border/50">
+                    <Card key={dancer.id} className="p-3 border-border/20 bg-card/20 hover:bg-card/40 transition-colors">
                       <div className="flex items-center gap-3">
                         {isOrganizer ? (
                           <DancerPhotoUpload
@@ -831,27 +795,22 @@ export default function BattleView() {
                             compact
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
                             {dancer.video_url ? (
                               <video src={dancer.video_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                             ) : dancer.photo_url ? (
                               <img src={dancer.photo_url} alt={dancer.name} className="w-full h-full object-cover" />
                             ) : (
-                              <User className="w-5 h-5 text-primary-foreground" />
+                              <span className="text-xs font-bold text-muted-foreground">{index + 1}</span>
                             )}
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-sm truncate">{dancer.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {dancer.city && <span>{dancer.city}</span>}
-                            {dancer.age && <span> • {dancer.age} y.o.</span>}
-                          </div>
+                          {dancer.city && <div className="text-[11px] text-muted-foreground truncate">{dancer.city}</div>}
                         </div>
-                        {isOrganizer && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive shrink-0">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        {dancer.is_qualified && (
+                          <span className="text-[10px] font-bold text-neon bg-neon/10 px-2 py-0.5 rounded-full">Q</span>
                         )}
                       </div>
                     </Card>
@@ -862,16 +821,6 @@ export default function BattleView() {
           </div>
         )}
       </div>
-
-      {/* Mobile Bottom Action Bar */}
-      {isOrganizer && (
-        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background/95 backdrop-blur border-t border-border p-3">
-          <Button onClick={() => navigate(`/battle/${id}/operator`)} className="w-full gap-2">
-            <Monitor className="h-4 w-4" />
-            Open Operator Panel
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
