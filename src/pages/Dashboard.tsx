@@ -103,10 +103,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
+  // Sign-out handled by BottomNav
 
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {
