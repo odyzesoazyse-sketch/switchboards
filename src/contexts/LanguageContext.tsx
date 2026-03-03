@@ -38,7 +38,7 @@ const translations: Translations = {
   
   // Features
   "features.title": { en: "Everything You Need", es: "Todo lo que Necesitas", ru: "Всё что Нужно", fr: "Tout ce dont Vous Avez Besoin", pt: "Tudo que Você Precisa" },
-  "features.subtitle": { en: "A complete toolkit for running professional breakdance battles", es: "Un kit completo para organizar batallas de breakdance profesionales", ru: "Полный набор инструментов для проведения профессиональных баттлов", fr: "Un kit complet pour organiser des battles professionnels", pt: "Um kit completo para organizar batalhas profissionais" },
+  "features.subtitle": { en: "Complete toolkit for any dance battle style", es: "Kit completo para cualquier estilo de batalla", ru: "Полный набор инструментов для любого стиля баттла", fr: "Kit complet pour tout style de battle", pt: "Kit completo para qualquer estilo de batalha" },
   "features.roles": { en: "Role-Based Access", es: "Acceso por Roles", ru: "Доступ по Ролям", fr: "Accès par Rôles", pt: "Acesso por Funções" },
   "features.rolesDesc": { en: "Organizers, judges, selectors — each with their own interface and permissions", es: "Organizadores, jueces, selectores — cada uno con su propia interfaz", ru: "Организаторы, судьи, селекторы — у каждого свой интерфейс и права", fr: "Organisateurs, juges, sélecteurs — chacun avec son interface", pt: "Organizadores, juízes, seletores — cada um com sua interface" },
   "features.realtime": { en: "Real-time Scoring", es: "Puntuación en Tiempo Real", ru: "Оценка в Реальном Времени", fr: "Score en Temps Réel", pt: "Pontuação em Tempo Real" },
