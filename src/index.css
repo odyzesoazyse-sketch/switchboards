@@ -71,14 +71,14 @@
   }
 
   .dark {
-    --background: 220 20% 8%;
-    --foreground: 220 10% 92%;
+    --background: 220 25% 5%;
+    --foreground: 0 0% 96%;
 
-    --card: 220 18% 12%;
-    --card-foreground: 220 10% 92%;
+    --card: 220 20% 8%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 220 10% 92%;
+    --popover: 220 22% 7%;
+    --popover-foreground: 0 0% 96%;
 
     --primary: 0 85% 55%;
     --primary-foreground: 0 0% 100%;
@@ -86,17 +86,17 @@
     --secondary: 217 91% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 220 18% 14%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 220 15% 18%;
-    --accent-foreground: 220 10% 92%;
+    --accent: 220 18% 14%;
+    --accent-foreground: 0 0% 96%;
 
     --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
+    --border: 220 18% 15%;
+    --input: 220 18% 15%;
 
     --opponent-left: 0 85% 55%;
     --opponent-right: 217 91% 55%;
@@ -104,22 +104,22 @@
     --success: 142 76% 45%;
     --success-foreground: 0 0% 100%;
 
-    --surface: 220 18% 10%;
-    --surface-elevated: 220 18% 14%;
+    --surface: 220 22% 7%;
+    --surface-elevated: 220 20% 10%;
 
     --gradient-primary: linear-gradient(135deg, hsl(0 85% 55%), hsl(0 75% 45%));
     --gradient-secondary: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 80% 45%));
-    --gradient-hero: linear-gradient(180deg, hsl(220 20% 8%) 0%, hsl(220 18% 12%) 100%);
-    --gradient-glass: linear-gradient(135deg, hsla(220, 18%, 14%, 0.9) 0%, hsla(220, 18%, 12%, 0.7) 100%);
-    --gradient-red-glow: radial-gradient(circle at center, hsla(0, 85%, 55%, 0.2) 0%, transparent 70%);
-    --gradient-blue-glow: radial-gradient(circle at center, hsla(217, 91%, 55%, 0.2) 0%, transparent 70%);
+    --gradient-hero: linear-gradient(180deg, hsl(220 25% 5%) 0%, hsl(220 20% 8%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsla(220, 20%, 8%, 0.95) 0%, hsla(220, 20%, 6%, 0.85) 100%);
+    --gradient-red-glow: radial-gradient(circle at center, hsla(0, 85%, 55%, 0.25) 0%, transparent 70%);
+    --gradient-blue-glow: radial-gradient(circle at center, hsla(217, 91%, 55%, 0.25) 0%, transparent 70%);
 
-    --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.3);
-    --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.4);
-    --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.5);
-    --shadow-xl: 0 20px 50px hsla(0, 0%, 0%, 0.6);
-    --shadow-glow-red: 0 0 40px hsla(0, 85%, 55%, 0.35);
-    --shadow-glow-blue: 0 0 40px hsla(217, 91%, 55%, 0.35);
+    --shadow-sm: 0 1px 3px hsla(0, 0%, 0%, 0.4);
+    --shadow-md: 0 4px 16px hsla(0, 0%, 0%, 0.5);
+    --shadow-lg: 0 8px 40px hsla(0, 0%, 0%, 0.6);
+    --shadow-xl: 0 20px 60px hsla(0, 0%, 0%, 0.7);
+    --shadow-glow-red: 0 0 50px hsla(0, 85%, 55%, 0.4);
+    --shadow-glow-blue: 0 0 50px hsla(217, 91%, 55%, 0.4);
   }
 }
 
