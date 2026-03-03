@@ -171,6 +171,16 @@ export default function OperatorPanel() {
   const [themePreset, setThemePreset] = useState("dark");
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  // Bug fix #5: Persist design settings in localStorage since columns don't exist in DB
+  const DESIGN_STORAGE_KEY = `switchboard-design-${id}`;
+  
+  const saveDesignToLocal = useCallback((settings: Record<string, any>) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem(DESIGN_STORAGE_KEY) || '{}');
+      localStorage.setItem(DESIGN_STORAGE_KEY, JSON.stringify({ ...existing, ...settings }));
+    } catch {}
+  }, [DESIGN_STORAGE_KEY]);
+
   // New Engine settings
   const [bracketStyle, setBracketStyle] = useState("solid");
   const [fontFamily, setFontFamily] = useState("display");
@@ -179,6 +189,17 @@ export default function OperatorPanel() {
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showAudienceQR, setShowAudienceQR] = useState(true);
   const [autoAdvanceOnTimer, setAutoAdvanceOnTimer] = useState(false);
+  
+  // Load design settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(DESIGN_STORAGE_KEY) || '{}');
+      if (saved.bracketStyle) setBracketStyle(saved.bracketStyle);
+      if (saved.fontFamily) setFontFamily(saved.fontFamily);
+      if (saved.primaryColor) setPrimaryColor(saved.primaryColor);
+      if (saved.secondaryColor) setSecondaryColor(saved.secondaryColor);
+    } catch {}
+  }, [DESIGN_STORAGE_KEY]);
   const timerEndRef = useRef<string | null>(null);
   const [showRoulette, setShowRoulette] = useState(false);
   const [battleData, setBattleData] = useState<any>(null);
@@ -382,7 +403,8 @@ export default function OperatorPanel() {
 
       setNominations(nominationsData || []);
       if (nominationsData && nominationsData.length > 0) {
-        setSelectedNomination(nominationsData[0].id);
+        // Bug fix #1: Only set selectedNomination if not already set (prevents reset on realtime updates)
+        setSelectedNomination(prev => prev && nominationsData.some(n => n.id === prev) ? prev : nominationsData[0].id);
       }
 
       const { data: stateDataArray } = await supabase
@@ -498,6 +520,8 @@ export default function OperatorPanel() {
     try {
       setScreenState(prev => prev ? { ...prev, ...updates } : null);
 
+      // Bug fix #5: Don't strip design fields - they don't exist in schema,
+      // so simply remove them to avoid DB errors (they're kept in local state only)
       const safeUpdates = { ...updates } as any;
       delete safeUpdates.bracket_style;
       delete safeUpdates.font_family;
@@ -532,8 +556,18 @@ export default function OperatorPanel() {
     setVotesRight(0);
     setShowCustomMessage(false);
 
-    const matchIndex = matches.findIndex(m => m.id === matchId);
-    const nextMatchId = matchIndex >= 0 && matchIndex < matches.length - 1 ? matches[matchIndex + 1].id : null;
+    // Bug fix #4: Find next match within the SAME round, not just flat index
+    const currentMatchObj = matches.find(m => m.id === matchId);
+    let nextMatchId: string | null = null;
+    if (currentMatchObj) {
+      const sameRoundMatches = matches
+        .filter(m => m.round === currentMatchObj.round)
+        .sort((a, b) => a.position - b.position);
+      const idxInRound = sameRoundMatches.findIndex(m => m.id === matchId);
+      if (idxInRound >= 0 && idxInRound < sameRoundMatches.length - 1) {
+        nextMatchId = sameRoundMatches[idxInRound + 1].id;
+      }
+    }
 
     await updateScreenState({
       current_match_id: matchId,
@@ -565,6 +599,9 @@ export default function OperatorPanel() {
   };
 
   const applyDesign = async () => {
+    // Bug fix #5: Also save non-DB fields to localStorage for persistence
+    saveDesignToLocal({ bracketStyle, fontFamily, primaryColor, secondaryColor });
+    
     await updateScreenState({
       background_type: backgroundType,
       background_color: backgroundColor,
