@@ -1297,6 +1297,15 @@ export default function OperatorPanel() {
               <Monitor className="h-4 w-4" />
               <span className="hidden sm:inline">Screen</span>
             </Button>
+            <Button
+              onClick={() => window.open(`/battle/${id}/mc`, '_blank')}
+              size="sm"
+              variant="outline"
+              className="gap-1"
+            >
+              <Mic className="h-4 w-4" />
+              <span className="hidden sm:inline">MC</span>
+            </Button>
           </div>
         </div>
       </div>
