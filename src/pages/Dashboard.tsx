@@ -133,10 +133,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card">
-      <header className="border-b border-border/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-b from-background to-card pt-0 sm:pt-14">
+      <header className="border-b border-border/50 backdrop-blur-sm sm:mt-0">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground shrink-0">SWITCHBOARD</h1>
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground shrink-0 sm:hidden">SWITCHBOARD</h1>
+          <h1 className="text-lg font-bold text-foreground shrink-0 hidden sm:block">My Dashboard</h1>
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <span className="text-xs sm:text-sm text-muted-foreground truncate max-w-[120px] sm:max-w-none hidden sm:inline">{user?.email}</span>
             {isJudge && (

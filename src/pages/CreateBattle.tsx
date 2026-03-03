@@ -65,6 +65,20 @@ const CreateBattle = () => {
 
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Enter key advances to next step (except on step 4 with multiple inputs)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && currentStep < STEPS.length) {
+        e.preventDefault();
+        nextStep();
+      }
+    };
+    if (currentStep < 4) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [currentStep, battleName, battleDate, battleTime]);
+
   const animateTransition = (newStep: number) => {
     setDirection(newStep > currentStep ? 'forward' : 'backward');
     setIsAnimating(true);

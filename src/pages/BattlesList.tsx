@@ -81,7 +81,7 @@ export default function BattlesList() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background sm:pt-14">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 glass border-b border-border/50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
