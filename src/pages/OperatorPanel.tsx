@@ -1330,7 +1330,7 @@ export default function OperatorPanel() {
           </TabsContent>
 
           {/* ═══════ TAB 3: SETTINGS ═══════ */}
-          <TabsContent value="settings" className="px-4 py-6 space-y-6 mt-0">
+          <TabsContent value="settings" className="px-5 py-8 space-y-8 mt-0">
             {/* Quick Actions Row */}
             <div className="flex gap-2 flex-wrap">
               <Button onClick={openScreen} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
