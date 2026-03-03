@@ -13,7 +13,8 @@ import {
   ArrowLeft, Monitor, Play, RotateCcw, Trophy, Eye,
   Palette, MessageSquare, Timer,
   PlayCircle, PauseCircle, SkipForward, Volume2, VolumeX,
-  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X, Mic, Zap
+  Keyboard, Layout, Settings, Users, ChevronLeft, ChevronRight, X, Mic, Zap,
+  ChevronDown, ExternalLink
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -33,7 +34,13 @@ import CyberRoulette from "@/components/CyberRoulette";
 import LivePrizePool from "@/components/LivePrizePool";
 import SpiderChart from "@/components/SpiderChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
+// ── Types ──
 interface Match {
   id: string;
   round: string;
@@ -177,6 +184,9 @@ export default function OperatorPanel() {
   const [battleData, setBattleData] = useState<any>(null);
   const { playSound, preloadAll } = useSoundEffects(soundEnabled);
 
+  // UI state for progressive disclosure
+  const [judgesExpanded, setJudgesExpanded] = useState(false);
+
   useEffect(() => {
     preloadAll();
   }, [preloadAll]);
@@ -195,7 +205,6 @@ export default function OperatorPanel() {
       const endTime = new Date(timerEndRef.current).getTime();
       const now = Date.now();
       if (now >= endTime) {
-        // Timer ended - auto advance
         playSound("timerEnd");
         toast({ title: "⏱️ Timer ended!", description: "Auto-advancing to next round..." });
         nextRound();
@@ -221,20 +230,12 @@ export default function OperatorPanel() {
       .channel(`operator-screen-updates-${channelId}`)
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'screen_state'
-        },
-        () => {
-          loadData();
-        }
+        { event: '*', schema: 'public', table: 'screen_state' },
+        () => { loadData(); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(screenChannel);
-    };
+    return () => { supabase.removeChannel(screenChannel); };
   }, [id]);
 
   useEffect(() => {
@@ -249,29 +250,11 @@ export default function OperatorPanel() {
     const channelId = Math.random().toString(36).substring(7);
     const nominationDataChannel = supabase
       .channel(`operator-nomination-updates-${channelId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'matches'
-        },
-        () => loadMatches()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'dancers'
-        },
-        () => loadMatches()
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => loadMatches())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dancers' }, () => loadMatches())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(nominationDataChannel);
-    };
+    return () => { supabase.removeChannel(nominationDataChannel); };
   }, [selectedNomination]);
 
   // Real-time vote subscription
@@ -331,20 +314,10 @@ export default function OperatorPanel() {
     const channelId = Math.random().toString(36).substring(7);
     const voteChannel = supabase
       .channel(`operator-vote-updates-${channelId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'match_votes'
-        },
-        () => loadVotes()
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_votes' }, () => loadVotes())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(voteChannel);
-    };
+    return () => { supabase.removeChannel(voteChannel); };
   }, [screenState?.current_match_id, currentRound, id]);
 
   // Real-time selection scores subscription
@@ -357,7 +330,6 @@ export default function OperatorPanel() {
     const loadSelectionScores = async () => {
       if (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) return;
 
-      // Load judges for this battle if not already loaded (handles case where matches haven't loaded them yet)
       if (judges.length === 0) {
         const { data: roles } = await supabase
           .from("user_roles")
@@ -391,22 +363,13 @@ export default function OperatorPanel() {
     const channelId = Math.random().toString(36).substring(7);
     const scoreChannel = supabase
       .channel(`operator-selection-scores-${channelId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'selection_scores'
-        },
-        () => loadSelectionScores()
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'selection_scores' }, () => loadSelectionScores())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(scoreChannel);
-    };
+    return () => { supabase.removeChannel(scoreChannel); };
   }, [currentNomination?.phase, screenState?.active_selection_dancers, selectedNomination, id]);
 
+  // ── Data Loaders ──
   const loadData = async () => {
     try {
       const { data: battleInfo } = await supabase.from("battles").select("*").eq("id", id).single();
@@ -466,11 +429,7 @@ export default function OperatorPanel() {
         await createScreenState();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -501,14 +460,11 @@ export default function OperatorPanel() {
         setJudgingMode(nominationData.judging_mode || "simple");
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
+  // ── Actions (ALL PRESERVED) ──
   const createScreenState = async () => {
     try {
       const { data, error } = await supabase
@@ -525,7 +481,6 @@ export default function OperatorPanel() {
           current_round: 1,
           votes_left: 0,
           votes_right: 0,
-          // Removed bracket_style & font_family from initial insert to prevent crash (unmigrated DBs)
         })
         .select()
         .single();
@@ -533,11 +488,7 @@ export default function OperatorPanel() {
       if (error) throw error;
       setScreenState(data as unknown as ScreenState);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -545,16 +496,13 @@ export default function OperatorPanel() {
     if (!screenState) return;
 
     try {
-      // Optimistically update the UI to prevent unmigrated DB lag or realtime broadcast drops
       setScreenState(prev => prev ? { ...prev, ...updates } : null);
 
-      // Filter out experimental design columns to prevent crashing unmigrated databases
       const safeUpdates = { ...updates } as any;
       delete safeUpdates.bracket_style;
       delete safeUpdates.font_family;
       delete safeUpdates.primary_color;
       delete safeUpdates.secondary_color;
-      // theme_preset is a valid DB column — do NOT delete it
 
       const { error } = await supabase
         .from("screen_state")
@@ -562,32 +510,22 @@ export default function OperatorPanel() {
         .eq("id", screenState.id);
 
       if (error) {
-        // Log the error to console and throw
         console.error("SUPABASE UPDATE ERROR:", error);
         loadData();
         throw error;
       }
     } catch (error: any) {
       console.error(`DB ERROR: ${error.message}`, error);
-      toast({
-        title: "Error updating screen",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error updating screen", description: error.message, variant: "destructive" });
     }
   };
 
   const showMatch = async (matchId: string) => {
     if (!screenState) {
-      toast({
-        title: "Error",
-        description: "Screen state not initialized",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Screen state not initialized", variant: "destructive" });
       return;
     }
 
-    // Force local React state immediately so UI drops the bracket instantly
     setShowBracket(false);
     setCurrentRound(1);
     setVotesLeft(0);
@@ -609,10 +547,7 @@ export default function OperatorPanel() {
       votes_right: 0,
     });
 
-    toast({
-      title: "Match started",
-      description: "Match is now live",
-    });
+    toast({ title: "Match started", description: "Match is now live" });
   };
 
   const applySettings = async () => {
@@ -658,10 +593,7 @@ export default function OperatorPanel() {
   };
 
   const sendCustomMessage = async () => {
-    await updateScreenState({
-      custom_message: customMessage,
-      show_custom_message: showCustomMessage,
-    });
+    await updateScreenState({ custom_message: customMessage, show_custom_message: showCustomMessage });
     toast({ title: "Message sent" });
   };
 
@@ -669,12 +601,7 @@ export default function OperatorPanel() {
     setCurrentRound(1);
     setVotesLeft(0);
     setVotesRight(0);
-    await updateScreenState({
-      current_round: 1,
-      votes_left: 0,
-      votes_right: 0,
-      show_winner: false,
-    });
+    await updateScreenState({ current_round: 1, votes_left: 0, votes_right: 0, show_winner: false });
   };
 
   const toggleBracket = async (layout?: "symmetric" | "linear") => {
@@ -685,18 +612,12 @@ export default function OperatorPanel() {
       } else {
         setShowBracket(true);
         setBracketLayout(layout);
-        await updateScreenState({
-          show_bracket: true,
-          bracket_layout: layout,
-        } as any);
+        await updateScreenState({ show_bracket: true, bracket_layout: layout } as any);
       }
     } else {
       const newValue = !showBracket;
       setShowBracket(newValue);
-      await updateScreenState({
-        show_bracket: newValue,
-        bracket_layout: bracketLayout,
-      } as any);
+      await updateScreenState({ show_bracket: newValue, bracket_layout: bracketLayout } as any);
     }
   };
 
@@ -704,13 +625,9 @@ export default function OperatorPanel() {
     setShowBracket(false);
     setShowCustomMessage(false);
     await updateScreenState({
-      current_match_id: null,
-      next_match_id: null,
-      show_bracket: false,
-      show_winner: false,
-      show_custom_message: false,
-      active_selection_dancers: [],
-      next_selection_dancers: [],
+      current_match_id: null, next_match_id: null, show_bracket: false,
+      show_winner: false, show_custom_message: false,
+      active_selection_dancers: [], next_selection_dancers: [],
     });
     toast({ title: "Screen cleared" });
   };
@@ -719,20 +636,13 @@ export default function OperatorPanel() {
     const endTime = new Date(Date.now() + timerMinutes * 60 * 1000).toISOString();
     setTimerRunning(true);
     playSound("timerStart");
-    await updateScreenState({
-      timer_running: true,
-      timer_end_time: endTime,
-      show_timer: true,
-    });
+    await updateScreenState({ timer_running: true, timer_end_time: endTime, show_timer: true });
   };
 
   const stopTimer = async () => {
     setTimerRunning(false);
     playSound("timerEnd");
-    await updateScreenState({
-      timer_running: false,
-      timer_end_time: null,
-    });
+    await updateScreenState({ timer_running: false, timer_end_time: null });
   };
 
   const nextRound = async () => {
@@ -744,9 +654,7 @@ export default function OperatorPanel() {
     const newRound = currentRound + 1;
     setCurrentRound(newRound);
     playSound("roundStart");
-    await updateScreenState({
-      current_round: newRound,
-    });
+    await updateScreenState({ current_round: newRound });
   };
 
   const addScore = async (side: 'left' | 'right') => {
@@ -764,14 +672,13 @@ export default function OperatorPanel() {
 
   const declareWinner = async () => {
     if (!currentMatch) return;
-    
-    // Determine winner based on votes
-    const winnerId = votesLeft > votesRight 
-      ? currentMatch.dancer_left_id 
-      : votesRight > votesLeft 
-        ? currentMatch.dancer_right_id 
+
+    const winnerId = votesLeft > votesRight
+      ? currentMatch.dancer_left_id
+      : votesRight > votesLeft
+        ? currentMatch.dancer_right_id
         : null;
-    
+
     if (!winnerId) {
       toast({ title: "Tie!", description: "Scores are equal — use Tie Break first.", variant: "destructive" });
       return;
@@ -781,15 +688,13 @@ export default function OperatorPanel() {
     if (!window.confirm(`Confirm winner: ${winnerName}?\n\nScore: ${votesLeft} : ${votesRight}`)) return;
 
     try {
-      // Save winner to match
       const { error: matchError } = await supabase
         .from("matches")
         .update({ winner_id: winnerId, is_completed: true, votes_left: votesLeft, votes_right: votesRight })
         .eq("id", currentMatch.id);
-      
+
       if (matchError) throw matchError;
 
-      // Advance winner to next round
       const { error: advanceError } = await supabase.rpc("advance_winner_to_next_match", {
         p_match_id: currentMatch.id,
         p_winner_id: winnerId,
@@ -801,10 +706,9 @@ export default function OperatorPanel() {
 
       playSound("winner");
       await updateScreenState({ show_winner: true });
-      
+
       toast({ title: "🏆 Winner!", description: `${getDancerName(winnerId)} wins!` });
-      
-      // Refresh matches
+
       await loadMatches();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -812,19 +716,15 @@ export default function OperatorPanel() {
   };
 
   const triggerTieBreaker = async () => {
-    playSound("timerStart"); // A loud sound
+    playSound("timerStart");
     await updateScreenState({
       custom_message: "TIE BREAKER!\nONE MORE ROUND",
       show_custom_message: true,
-      animation_style: "scale", // A poppy animation
-      theme_preset: "neon", // Switch to neon for a sick look
+      animation_style: "scale",
+      theme_preset: "neon",
     });
-
-    // Optional: auto-revert after 6 seconds
     setTimeout(async () => {
-      await updateScreenState({
-        show_custom_message: false,
-      });
+      await updateScreenState({ show_custom_message: false });
     }, 6000);
   };
 
@@ -840,9 +740,7 @@ export default function OperatorPanel() {
           judge_id: judgeId,
           round_number: currentRound,
           vote_for: voteFor,
-        }, {
-          onConflict: 'match_id,judge_id,round_number'
-        });
+        }, { onConflict: 'match_id,judge_id,round_number' });
 
       if (error) throw error;
       toast({ title: "Vote Overridden", description: "Successfully updated judge's vote." });
@@ -871,25 +769,14 @@ export default function OperatorPanel() {
   };
 
   const showTemplate = async (template: any) => {
-    await updateScreenState({
-      show_template: true,
-      active_template_id: template.id,
-      custom_message: template.title,
-      show_custom_message: true,
-    });
+    await updateScreenState({ show_template: true, active_template_id: template.id, custom_message: template.title, show_custom_message: true });
   };
 
   const hideTemplate = async () => {
-    await updateScreenState({
-      show_template: false,
-      active_template_id: null,
-      show_custom_message: false,
-    });
+    await updateScreenState({ show_template: false, active_template_id: null, show_custom_message: false });
   };
 
-  const openScreen = () => {
-    window.open(`/battle/${id}/screen`, '_blank');
-  };
+  const openScreen = () => { window.open(`/battle/${id}/screen`, '_blank'); };
 
   useKeyboardShortcuts({
     onStartTimer: () => !timerRunning && startTimer(),
@@ -911,10 +798,7 @@ export default function OperatorPanel() {
 
   const formatRound = (round: string) => {
     const labels: Record<string, string> = {
-      round_of_16: "1/8",
-      quarterfinal: "1/4",
-      semifinal: "1/2",
-      final: "Final",
+      round_of_16: "1/8", quarterfinal: "1/4", semifinal: "1/2", final: "Final",
     };
     return labels[round] || round;
   };
@@ -955,7 +839,7 @@ export default function OperatorPanel() {
   const concurrentCircles = currentNomination?.concurrent_circles || 1;
   const totalDancersPerHeat = selectionFormat * concurrentCircles;
 
-  const heats = [];
+  const heats: Dancer[][] = [];
   if (currentNomination?.phase === 'selection') {
     for (let i = 0; i < dancers.length; i += totalDancersPerHeat) {
       heats.push(dancers.slice(i, i + totalDancersPerHeat));
@@ -979,826 +863,432 @@ export default function OperatorPanel() {
     toast({ title: "Heat Live", description: `Heat ${heatIndex + 1} is now on stage.` });
   };
 
+  // ════════════════════════════════════════════════
+  // ═══ RENDER ═══
+  // ════════════════════════════════════════════════
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center justify-between px-3 py-2 gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+    <div className="min-h-screen bg-background" {...swipeHandlers}>
+      {/* ── Minimal Header ── */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/battle/${id}`)} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-sm font-display font-bold truncate">{battleData?.name || "Operator"}</h1>
+              {currentNomination && (
+                <p className="text-[11px] text-muted-foreground truncate">{currentNomination.name}</p>
+              )}
+            </div>
+          </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant={showLivePreview ? "default" : "ghost"}
-              size="icon"
-              onClick={() => setShowLivePreview(!showLivePreview)}
-              className="text-primary hover:text-primary hover:bg-primary/10"
-              title="Toggle Live Preview"
-            >
-              <Monitor className="h-4 w-4" />
+          <div className="flex items-center gap-1.5">
+            {/* Screen status indicator */}
+            {screenState?.current_match_id && currentMatch && (
+              <Badge variant="secondary" className="gap-1 text-[10px] hidden sm:flex">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                LIVE
+              </Badge>
+            )}
+
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSoundEnabled(!soundEnabled)}>
+              {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSoundEnabled(!soundEnabled)}
-            >
-              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="hidden sm:flex">
-                  <Keyboard className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Shortcuts</h4>
-                  {SHORTCUT_HINTS.map((hint) => (
-                    <div key={hint.key} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{hint.action}</span>
-                      <Badge variant="outline" className="font-mono text-[10px]">{hint.key}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Preview</DialogTitle>
-                </DialogHeader>
-                {currentMatch ? (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-muted-foreground">Round {currentRound}</p>
-                    </div>
-                    {judgingMode === "simple" ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                        <Card className="p-4 md:p-6 text-center border-primary/50">
-                          <div className="space-y-3">
-                            <div className="text-xl md:text-2xl font-bold text-primary">
-                              {getDancerName(currentMatch.dancer_left_id)}
-                            </div>
-                            <Button disabled className="w-full bg-primary">
-                              <Trophy className="mr-2 h-4 w-4" />
-                              Vote
-                            </Button>
-                          </div>
-                        </Card>
-                        <div className="text-center text-2xl md:text-3xl font-bold text-muted-foreground">VS</div>
-                        <Card className="p-4 md:p-6 text-center border-secondary/50">
-                          <div className="space-y-3">
-                            <div className="text-xl md:text-2xl font-bold text-secondary">
-                              {getDancerName(currentMatch.dancer_right_id)}
-                            </div>
-                            <Button disabled className="w-full bg-secondary">
-                              <Trophy className="mr-2 h-4 w-4" />
-                              Vote
-                            </Button>
-                          </div>
-                        </Card>
-                      </div>
-                    ) : (
-                      <SliderVoting
-                        matchId={currentMatch.id}
-                        dancerLeft={{ name: getDancerName(currentMatch.dancer_left_id), city: null }}
-                        dancerRight={{ name: getDancerName(currentMatch.dancer_right_id), city: null }}
-                        currentRound={currentRound}
-                        onSubmit={() => { }}
-                        disabled
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Select a match to preview
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
-
-            <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Settings</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-6 mt-6">
-                  {/* Display Settings */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Monitor className="h-4 w-4" />
-                      Display
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label>Show Battle Name</Label>
-                        <Switch checked={showBattleName} onCheckedChange={setShowBattleName} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Show Judges</Label>
-                        <Switch checked={showJudges} onCheckedChange={setShowJudges} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Show Timer</Label>
-                        <Switch checked={showTimer} onCheckedChange={setShowTimer} />
-                      </div>
-                      {showTimer && (
-                        <div className="flex items-center justify-between">
-                          <Label>Timer (min)</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={timerMinutes}
-                            onChange={(e) => setTimerMinutes(parseInt(e.target.value) || 1)}
-                            className="w-20"
-                          />
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <Label>Show Score</Label>
-                        <Switch checked={showScore} onCheckedChange={setShowScore} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Audience QR on Screen</Label>
-                        <Switch checked={showAudienceQR} onCheckedChange={setShowAudienceQR} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Auto-advance on timer end</Label>
-                        <Switch checked={autoAdvanceOnTimer} onCheckedChange={setAutoAdvanceOnTimer} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Rounds to Win</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="5"
-                          value={roundsToWin}
-                          onChange={(e) => setRoundsToWin(parseInt(e.target.value) || 2)}
-                          className="w-20"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Aspect Ratio</Label>
-                        <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                          <SelectTrigger className="w-[100px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="auto">Auto (Fill)</SelectItem>
-                            <SelectItem value="16:9">16:9 (TV)</SelectItem>
-                            <SelectItem value="4:3">4:3 (Old TV)</SelectItem>
-                            <SelectItem value="1:1">1:1 (Square)</SelectItem>
-                            <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button onClick={applySettings} size="sm" className="w-full">Apply Display</Button>
-                    </div>
-                  </div>
-
-                  {/* Design Settings */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
-                      Theme
-                    </h3>
-                    <div className="space-y-3">
-                      <Select value={themePreset} onValueChange={applyThemePreset}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select theme" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="neon">Neon</SelectItem>
-                          <SelectItem value="classic">Classic</SelectItem>
-                          <SelectItem value="fire">Fire</SelectItem>
-                          <SelectItem value="ocean">Ocean</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select value={backgroundType} onValueChange={setBackgroundType}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Background type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="solid">Solid</SelectItem>
-                          <SelectItem value="gradient">Gradient</SelectItem>
-                          <SelectItem value="image">Image</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {backgroundType === "solid" && (
-                        <div className="flex gap-2">
-                          <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-9 p-1" />
-                          <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="flex-1" />
-                        </div>
-                      )}
-                      {backgroundType === "gradient" && (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <Input type="color" value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="w-12 h-9 p-1" />
-                            <Input value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="flex-1" />
-                          </div>
-                          <div className="flex gap-2">
-                            <Input type="color" value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="w-12 h-9 p-1" />
-                            <Input value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="flex-1" />
-                          </div>
-                        </div>
-                      )}
-                      {backgroundType === "image" && (
-                        <Input placeholder="Image URL" value={backgroundImageUrl} onChange={(e) => setBackgroundImageUrl(e.target.value)} />
-                      )}
-
-                      {/* Advanced Styling */}
-                      <Select value={bracketStyle} onValueChange={setBracketStyle}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Bracket Style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="solid">Solid Base</SelectItem>
-                          <SelectItem value="glass">Glassmorphism</SelectItem>
-                          <SelectItem value="neon">Neon Wireframe</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={fontFamily} onValueChange={setFontFamily}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Typography" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="display">Display (Modern)</SelectItem>
-                          <SelectItem value="sans">Sans (Clean)</SelectItem>
-                          <SelectItem value="mono">Mono (Tech)</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <div className="flex gap-2">
-                        <div className="flex-1 space-y-1">
-                          <Label className="text-xs">Left Color</Label>
-                          <div className="flex gap-2">
-                            <Input type="color" value={primaryColor || "#ff0000"} onChange={(e) => setPrimaryColor(e.target.value)} className="w-10 h-8 p-1" />
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <Label className="text-xs">Right Color</Label>
-                          <div className="flex gap-2">
-                            <Input type="color" value={secondaryColor || "#0000ff"} onChange={(e) => setSecondaryColor(e.target.value)} className="w-10 h-8 p-1" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <Button onClick={applyDesign} size="sm" className="w-full mt-2">Apply Theme & Styles</Button>
-                    </div>
-                  </div>
-
-                  {/* Message */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Message
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label>Show Message</Label>
-                        <Switch checked={showCustomMessage} onCheckedChange={setShowCustomMessage} />
-                      </div>
-                      <Textarea
-                        placeholder="Message to display..."
-                        value={customMessage}
-                        onChange={(e) => setCustomMessage(e.target.value)}
-                        rows={2}
-                      />
-                      <Button onClick={sendCustomMessage} size="sm" className="w-full">Send Message</Button>
-                    </div>
-                  </div>
-
-                  {/* Templates */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Layout className="h-4 w-4" />
-                      Templates
-                    </h3>
-                    <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
-                    {screenState?.show_template && (
-                      <Button variant="outline" onClick={hideTemplate} size="sm" className="w-full">
-                        Hide Template
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            <JudgeAssignmentsModal battleId={id!} />
-
-            <Button onClick={openScreen} size="sm" className="gap-1">
-              <Monitor className="h-4 w-4" />
+            <Button onClick={openScreen} size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+              <Monitor className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Screen</span>
-            </Button>
-            <Button
-              onClick={() => window.open(`/battle/${id}/mc`, '_blank')}
-              size="sm"
-              variant="outline"
-              className="gap-1"
-            >
-              <Mic className="h-4 w-4" />
-              <span className="hidden sm:inline">MC</span>
             </Button>
           </div>
         </div>
+
+        {/* Nomination pills */}
+        {nominations.length > 1 && (
+          <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+            {nominations.map((nom) => (
+              <button
+                key={nom.id}
+                onClick={() => {
+                  setSelectedNomination(nom.id);
+                  updateScreenState({ nomination_id: nom.id });
+                }}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  selectedNomination === nom.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {nom.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div
-        className="px-3 py-4 space-y-4 max-w-4xl mx-auto"
-        {...swipeHandlers}
-      >
-        {/* Nomination Tabs with swipe hint */}
-        {nominations.length > 1 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToPrevNomination}
-                className="h-8 w-8"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
+      {/* ── Main Content: 3-tab layout ── */}
+      <div className="max-w-4xl mx-auto">
+        <Tabs defaultValue="live" className="w-full">
+          <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0 gap-0">
+            <TabsTrigger value="live" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+              Live Control
+            </TabsTrigger>
+            <TabsTrigger value="bracket" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+              Bracket
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 text-xs font-semibold uppercase tracking-wider">
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="flex-1 overflow-x-auto mx-2">
-                <div className="flex gap-2 justify-center min-w-max">
-                  {nominations.map((nom, index) => (
-                    <Button
-                      key={nom.id}
-                      variant={selectedNomination === nom.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setSelectedNomination(nom.id);
-                        updateScreenState({ nomination_id: nom.id });
-                      }}
-                      className="shrink-0"
-                    >
-                      {nom.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToNextNomination}
-                className="h-8 w-8"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Swipe indicator */}
-            <div className="flex justify-center gap-1">
-              {nominations.map((nom, index) => (
-                <div
-                  key={nom.id}
-                  className={`w-2 h-2 rounded-full transition-all ${selectedNomination === nom.id ? 'bg-primary w-4' : 'bg-muted-foreground/30'
-                    }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {nominations.length === 1 && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-sm">
-              {currentNomination?.name}
-            </Badge>
-          </div>
-        )}
-
-        {/* Quick Phase Switch */}
-        {currentNomination && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Phase:</span>
-            {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
-              const isCurrent = currentNomination.phase === phase;
-              const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
-              return (
-                <Button
-                  key={phase}
-                  variant={isCurrent ? "default" : "outline"}
-                  size="sm"
-                  className={`text-[10px] sm:text-xs h-6 sm:h-7 px-1.5 sm:px-2 ${isCurrent ? "" : "opacity-60"}`}
-                  onClick={async () => {
-                    if (isCurrent) return;
-                    try {
-                      const { error } = await supabase
-                        .from("nominations")
-                        .update({ phase })
-                        .eq("id", selectedNomination);
-                      if (error) throw error;
-
-                      if (phase === "bracket") {
-                        await updateScreenState({
-                          active_selection_dancers: [],
-                          next_selection_dancers: [],
-                        });
-                      }
-
-                      if (phase === "selection") {
-                        await updateScreenState({
-                          current_match_id: null,
-                          next_match_id: null,
-                        });
-                      }
-
-                      toast({ title: "Phase changed", description: `Now in ${labels[phase]} mode` });
-                      await loadData();
-                      await loadMatches();
-                    } catch (error: any) {
-                      toast({ title: "Error", description: error.message, variant: "destructive" });
-                    }
-                  }}
-                >
-                  {labels[phase]}
-                </Button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Screen Control Bar - always visible */}
-        <Card className="p-3 border-dashed">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mr-1">Screen:</span>
-            
-            {screenState?.current_match_id && currentMatch && !showBracket && (
-              <Badge variant="secondary" className="gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                {getDancerName(currentMatch.dancer_left_id)} vs {getDancerName(currentMatch.dancer_right_id)}
-              </Badge>
-            )}
-            {showBracket && (
-              <Badge variant="secondary" className="gap-1">
-                <Layout className="h-3 w-3" />
-                Bracket
-              </Badge>
-            )}
-            {screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && !showBracket && (
-              <Badge variant="secondary" className="gap-1">
-                <Users className="h-3 w-3" />
-                Heat Live
-              </Badge>
-            )}
-            {!screenState?.current_match_id && !showBracket && (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) && (
-              <span className="text-xs text-muted-foreground italic">Empty</span>
-            )}
-
-            <div className="flex-1" />
-
-            {currentNomination?.phase === 'bracket' && matches.length > 0 && (
-              <div className="flex gap-1">
-                <Button
-                  variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleBracket("symmetric")}
-                  className="h-7 text-[10px] px-2"
-                >
-                  ←|→
-                </Button>
-                <Button
-                  variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleBracket("linear")}
-                  className="h-7 text-[10px] px-2"
-                >
-                  →→→
-                </Button>
-              </div>
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearScreen}
-              className="h-7 text-[10px] px-2 text-destructive hover:text-destructive"
-            >
-              <X className="h-3 w-3 mr-1" />
-              Clear
-            </Button>
-          </div>
-
-          {/* Live Preview iframe */}
-          {showLivePreview && (
-            <div className="mt-3 rounded-lg overflow-hidden border border-border/50 bg-black">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={`/battle/${id}/screen`}
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  title="Live Screen Preview"
-                  style={{ border: 'none' }}
-                />
-              </div>
-              <div className="flex items-center justify-center gap-1 py-1 bg-muted/50">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[10px] text-muted-foreground font-medium">LIVE PREVIEW</span>
-              </div>
-            </div>
-          )}
-        </Card>
-
-        {/* Active Selection Heat Control */}
-        {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
-          <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 border-primary/30">
-            <div className="space-y-3 text-center">
-              <Badge className="bg-primary mb-2">LIVE HEAT</Badge>
-              <div className="flex flex-wrap justify-center items-center gap-4">
-                {screenState.active_selection_dancers.map((dId, index) => (
-                  <div key={dId} className="flex items-center">
-                    <span className="text-xl sm:text-2xl font-bold">{getDancerName(dId)}</span>
-                    {index < (screenState.active_selection_dancers?.length || 0) - 1 && <span className="mx-4 text-muted-foreground">•</span>}
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center gap-2 mt-4">
-                <Button variant="outline" onClick={() => updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] })} className="text-destructive border-destructive/50 hover:bg-destructive/10">
-                  Stop Heat
-                </Button>
-              </div>
-
-              {/* Judge Status for Heat */}
-              {screenState.show_judges && judges.length > 0 && (
-                <div className="pt-4 border-t border-border/50 text-left mt-4">
-                  <div className="text-sm font-semibold mb-2">Judges Status</div>
-                  <div className="space-y-1">
-                    {judges.map(judge => {
-                      const scoresByThisJudge = selectionScores.filter(s => s.judge_id === judge.id);
-                      const scoredCount = scoresByThisJudge.length;
-                      const totalNeeded = screenState.active_selection_dancers!.length;
-                      const isDone = scoredCount === totalNeeded;
-
-                      return (
-                        <div key={judge.id} className="flex flex-col p-2 bg-background/50 rounded border text-sm">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium">{judge.name}</span>
-                            <Badge variant={isDone ? "default" : "secondary"} className={isDone ? "bg-primary hover:bg-primary/90" : ""}>
-                              {isDone ? "Done" : `${scoredCount} / ${totalNeeded} scored`}
-                            </Badge>
-                          </div>
-                          {scoresByThisJudge.length > 0 && (
-                            <div className="flex gap-2 text-[10px] text-muted-foreground flex-wrap">
-                              {screenState.active_selection_dancers!.map(dId => {
-                                const s = scoresByThisJudge.find(score => score.dancer_id === dId);
-                                if (!s) return null;
-                                const totalScore = (s.score_technique || 0) + (s.score_musicality || 0) + (s.score_performance || 0);
-                                return (
-                                  <span key={dId} className="bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                                    {getDancerName(dId).substring(0, 8)}: {totalScore}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {/* Active Match Control */}
-        {currentNomination?.phase !== 'selection' && currentMatch && (
-          <Card className="p-4 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 border-primary/30">
-            <div className="space-y-3">
-              {/* Match info */}
-              <div className="flex items-center justify-center gap-3 text-center">
-                <div className="flex-1 text-right">
-                  <div className="text-lg sm:text-xl font-bold text-primary truncate">
-                    {getDancerName(currentMatch.dancer_left_id)}
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold shrink-0">
-                  {votesLeft} : {votesRight}
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="text-lg sm:text-xl font-bold text-secondary truncate">
-                    {getDancerName(currentMatch.dancer_right_id)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center justify-center gap-3 text-sm">
-                <Badge variant="outline">Round {currentRound}</Badge>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]'} animate-pulse`} />
-                  <span className={`font-bold ${voteCount === totalJudges && totalJudges > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>{voteCount}/{totalJudges} votes</span>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => addScore('left')}
-                  className="border-primary/50 text-primary h-12 flex-col gap-0.5"
-                >
-                  <span className="text-lg font-bold">+1</span>
-                  <span className="text-[10px] uppercase">Red</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => addScore('right')}
-                  className="border-secondary/50 text-secondary h-12 flex-col gap-0.5"
-                >
-                  <span className="text-lg font-bold">+1</span>
-                  <span className="text-[10px] uppercase">Blue</span>
-                </Button>
-                {!timerRunning ? (
-                  <Button onClick={startTimer} className="h-12 flex-col gap-0.5">
-                    <PlayCircle className="h-5 w-5" />
-                    <span className="text-[10px] uppercase">Timer</span>
-                  </Button>
-                ) : (
-                  <Button variant="destructive" onClick={stopTimer} className="h-12 flex-col gap-0.5">
-                    <PauseCircle className="h-5 w-5" />
-                    <span className="text-[10px] uppercase">Stop</span>
-                  </Button>
-                )}
-                <Button
-                  onClick={nextRound}
-                  variant="outline"
-                  className="h-12 flex-col gap-0.5"
-                  disabled={currentRound >= (currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5)}
-                >
-                  <SkipForward className="h-5 w-5" />
-                  <span className="text-[10px] uppercase">Next</span>
-                </Button>
-              </div>
-
-              {/* Judges Status List */}
-              {judges.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Judges Status</h4>
-                  <div className="space-y-2">
-                    {judges.map(judge => {
-                      const vote = judgeVotes.find(v => v.judge_id === judge.id);
-                      let voteDisplay = "Thinking...";
-                      let voteColor = "text-muted-foreground";
-
-                      if (vote) {
-                        if (vote.vote_for === currentMatch.dancer_left_id) {
-                          voteDisplay = `Voted ${getDancerName(currentMatch.dancer_left_id)}`;
-                          voteColor = "text-primary font-medium";
-                        } else if (vote.vote_for === currentMatch.dancer_right_id) {
-                          voteDisplay = `Voted ${getDancerName(currentMatch.dancer_right_id)}`;
-                          voteColor = "text-secondary font-medium";
-                        } else {
-                          voteDisplay = "Voted Tie/Skip";
-                          voteColor = "text-foreground font-medium";
-                        }
-                      }
-
-                      return (
-                        <div key={judge.id} className={`flex items-center justify-between p-2.5 rounded-lg border text-sm transition-all ${vote ? 'bg-background/50 border-border/50' : 'bg-yellow-500/5 border-yellow-500/20'}`}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${vote ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
-                            <span className="font-medium">{judge.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={voteColor}>{voteDisplay}</span>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
-                                  <Settings className="h-3 w-3" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-48 p-2" align="end">
-                                <div className="space-y-1">
-                                  <div className="text-xs font-semibold mb-2 px-2 text-muted-foreground">Override Vote</div>
-                                  <Button variant="ghost" className="w-full justify-start h-8 text-primary font-bold" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_left_id)}>Set: Red</Button>
-                                  <Button variant="ghost" className="w-full justify-start h-8 text-secondary font-bold" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_right_id)}>Set: Blue</Button>
-                                  <Button variant="ghost" className="w-full justify-start h-8" onClick={() => setJudgeVote(judge.id, null)}>Set: Tie/Skip</Button>
-                                  <div className="border-t border-border/50 my-1" />
-                                  <Button variant="ghost" className="w-full justify-start h-8 text-destructive" onClick={() => clearJudgeVote(judge.id)}>Clear Vote</Button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={resetMatch} className="gap-1 flex-col h-14">
-                  <RotateCcw className="h-4 w-4" />
-                  <span className="text-[10px] uppercase">Reset</span>
-                </Button>
-                <Button variant="destructive" onClick={triggerTieBreaker} className="gap-1 flex-col h-14 animate-pulse-soft">
-                  <span className="text-xl font-bold">X</span>
-                  <span className="text-[10px] uppercase">Tie Break</span>
-                </Button>
-                <Button onClick={declareWinner} className="gap-1 flex-col h-14 bg-gradient-to-r from-primary to-secondary">
-                  <Trophy className="h-4 w-4" />
-                  <span className="text-[10px] uppercase">Winner</span>
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Matches / Heats List */}
-        <div className="space-y-2">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            {currentNomination?.phase === 'selection' ? "Selection Heats" : "Matches"}
-          </h2>
-
-          {currentNomination?.phase === 'selection' ? (
-            heats.length === 0 ? (
-              <Card className="p-8 text-center text-muted-foreground">
-                No dancers registered for this category yet.
-              </Card>
-            ) : (
-              <div className="space-y-2">
-                {heats.map((heat, index) => {
-                  const isActive = screenState?.active_selection_dancers?.length &&
-                    screenState.active_selection_dancers.length > 0 &&
-                    screenState.active_selection_dancers[0] === heat[0].id;
-
+          {/* ═══════ TAB 1: LIVE CONTROL ═══════ */}
+          <TabsContent value="live" className="px-4 py-6 space-y-6 mt-0">
+            {/* Phase indicator - minimal */}
+            {currentNomination && (
+              <div className="flex items-center gap-2">
+                {(["registration", "selection", "bracket", "completed"] as const).map((phase) => {
+                  const isCurrent = currentNomination.phase === phase;
+                  const labels: Record<string, string> = { registration: "Reg", selection: "Select", bracket: "Bracket", completed: "Done" };
                   return (
-                    <Card
-                      key={`heat-${index}`}
-                      className={`p-3 cursor-pointer transition-all ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                      onClick={() => startHeat(index)}
+                    <button
+                      key={phase}
+                      onClick={async () => {
+                        if (isCurrent) return;
+                        try {
+                          const { error } = await supabase.from("nominations").update({ phase }).eq("id", selectedNomination);
+                          if (error) throw error;
+                          if (phase === "bracket") await updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] });
+                          if (phase === "selection") await updateScreenState({ current_match_id: null, next_match_id: null });
+                          toast({ title: "Phase changed", description: `Now in ${labels[phase]} mode` });
+                          await loadData();
+                          await loadMatches();
+                        } catch (error: any) {
+                          toast({ title: "Error", description: error.message, variant: "destructive" });
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wide transition-all ${
+                        isCurrent
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="shrink-0 text-xs text-muted-foreground w-16 text-center">
-                          Heat {index + 1}
-                        </Badge>
-                        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0 px-2">
-                          {heat.map((d, i) => (
-                            <div key={d.id} className="flex items-center">
-                              <span className="font-medium truncate">{d.name}</span>
-                              {i < heat.length - 1 && <span className="mx-2 text-muted-foreground text-xs opacity-50">•</span>}
-                            </div>
-                          ))}
-                        </div>
-                        {isActive ? (
-                          <Badge className="shrink-0 bg-primary">LIVE</Badge>
-                        ) : (
-                          <Button size="sm" variant="ghost" className="shrink-0 gap-1">
-                            <Play className="h-3 w-3" />
-                            Start
-                          </Button>
-                        )}
-                      </div>
-                    </Card>
+                      {labels[phase]}
+                    </button>
                   );
                 })}
               </div>
-            )
-          ) : (
-            matches.length === 0 ? (
-              <Card className="p-8 text-center text-muted-foreground">
+            )}
+
+            {/* ── Active Selection Heat Control ── */}
+            {currentNomination?.phase === 'selection' && screenState?.active_selection_dancers && screenState.active_selection_dancers.length > 0 && (
+              <Card className="p-5 border-primary/20 bg-primary/5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">LIVE HEAT</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => updateScreenState({ active_selection_dancers: [], next_selection_dancers: [] })} className="text-destructive text-xs h-7">
+                    Stop Heat
+                  </Button>
+                </div>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {screenState.active_selection_dancers.map((dId) => (
+                    <span key={dId} className="text-lg font-bold">{getDancerName(dId)}</span>
+                  ))}
+                </div>
+
+                {/* Judges Status - collapsible */}
+                {judges.length > 0 && (
+                  <Collapsible open={judgesExpanded} onOpenChange={setJudgesExpanded} className="mt-4">
+                    <CollapsibleTrigger className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-full">
+                      <ChevronDown className={`h-3 w-3 transition-transform ${judgesExpanded ? 'rotate-180' : ''}`} />
+                      Judges ({selectionScores.length} scores)
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3 space-y-1.5">
+                      {judges.map(judge => {
+                        const scoresByThisJudge = selectionScores.filter(s => s.judge_id === judge.id);
+                        const scoredCount = scoresByThisJudge.length;
+                        const totalNeeded = screenState.active_selection_dancers!.length;
+                        const isDone = scoredCount === totalNeeded;
+                        return (
+                          <div key={judge.id} className="flex items-center justify-between p-2 bg-background/50 rounded-lg border border-border/30 text-sm">
+                            <span className="font-medium">{judge.name}</span>
+                            <Badge variant={isDone ? "default" : "secondary"} className={`text-[10px] ${isDone ? "bg-primary" : ""}`}>
+                              {isDone ? "Done" : `${scoredCount}/${totalNeeded}`}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </Card>
+            )}
+
+            {/* ── Active Match Control ── */}
+            {currentNomination?.phase !== 'selection' && currentMatch && (
+              <div className="space-y-5">
+                {/* Score display - the hero element */}
+                <div className="text-center space-y-2">
+                  <div className="flex items-center justify-center gap-6">
+                    <div className="text-right flex-1 min-w-0">
+                      <div className="text-xl sm:text-2xl font-display font-black text-primary truncate">
+                        {getDancerName(currentMatch.dancer_left_id)}
+                      </div>
+                    </div>
+                    <div className="text-4xl sm:text-5xl font-display font-black tabular-nums tracking-tight shrink-0">
+                      {votesLeft}<span className="text-muted-foreground/30 mx-1">:</span>{votesRight}
+                    </div>
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="text-xl sm:text-2xl font-display font-black text-secondary truncate">
+                        {getDancerName(currentMatch.dancer_right_id)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <Badge variant="outline" className="text-[10px]">Round {currentRound}</Badge>
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${voteCount === totalJudges && totalJudges > 0 ? 'bg-success' : 'bg-yellow-500'} animate-pulse`} />
+                      <span className="text-xs text-muted-foreground font-medium">{voteCount}/{totalJudges}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action buttons - big & clear */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => addScore('left')}
+                    className="h-16 border-primary/30 hover:border-primary hover:bg-primary/5 text-primary text-xl font-bold"
+                  >
+                    +1 Red
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => addScore('right')}
+                    className="h-16 border-secondary/30 hover:border-secondary hover:bg-secondary/5 text-secondary text-xl font-bold"
+                  >
+                    +1 Blue
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {!timerRunning ? (
+                    <Button onClick={startTimer} variant="outline" className="h-12 gap-1.5">
+                      <PlayCircle className="h-4 w-4" />
+                      Timer
+                    </Button>
+                  ) : (
+                    <Button variant="destructive" onClick={stopTimer} className="h-12 gap-1.5">
+                      <PauseCircle className="h-4 w-4" />
+                      Stop
+                    </Button>
+                  )}
+                  <Button onClick={nextRound} variant="outline" className="h-12 gap-1.5"
+                    disabled={currentRound >= (currentNomination?.rounds_to_win ? currentNomination.rounds_to_win + 2 : 5)}>
+                    <SkipForward className="h-4 w-4" />
+                    Next
+                  </Button>
+                  <Button onClick={declareWinner} className="h-12 gap-1.5 bg-gradient-to-r from-primary to-secondary text-white">
+                    <Trophy className="h-4 w-4" />
+                    Winner
+                  </Button>
+                </div>
+
+                {/* Secondary actions */}
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={resetMatch} className="text-xs flex-1 h-9">
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    Reset
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={triggerTieBreaker} className="text-xs flex-1 h-9 text-destructive">
+                    Tie Break
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={clearScreen} className="text-xs flex-1 h-9">
+                    <X className="h-3 w-3 mr-1" />
+                    Clear
+                  </Button>
+                </div>
+
+                {/* Judges — hidden by default */}
+                {judges.length > 0 && (
+                  <Collapsible open={judgesExpanded} onOpenChange={setJudgesExpanded}>
+                    <CollapsibleTrigger className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-full py-2">
+                      <ChevronDown className={`h-3 w-3 transition-transform ${judgesExpanded ? 'rotate-180' : ''}`} />
+                      Judges ({voteCount}/{totalJudges} voted)
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1.5 mt-2">
+                      {judges.map(judge => {
+                        const vote = judgeVotes.find(v => v.judge_id === judge.id);
+                        let voteDisplay = "…";
+                        let voteColor = "text-muted-foreground";
+
+                        if (vote) {
+                          if (vote.vote_for === currentMatch.dancer_left_id) {
+                            voteDisplay = getDancerName(currentMatch.dancer_left_id);
+                            voteColor = "text-primary font-medium";
+                          } else if (vote.vote_for === currentMatch.dancer_right_id) {
+                            voteDisplay = getDancerName(currentMatch.dancer_right_id);
+                            voteColor = "text-secondary font-medium";
+                          } else {
+                            voteDisplay = "Tie";
+                            voteColor = "text-foreground";
+                          }
+                        }
+
+                        return (
+                          <div key={judge.id} className={`flex items-center justify-between p-2.5 rounded-lg border text-sm ${vote ? 'bg-background/50 border-border/30' : 'bg-yellow-500/5 border-yellow-500/20'}`}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${vote ? 'bg-success' : 'bg-yellow-500 animate-pulse'}`} />
+                              <span className="font-medium">{judge.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className={voteColor}>{voteDisplay}</span>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6"><Settings className="h-3 w-3" /></Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-44 p-2" align="end">
+                                  <div className="space-y-1 text-xs">
+                                    <Button variant="ghost" className="w-full justify-start h-7 text-primary" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_left_id)}>Set: Red</Button>
+                                    <Button variant="ghost" className="w-full justify-start h-7 text-secondary" onClick={() => setJudgeVote(judge.id, currentMatch.dancer_right_id)}>Set: Blue</Button>
+                                    <Button variant="ghost" className="w-full justify-start h-7" onClick={() => setJudgeVote(judge.id, null)}>Set: Tie</Button>
+                                    <div className="border-t border-border/50 my-1" />
+                                    <Button variant="ghost" className="w-full justify-start h-7 text-destructive" onClick={() => clearJudgeVote(judge.id)}>Clear</Button>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </div>
+            )}
+
+            {/* No active match state */}
+            {!currentMatch && (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) && currentNomination?.phase !== 'selection' && (
+              <div className="text-center py-16 text-muted-foreground space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto">
+                  <Play className="h-6 w-6" />
+                </div>
+                <p className="text-sm">Select a match from the <strong>Bracket</strong> tab to go live</p>
+              </div>
+            )}
+
+            {/* Selection heats list (when in selection phase but no active heat) */}
+            {currentNomination?.phase === 'selection' && (!screenState?.active_selection_dancers || screenState.active_selection_dancers.length === 0) && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Selection Heats</h3>
+                {heats.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">No dancers registered yet.</p>
+                ) : (
+                  heats.map((heat, index) => (
+                    <Card
+                      key={`heat-${index}`}
+                      className="p-4 cursor-pointer hover:border-primary/50 transition-all active:scale-[0.98]"
+                      onClick={() => startHeat(index)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Badge variant="outline" className="shrink-0 text-[10px]">Heat {index + 1}</Badge>
+                          <span className="text-sm truncate">{heat.map(d => d.name).join(' • ')}</span>
+                        </div>
+                        <Play className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Live Preview */}
+            {showLivePreview && (
+              <div className="rounded-xl overflow-hidden border border-border/50 bg-muted/20">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    src={`/battle/${id}/screen`}
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    title="Live Screen Preview"
+                    style={{ border: 'none' }}
+                  />
+                </div>
+                <div className="flex items-center justify-center gap-1 py-1.5 bg-muted/30">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">Live Preview</span>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ═══════ TAB 2: BRACKET / PARTICIPANTS ═══════ */}
+          <TabsContent value="bracket" className="px-4 py-6 space-y-6 mt-0">
+            {/* Screen output control */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {currentNomination?.phase === 'bracket' && matches.length > 0 && (
+                <>
+                  <Button
+                    variant={showBracket && bracketLayout === "symmetric" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleBracket("symmetric")}
+                    className="h-8 text-xs gap-1"
+                  >
+                    Show ←|→
+                  </Button>
+                  <Button
+                    variant={showBracket && bracketLayout === "linear" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleBracket("linear")}
+                    className="h-8 text-xs gap-1"
+                  >
+                    Show →→→
+                  </Button>
+                </>
+              )}
+              <div className="flex-1" />
+              <Button variant="ghost" size="sm" onClick={clearScreen} className="h-8 text-xs text-destructive">
+                <X className="h-3 w-3 mr-1" />Clear
+              </Button>
+            </div>
+
+            {/* Matches list */}
+            {currentNomination?.phase === 'selection' ? (
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Participants ({dancers.length})</h3>
+                {dancers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">No dancers registered yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {dancers.map(d => (
+                      <Card key={d.id} className="p-3">
+                        <span className="font-medium text-sm">{d.name}</span>
+                        {d.city && <span className="text-xs text-muted-foreground ml-2">{d.city}</span>}
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : matches.length === 0 ? (
+              <div className="py-8">
                 <BracketSetup
                   nominationId={selectedNomination}
                   dancers={dancers}
                   topCount={currentNomination?.top_count || 16}
                   onBracketCreated={loadMatches}
                 />
-              </Card>
+              </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {["round_of_16", "quarterfinal", "semifinal", "final"].map((round) => {
                   const roundMatches = matches.filter(m => m.round === round);
                   if (roundMatches.length === 0) return null;
 
                   return (
                     <div key={round} className="space-y-2">
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {formatRound(round)}
-                      </h3>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{formatRound(round)}</h3>
                       {roundMatches.map((match) => {
                         const isActive = screenState?.current_match_id === match.id;
                         const hasWinner = match.winner_id !== null;
@@ -1807,14 +1297,8 @@ export default function OperatorPanel() {
                         return (
                           <Card
                             key={match.id}
-                            className={`p-3 transition-all ${
-                              !ready
-                                ? 'opacity-40 cursor-not-allowed'
-                                : isActive
-                                  ? 'ring-2 ring-primary bg-primary/5 cursor-pointer'
-                                  : hasWinner
-                                    ? 'opacity-60 cursor-pointer'
-                                    : 'hover:border-primary/50 cursor-pointer'
+                            className={`p-3.5 transition-all ${
+                              !ready ? 'opacity-40' : isActive ? 'ring-2 ring-primary bg-primary/5 cursor-pointer' : hasWinner ? 'opacity-60 cursor-pointer' : 'hover:border-primary/40 cursor-pointer'
                             }`}
                             onClick={() => {
                               if (!ready) return;
@@ -1824,29 +1308,17 @@ export default function OperatorPanel() {
                           >
                             <div className="flex items-center gap-3">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className={`font-medium truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
+                                <span className={`font-medium text-sm truncate ${match.winner_id === match.dancer_left_id ? 'text-primary' : ''}`}>
                                   {ready ? getDancerName(match.dancer_left_id) : "—"}
                                 </span>
-                                <span className="text-muted-foreground shrink-0">vs</span>
-                                <span className={`font-medium truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
+                                <span className="text-muted-foreground/50 text-xs">vs</span>
+                                <span className={`font-medium text-sm truncate ${match.winner_id === match.dancer_right_id ? 'text-secondary' : ''}`}>
                                   {ready ? getDancerName(match.dancer_right_id) : "—"}
                                 </span>
                               </div>
-
-                              {isActive && (
-                                <Badge className="shrink-0 bg-primary">LIVE</Badge>
-                              )}
-                              {hasWinner && !isActive && (
-                                <Badge variant="secondary" className="shrink-0">✓</Badge>
-                              )}
-                              {!isActive && !hasWinner && ready && (
-                                <Button size="sm" variant="ghost" className="shrink-0 gap-1">
-                                  <Play className="h-3 w-3" />
-                                </Button>
-                              )}
-                              {!ready && (
-                                <span className="text-[10px] text-muted-foreground italic shrink-0">Waiting</span>
-                              )}
+                              {isActive && <Badge className="shrink-0 bg-primary text-[10px]">LIVE</Badge>}
+                              {hasWinner && !isActive && <Badge variant="secondary" className="shrink-0 text-[10px]">✓</Badge>}
+                              {!isActive && !hasWinner && ready && <Play className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
                             </div>
                           </Card>
                         );
@@ -1855,179 +1327,282 @@ export default function OperatorPanel() {
                   );
                 })}
               </div>
-            )
-          )}
-        </div>
+            )}
+          </TabsContent>
 
-        {/* ═══════════════════ EVENT OS TOOLS ═══════════════════ */}
-        <div className="space-y-2 pt-4 border-t border-border/50">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
-            Event OS
-          </h2>
+          {/* ═══════ TAB 3: SETTINGS ═══════ */}
+          <TabsContent value="settings" className="px-4 py-6 space-y-6 mt-0">
+            {/* Quick Actions Row */}
+            <div className="flex gap-2 flex-wrap">
+              <Button onClick={openScreen} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+                <Monitor className="h-3.5 w-3.5" />Screen
+              </Button>
+              <Button onClick={() => window.open(`/battle/${id}/mc`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+                <Mic className="h-3.5 w-3.5" />MC
+              </Button>
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+                <ExternalLink className="h-3.5 w-3.5" />OBS
+              </Button>
+              <Button onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')} variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+                🎤 Hype
+              </Button>
+              <Button onClick={() => setShowLivePreview(!showLivePreview)} variant={showLivePreview ? "default" : "outline"} size="sm" className="gap-1.5 text-xs h-9">
+                <Eye className="h-3.5 w-3.5" />Preview
+              </Button>
+              <JudgeAssignmentsModal battleId={id!} />
+            </div>
 
-          <Tabs defaultValue="tools" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="tools" className="text-xs">Tools</TabsTrigger>
-              <TabsTrigger value="draw" className="text-xs">Draw</TabsTrigger>
-              <TabsTrigger value="social" className="text-xs">Social</TabsTrigger>
-              <TabsTrigger value="checkin" className="text-xs">Check-in</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="tools" className="space-y-3 mt-3">
-              {/* AI Timekeeper */}
-              {battleData && (
-                <AiTimekeeper
-                  eventStartTime={battleData.date}
-                  totalMatchesPlanned={matches.length || 8}
-                  matchesCompleted={matches.filter(m => m.winner_id).length}
-                  eventEndTime={undefined}
-                />
-              )}
-
-              {/* Live Prize Pool */}
-              <LivePrizePool
-                battleId={id!}
-                initialAmount={0}
-                currency="₽"
-              />
-
-              {/* Spider Chart for active match (VAR) */}
-              {currentMatch && (
-                <Card className="p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">VAR Comparison</h3>
-                  <SpiderChart
-                    labels={["Technique", "Musicality", "Performance", "Originality", "Energy"]}
-                    dataA={(() => {
-                      const leftVotes = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_left_id);
-                      return [
-                        leftVotes.reduce((sum, v) => sum + (v.slider_technique || 5), 0) / (leftVotes.length || 1),
-                        leftVotes.reduce((sum, v) => sum + (v.slider_musicality || 5), 0) / (leftVotes.length || 1),
-                        leftVotes.reduce((sum, v) => sum + (v.slider_performance || 5), 0) / (leftVotes.length || 1),
-                        5, 5,
-                      ];
-                    })()}
-                    dataB={(() => {
-                      const rightVotes = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_right_id);
-                      return [
-                        rightVotes.reduce((sum, v) => sum + (v.slider_technique || 5), 0) / (rightVotes.length || 1),
-                        rightVotes.reduce((sum, v) => sum + (v.slider_musicality || 5), 0) / (rightVotes.length || 1),
-                        rightVotes.reduce((sum, v) => sum + (v.slider_performance || 5), 0) / (rightVotes.length || 1),
-                        5, 5,
-                      ];
-                    })()}
-                    nameA={getDancerName(currentMatch.dancer_left_id)}
-                    nameB={getDancerName(currentMatch.dancer_right_id)}
-                    size={200}
-                  />
+            {/* Display Settings */}
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Monitor className="h-3.5 w-3.5" />Display
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="p-4 mt-2 space-y-3">
+                  <div className="flex items-center justify-between"><Label className="text-sm">Show Battle Name</Label><Switch checked={showBattleName} onCheckedChange={setShowBattleName} /></div>
+                  <div className="flex items-center justify-between"><Label className="text-sm">Show Judges</Label><Switch checked={showJudges} onCheckedChange={setShowJudges} /></div>
+                  <div className="flex items-center justify-between"><Label className="text-sm">Show Timer</Label><Switch checked={showTimer} onCheckedChange={setShowTimer} /></div>
+                  {showTimer && (
+                    <div className="flex items-center justify-between"><Label className="text-sm">Timer (min)</Label><Input type="number" min="1" max="10" value={timerMinutes} onChange={(e) => setTimerMinutes(parseInt(e.target.value) || 1)} className="w-20 h-8" /></div>
+                  )}
+                  <div className="flex items-center justify-between"><Label className="text-sm">Show Score</Label><Switch checked={showScore} onCheckedChange={setShowScore} /></div>
+                  <div className="flex items-center justify-between"><Label className="text-sm">Audience QR</Label><Switch checked={showAudienceQR} onCheckedChange={setShowAudienceQR} /></div>
+                  <div className="flex items-center justify-between"><Label className="text-sm">Auto-advance</Label><Switch checked={autoAdvanceOnTimer} onCheckedChange={setAutoAdvanceOnTimer} /></div>
+                  <div className="flex items-center justify-between"><Label className="text-sm">Rounds to Win</Label><Input type="number" min="1" max="5" value={roundsToWin} onChange={(e) => setRoundsToWin(parseInt(e.target.value) || 2)} className="w-20 h-8" /></div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Aspect Ratio</Label>
+                    <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                      <SelectTrigger className="w-[100px] h-8"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Auto</SelectItem>
+                        <SelectItem value="16:9">16:9</SelectItem>
+                        <SelectItem value="4:3">4:3</SelectItem>
+                        <SelectItem value="1:1">1:1</SelectItem>
+                        <SelectItem value="9:16">9:16</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={applySettings} size="sm" className="w-full mt-2">Apply Display</Button>
                 </Card>
-              )}
-            </TabsContent>
+              </CollapsibleContent>
+            </Collapsible>
 
-            <TabsContent value="draw" className="space-y-3 mt-3">
-              <Card className="p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Cyber Roulette</h3>
-                <p className="text-xs text-muted-foreground mb-3">Random match draw with animation for the audience</p>
-                {dancers.length >= 2 ? (
-                  <>
-                    <Button
-                      onClick={() => setShowRoulette(true)}
-                      className="w-full gap-2 mb-4"
-                      variant={showRoulette ? "destructive" : "default"}
-                    >
-                      <Zap className="h-4 w-4" />
-                      {showRoulette ? "Stop Roulette" : "Start Roulette"}
-                    </Button>
-                    <CyberRoulette
-                      dancers={dancers.map(d => ({ id: d.id, name: d.name, photo_url: null }))}
-                      onResult={(left, right) => {
-                        setShowRoulette(false);
-                        toast({
-                          title: "🎰 Match Drawn!",
-                          description: `${left.name} vs ${right.name}`,
-                        });
+            {/* Theme & Design */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Palette className="h-3.5 w-3.5" />Theme & Design
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="p-4 mt-2 space-y-3">
+                  <Select value={themePreset} onValueChange={applyThemePreset}>
+                    <SelectTrigger><SelectValue placeholder="Theme" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="neon">Neon</SelectItem>
+                      <SelectItem value="classic">Classic</SelectItem>
+                      <SelectItem value="fire">Fire</SelectItem>
+                      <SelectItem value="ocean">Ocean</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={backgroundType} onValueChange={setBackgroundType}>
+                    <SelectTrigger><SelectValue placeholder="Background" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solid">Solid</SelectItem>
+                      <SelectItem value="gradient">Gradient</SelectItem>
+                      <SelectItem value="image">Image</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {backgroundType === "solid" && (
+                    <div className="flex gap-2">
+                      <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-9 p-1" />
+                      <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="flex-1" />
+                    </div>
+                  )}
+                  {backgroundType === "gradient" && (
+                    <div className="space-y-2">
+                      <div className="flex gap-2"><Input type="color" value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="w-12 h-9 p-1" /><Input value={gradientFrom} onChange={(e) => setGradientFrom(e.target.value)} className="flex-1" /></div>
+                      <div className="flex gap-2"><Input type="color" value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="w-12 h-9 p-1" /><Input value={gradientTo} onChange={(e) => setGradientTo(e.target.value)} className="flex-1" /></div>
+                    </div>
+                  )}
+                  {backgroundType === "image" && (
+                    <Input placeholder="Image URL" value={backgroundImageUrl} onChange={(e) => setBackgroundImageUrl(e.target.value)} />
+                  )}
+                  <Select value={bracketStyle} onValueChange={setBracketStyle}>
+                    <SelectTrigger><SelectValue placeholder="Bracket Style" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solid">Solid</SelectItem>
+                      <SelectItem value="glass">Glass</SelectItem>
+                      <SelectItem value="neon">Neon</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={fontFamily} onValueChange={setFontFamily}>
+                    <SelectTrigger><SelectValue placeholder="Font" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="display">Display</SelectItem>
+                      <SelectItem value="sans">Sans</SelectItem>
+                      <SelectItem value="mono">Mono</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    <div className="flex-1 space-y-1"><Label className="text-xs">Left Color</Label><Input type="color" value={primaryColor || "#ff0000"} onChange={(e) => setPrimaryColor(e.target.value)} className="w-full h-8 p-1" /></div>
+                    <div className="flex-1 space-y-1"><Label className="text-xs">Right Color</Label><Input type="color" value={secondaryColor || "#0000ff"} onChange={(e) => setSecondaryColor(e.target.value)} className="w-full h-8 p-1" /></div>
+                  </div>
+                  <Button onClick={applyDesign} size="sm" className="w-full">Apply Theme</Button>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Messages */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <MessageSquare className="h-3.5 w-3.5" />Messages
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="p-4 mt-2 space-y-3">
+                  <div className="flex items-center justify-between"><Label className="text-sm">Show Message</Label><Switch checked={showCustomMessage} onCheckedChange={setShowCustomMessage} /></div>
+                  <Textarea placeholder="Message to display..." value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} rows={2} />
+                  <Button onClick={sendCustomMessage} size="sm" className="w-full">Send Message</Button>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Templates */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Layout className="h-3.5 w-3.5" />Templates
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="p-4 mt-2">
+                  <ScreenTemplates battleId={id!} onShowTemplate={showTemplate} />
+                  {screenState?.show_template && (
+                    <Button variant="outline" onClick={hideTemplate} size="sm" className="w-full mt-3">Hide Template</Button>
+                  )}
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Keyboard shortcuts */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Keyboard className="h-3.5 w-3.5" />Shortcuts
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="p-4 mt-2 space-y-1.5">
+                  {SHORTCUT_HINTS.map((hint) => (
+                    <div key={hint.key} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{hint.action}</span>
+                      <Badge variant="outline" className="font-mono text-[10px]">{hint.key}</Badge>
+                    </div>
+                  ))}
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* ═══ Event OS Tools ═══ */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Zap className="h-3.5 w-3.5 text-primary" />Event OS
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Tabs defaultValue="tools" className="mt-2">
+                  <TabsList className="grid w-full grid-cols-4 h-8">
+                    <TabsTrigger value="tools" className="text-[10px]">Tools</TabsTrigger>
+                    <TabsTrigger value="draw" className="text-[10px]">Draw</TabsTrigger>
+                    <TabsTrigger value="social" className="text-[10px]">Social</TabsTrigger>
+                    <TabsTrigger value="checkin" className="text-[10px]">Check-in</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="tools" className="space-y-3 mt-3">
+                    {battleData && (
+                      <AiTimekeeper eventStartTime={battleData.date} totalMatchesPlanned={matches.length || 8} matchesCompleted={matches.filter(m => m.winner_id).length} eventEndTime={undefined} />
+                    )}
+                    <LivePrizePool battleId={id!} initialAmount={0} currency="₽" />
+                    {currentMatch && (
+                      <Card className="p-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">VAR Comparison</h4>
+                        <SpiderChart
+                          labels={["Technique", "Musicality", "Performance", "Originality", "Energy"]}
+                          dataA={(() => { const lv = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_left_id); return [lv.reduce((s,v) => s + (v.slider_technique||5),0)/(lv.length||1), lv.reduce((s,v) => s + (v.slider_musicality||5),0)/(lv.length||1), lv.reduce((s,v) => s + (v.slider_performance||5),0)/(lv.length||1), 5, 5]; })()}
+                          dataB={(() => { const rv = judgeVotes.filter(v => v.vote_for === currentMatch.dancer_right_id); return [rv.reduce((s,v) => s + (v.slider_technique||5),0)/(rv.length||1), rv.reduce((s,v) => s + (v.slider_musicality||5),0)/(rv.length||1), rv.reduce((s,v) => s + (v.slider_performance||5),0)/(rv.length||1), 5, 5]; })()}
+                          nameA={getDancerName(currentMatch.dancer_left_id)}
+                          nameB={getDancerName(currentMatch.dancer_right_id)}
+                          size={200}
+                        />
+                      </Card>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="draw" className="space-y-3 mt-3">
+                    <Card className="p-4">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Cyber Roulette</h4>
+                      {dancers.length >= 2 ? (
+                        <>
+                          <Button onClick={() => setShowRoulette(!showRoulette)} className="w-full gap-2 mb-3" variant={showRoulette ? "destructive" : "default"} size="sm">
+                            <Zap className="h-3.5 w-3.5" />{showRoulette ? "Stop" : "Start Roulette"}
+                          </Button>
+                          <CyberRoulette
+                            dancers={dancers.map(d => ({ id: d.id, name: d.name, photo_url: null }))}
+                            onResult={(left, right) => { setShowRoulette(false); toast({ title: "🎰 Match Drawn!", description: `${left.name} vs ${right.name}` }); }}
+                            isActive={showRoulette}
+                          />
+                        </>
+                      ) : <p className="text-sm text-muted-foreground">Need at least 2 dancers</p>}
+                    </Card>
+                    {currentNomination?.phase === 'selection' && selectedNomination && (
+                      <Card className="p-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cypher Swipe</h4>
+                        <Button onClick={() => window.open(`/cypher-swipe/${selectedNomination}`, '_blank')} variant="outline" className="w-full gap-2" size="sm">
+                          Open Cypher Swipe
+                        </Button>
+                      </Card>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="social" className="space-y-3 mt-3">
+                    <Card className="p-4">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Post Generator</h4>
+                      <LlmPostGenerator
+                        battleName={battleData?.name || "Battle"}
+                        nominationName={currentNomination?.name || ""}
+                        matches={matches.map(m => ({ round: m.round, position: m.position, dancer_left_name: getDancerName(m.dancer_left_id), dancer_right_name: getDancerName(m.dancer_right_id), winner_name: m.winner_id ? getDancerName(m.winner_id) : null }))}
+                        date={battleData?.date ? new Date(battleData.date).toLocaleDateString() : ""}
+                      />
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="checkin" className="mt-3">
+                    <NfcCheckin
+                      onCheckin={(code) => {
+                        const dancer = dancers.find(d => d.name.toLowerCase().includes(code.toLowerCase()) || d.id === code);
+                        if (dancer) toast({ title: "✅ Checked In", description: `${dancer.name} is ready` });
+                        else toast({ title: "⚠️ Not Found", description: `No dancer matching "${code}"`, variant: "destructive" });
                       }}
-                      isActive={showRoulette}
                     />
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Need at least 2 dancers</p>
-                )}
-              </Card>
-
-              {/* Cypher Swipe link */}
-              {currentNomination?.phase === 'selection' && selectedNomination && (
-                <Card className="p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cypher Swipe Mode</h3>
-                  <p className="text-xs text-muted-foreground mb-3">Tinder-like judge selection for qualifications</p>
-                  <Button
-                    onClick={() => window.open(`/cypher-swipe/${selectedNomination}`, '_blank')}
-                    variant="outline"
-                    className="w-full gap-2"
-                  >
-                    Open Cypher Swipe
-                  </Button>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="social" className="space-y-3 mt-3">
-              <Card className="p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Post Generator</h3>
-                <LlmPostGenerator
-                  battleName={battleData?.name || "Battle"}
-                  nominationName={currentNomination?.name || ""}
-                  matches={matches.map(m => ({
-                    round: m.round,
-                    position: m.position,
-                    dancer_left_name: getDancerName(m.dancer_left_id),
-                    dancer_right_name: getDancerName(m.dancer_right_id),
-                    winner_name: m.winner_id ? getDancerName(m.winner_id) : null,
-                  }))}
-                  date={battleData?.date ? new Date(battleData.date).toLocaleDateString() : ""}
-                />
-              </Card>
-
-              {/* OBS Overlay link */}
-              <Card className="p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">OBS Overlay</h3>
-                <p className="text-xs text-muted-foreground mb-3">Transparent overlay for streaming</p>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => window.open(`/battle/${id}/obs-overlay`, '_blank')}
-                    variant="outline"
-                    className="flex-1 gap-1"
-                    size="sm"
-                  >
-                    <Monitor className="h-3 w-3" />
-                    Open Overlay
-                  </Button>
-                  <Button
-                    onClick={() => window.open(`/battle/${id}/obs-overlay?hype=1`, '_blank')}
-                    variant="outline"
-                    className="flex-1 gap-1"
-                    size="sm"
-                  >
-                    🎤 With Hype
-                  </Button>
-                </div>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="checkin" className="space-y-3 mt-3">
-              <NfcCheckin
-                onCheckin={(code) => {
-                  const dancer = dancers.find(d => d.name.toLowerCase().includes(code.toLowerCase()) || d.id === code);
-                  if (dancer) {
-                    toast({ title: "✅ Checked In", description: `${dancer.name} is ready` });
-                  } else {
-                    toast({ title: "⚠️ Not Found", description: `No dancer matching "${code}"`, variant: "destructive" });
-                  }
-                }}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+                  </TabsContent>
+                </Tabs>
+              </CollapsibleContent>
+            </Collapsible>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
