@@ -83,7 +83,6 @@ const Pricing = () => {
     setUpgrading(tier);
 
     try {
-      // Mock billing — directly update profile tier
       const maxParticipants = tier === "pro" ? 512 : tier === "enterprise" ? 99999 : 16;
       const expiresAt = tier === "free" ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -99,8 +98,8 @@ const Pricing = () => {
       if (error) throw error;
 
       toast.success(tier === "free" ? "Downgraded to Free" : `Upgraded to ${tier.toUpperCase()}! 🎉`);
-      // Reload to reflect changes
-      window.location.reload();
+      // Navigate to dashboard to reflect changes
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed to update plan");
     } finally {
