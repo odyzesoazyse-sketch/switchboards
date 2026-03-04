@@ -996,21 +996,21 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
         <div className={`w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-12 pt-12 sm:pt-16 ${animationClass}`}>
           {/* Score — massive centered */}
           {screenState.show_score && (
-            <div className="flex items-center justify-center gap-6 md:gap-12 mb-4 md:mb-8">
+            <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-12 mb-2 sm:mb-4 md:mb-8">
               <span
                 className={`${fontClass} font-black leading-none tabular-nums text-primary`}
                 style={{
-                  fontSize: `calc(6rem * ${fontScale.name})`,
+                  fontSize: `calc(4rem * ${fontScale.name})`,
                   textShadow: '0 0 40px hsl(var(--primary)/0.4), 0 0 80px hsl(var(--primary)/0.2)'
                 }}
               >
                 {screenState.votes_left}
               </span>
-              <span className={`text-3xl md:text-5xl font-black ${isLight ? 'text-gray-300' : 'text-white/15'} select-none`}>:</span>
+              <span className={`text-2xl sm:text-3xl md:text-5xl font-black ${isLight ? 'text-gray-300' : 'text-white/15'} select-none`}>:</span>
               <span
                 className={`${fontClass} font-black leading-none tabular-nums text-secondary`}
                 style={{
-                  fontSize: `calc(6rem * ${fontScale.name})`,
+                  fontSize: `calc(4rem * ${fontScale.name})`,
                   textShadow: '0 0 40px hsl(var(--secondary)/0.4), 0 0 80px hsl(var(--secondary)/0.2)'
                 }}
               >
