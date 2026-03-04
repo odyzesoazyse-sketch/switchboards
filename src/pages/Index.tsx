@@ -7,6 +7,8 @@ import {
   Zap, Shield, Monitor, BarChart3, Users, Crown,
   ArrowRight, Check, Star, Tv, Smartphone, Gauge
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const FEATURES = [
   {
