@@ -6,8 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
-  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User
+  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User, Tv
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import QRCodeShare from "@/components/QRCodeShare";
 import SocialShare from "@/components/SocialShare";
 import DancerPhotoUpload from "@/components/DancerPhotoUpload";
@@ -499,7 +501,7 @@ export default function BattleView() {
   const currentNomination = nominations.find(n => n.id === selectedNomination);
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-8">
+    <div className="min-h-screen bg-background pb-8">
       {/* Header — sticky, minimal */}
       <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -508,8 +510,8 @@ export default function BattleView() {
             <span className="hidden sm:inline text-sm">Back</span>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="hidden sm:flex gap-1">
               <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
               <SocialShare url={`${window.location.origin}/battles/${id}`} title={battle.name} description={`Join ${battle.name}!`} />
             </div>
@@ -517,6 +519,9 @@ export default function BattleView() {
             <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="ghost" size="sm" className="text-muted-foreground">
               <Medal className="h-4 w-4" />
             </Button>
+
+            <LanguageSwitcher />
+            <ThemeToggle />
 
             {isOrganizer && (
               <DropdownMenu>
@@ -529,6 +534,10 @@ export default function BattleView() {
                   <DropdownMenuItem onClick={() => navigate(`/battle/${id}/operator`)}>
                     <Monitor className="h-4 w-4 mr-2" />
                     Operator Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/screen`)}>
+                    <Tv className="h-4 w-4 mr-2" />
+                    Screen
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(`/battle/${id}/settings`)}>
                     <Settings2 className="h-4 w-4 mr-2" />
