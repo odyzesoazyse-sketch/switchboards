@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppHeader from "@/components/AppHeader";
 import BottomNav from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -65,6 +66,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AppHeader />
             <BottomNav />
           </BrowserRouter>
         </ThemeProvider>

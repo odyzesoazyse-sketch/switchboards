@@ -7,8 +7,6 @@ import {
   Zap, Shield, Monitor, BarChart3, Users, Crown,
   ArrowRight, Check, Star, Tv, Smartphone, Gauge
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const FEATURES = [
   {
@@ -121,30 +119,25 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
-        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <span className="font-black text-xl tracking-tight">SWITCHBOARD</span>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            {isLoggedIn ? (
-              <Button onClick={() => navigate("/dashboard")} size="sm" className="gap-2">
-                Dashboard <ArrowRight className="w-4 h-4" />
+      {/* CTA buttons in header area — below AppHeader */}
+      <div className="fixed top-12 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/20">
+        <div className="container mx-auto px-4 h-10 flex items-center justify-end gap-2">
+          {isLoggedIn ? (
+            <Button onClick={() => navigate("/dashboard")} size="sm" className="gap-2 h-8 text-xs">
+              Dashboard <ArrowRight className="w-3 h-3" />
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="h-8 text-xs">
+                Sign In
               </Button>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
-                  Sign In
-                </Button>
-                <Button size="sm" onClick={() => navigate("/auth")} className="gap-2 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
-                  Get Started <ArrowRight className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-          </div>
+              <Button size="sm" onClick={() => navigate("/auth")} className="gap-2 h-8 text-xs shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                Get Started <ArrowRight className="w-3 h-3" />
+              </Button>
+            </>
+          )}
         </div>
-      </header>
+      </div>
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-32 px-4">

@@ -115,7 +115,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0 sm:pt-14">
+    <div className="min-h-screen bg-background pt-14 pb-20">
       <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Title + Create */}
         <div className="flex items-end justify-between mb-10 gap-4">

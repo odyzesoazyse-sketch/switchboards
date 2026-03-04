@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
-  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User, Tv
+  Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
+  BarChart3, Medal, MoreVertical, Share2, ChevronDown, ChevronUp
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import QRCodeShare from "@/components/QRCodeShare";
 import SocialShare from "@/components/SocialShare";
 import DancerPhotoUpload from "@/components/DancerPhotoUpload";
@@ -501,100 +499,66 @@ export default function BattleView() {
   const currentNomination = nominations.find(n => n.id === selectedNomination);
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      {/* Header — sticky, minimal */}
-      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="-ml-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline text-sm">Back</span>
-          </Button>
-
-            <div className="flex items-center gap-1 sm:gap-2">
-            <div className="hidden sm:flex gap-1">
+    <div className="min-h-screen bg-background pt-14 pb-20">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Battle Title + Actions */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">{battle.name}</h1>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span>{new Date(battle.date).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                {battle.location && <span>📍 {battle.location}</span>}
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getPhaseColor(battle.phase)}`}>
+                  {getPhaseLabel(battle.phase)}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
               <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
               <SocialShare url={`${window.location.origin}/battles/${id}`} title={battle.name} description={`Join ${battle.name}!`} />
+              <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+                <Medal className="h-4 w-4" />
+              </Button>
+              {isOrganizer && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate(`/battle/${id}/logs`)}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Logs
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Battle
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Battle?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete "{battle.name}" and all related data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={deleteBattle} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-
-            <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="ghost" size="sm" className="text-muted-foreground">
-              <Medal className="h-4 w-4" />
-            </Button>
-
-            <LanguageSwitcher />
-            <ThemeToggle />
-
-            {isOrganizer && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/operator`)}>
-                    <Monitor className="h-4 w-4 mr-2" />
-                    Operator Panel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/screen`)}>
-                    <Tv className="h-4 w-4 mr-2" />
-                    Screen
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/settings`)}>
-                    <Settings2 className="h-4 w-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/analytics`)}>
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Analytics
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/logs`)}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Logs
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <div className="sm:hidden px-2 py-1.5">
-                    <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
-                  </div>
-                  <DropdownMenuSeparator />
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Battle
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Battle?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete "{battle.name}" and all related data.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={deleteBattle} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Battle Title — clean, bold */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">{battle.name}</h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <span>{new Date(battle.date).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-            {battle.location && <span>📍 {battle.location}</span>}
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getPhaseColor(battle.phase)}`}>
-              {getPhaseLabel(battle.phase)}
-            </span>
           </div>
         </div>
 
