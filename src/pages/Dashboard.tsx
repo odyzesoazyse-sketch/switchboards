@@ -27,69 +27,52 @@ interface Battle {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const loadData = async () => {
+      // ProtectedRoute guarantees we have a session
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
+      if (!session) return;
+
+      try {
+        const userId = session.user.id;
+
+        const { data: organizerBattles, error: battleError } = await supabase
+          .from("battles")
+          .select(`*, nominations (count)`)
+          .eq("organizer_id", userId)
+          .order("date", { ascending: false });
+
+        if (battleError) throw battleError;
+
+        const hasOrganizerBattles = organizerBattles && organizerBattles.length > 0;
+
+        // Check if user is only a judge (no organizer battles) → redirect to judge panel
+        const { data: judgeRoles } = await supabase
+          .from("user_roles")
+          .select("battle_id")
+          .eq("user_id", userId)
+          .eq("role", "judge");
+
+        if (judgeRoles?.length && !hasOrganizerBattles) {
+          navigate("/judge");
+          return;
+        }
+
+        if (hasOrganizerBattles) {
+          setBattles(organizerBattles);
+        }
+      } catch (error: any) {
+        toast.error("Error loading data");
+      } finally {
+        setLoading(false);
       }
-      setUser(session.user);
-      await loadUserData(session.user.id);
     };
-    checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    loadData();
   }, [navigate]);
-
-  const loadUserData = async (userId: string) => {
-    try {
-      const { data: organizerBattles, error: battleError } = await supabase
-        .from("battles")
-        .select(`*, nominations (count)`)
-        .eq("organizer_id", userId)
-        .order("date", { ascending: false });
-
-      if (battleError) throw battleError;
-
-      const hasOrganizerBattles = organizerBattles && organizerBattles.length > 0;
-
-      const { data: judgeRoles } = await supabase
-        .from("user_roles")
-        .select("battle_id")
-        .eq("user_id", userId)
-        .eq("role", "judge");
-
-      const hasJudgeRole = judgeRoles && judgeRoles.length > 0;
-
-      if (hasJudgeRole && !hasOrganizerBattles) {
-        navigate("/judge");
-        return;
-      }
-
-      if (hasOrganizerBattles) {
-        setBattles(organizerBattles);
-      }
-
-      // Judge-only users are auto-redirected above
-    } catch (error: any) {
-      toast.error("Error loading data");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const deleteBattle = async (battleId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,8 +85,6 @@ const Dashboard = () => {
       toast.error(error.message);
     }
   };
-
-  // Sign-out handled by BottomNav
 
   const getPhaseLabel = (phase: string) => {
     const labels: Record<string, string> = {

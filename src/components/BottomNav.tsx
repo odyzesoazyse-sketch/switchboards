@@ -1,12 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Trophy, CreditCard, LogOut } from "lucide-react";
+import { Trophy, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { path: "/dashboard", icon: Trophy, labelKey: "nav.battles" },
-  { path: "/pricing", icon: CreditCard, labelKey: "nav.pricing" },
+  { path: "/pricing", icon: Settings, labelKey: "nav.settings" },
 ];
 
 // Pages where nav should be completely hidden
@@ -19,6 +19,8 @@ const HIDDEN_PATTERNS = [
   /^\/battle\/[^/]+\/mc/,
   /^\/cypher-swipe\//,
   /^\/judge/,
+  /^\/dancer\//,
+  /^\/battles\//,
 ];
 
 export default function BottomNav() {

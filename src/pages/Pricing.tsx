@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription, type SubscriptionTier } from "@/hooks/useSubscription";
 
