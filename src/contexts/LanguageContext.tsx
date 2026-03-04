@@ -25,6 +25,11 @@ const translations: Translations = {
   "nav.logout": { en: "Logout", es: "Salir", ru: "Выйти", fr: "Déconnexion", pt: "Sair" },
   "nav.more": { en: "More", es: "Más", ru: "Ещё", fr: "Plus", pt: "Mais" },
   "nav.close": { en: "Close", es: "Cerrar", ru: "Закрыть", fr: "Fermer", pt: "Fechar" },
+  "nav.create": { en: "Create", es: "Crear", ru: "Создать", fr: "Créer", pt: "Criar" },
+  "nav.overview": { en: "Overview", es: "Resumen", ru: "Обзор", fr: "Aperçu", pt: "Visão geral" },
+  "nav.operator": { en: "Operator", es: "Operador", ru: "Оператор", fr: "Opérateur", pt: "Operador" },
+  "nav.screen": { en: "Screen", es: "Pantalla", ru: "Экран", fr: "Écran", pt: "Tela" },
+  "nav.stats": { en: "Stats", es: "Stats", ru: "Стат.", fr: "Stats", pt: "Stats" },
   
   // Landing page
   "hero.title1": { en: "Fair.", es: "Justo.", ru: "Честно.", fr: "Juste.", pt: "Justo." },
