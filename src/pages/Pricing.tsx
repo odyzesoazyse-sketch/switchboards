@@ -108,15 +108,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
-      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-black tracking-tight">Plans & Pricing</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background pb-20 sm:pb-0 sm:pt-14">
 
       <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-16 max-w-5xl">
         <div className="text-center mb-12">
