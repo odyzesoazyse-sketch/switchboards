@@ -62,11 +62,11 @@ export default function BottomNav() {
   if (isBattleContext && battleId !== "create") {
     // Battle management context
     items = [
-      { path: `/battle/${battleId}`, icon: Trophy, label: t("nav.battles") || "Overview" },
-      { path: `/battle/${battleId}/operator`, icon: Monitor, label: "Operator" },
-      { path: `/battle/${battleId}/screen`, icon: Tv, label: "Screen" },
+      { path: `/battle/${battleId}`, icon: Trophy, label: t("nav.overview") || "Overview" },
+      { path: `/battle/${battleId}/operator`, icon: Monitor, label: t("nav.operator") || "Operator" },
+      { path: `/battle/${battleId}/screen`, icon: Tv, label: t("nav.screen") || "Screen" },
       { path: `/battle/${battleId}/settings`, icon: Settings2, label: t("nav.settings") || "Settings" },
-      { path: `/battle/${battleId}/analytics`, icon: BarChart3, label: "Stats" },
+      { path: `/battle/${battleId}/analytics`, icon: BarChart3, label: t("nav.stats") || "Stats" },
     ];
   } else {
     // Dashboard / global context
