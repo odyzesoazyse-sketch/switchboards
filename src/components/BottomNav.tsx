@@ -10,7 +10,7 @@ const navItems = [
 ];
 
 // Pages where nav should be completely hidden
-const HIDDEN_EXACT = ["/auth", "/", "/pricing"];
+const HIDDEN_EXACT = ["/auth", "/"];
 const HIDDEN_PATTERNS = [
   /^\/battle\/[^/]+\/screen/,
   /^\/battle\/[^/]+\/operator/,
