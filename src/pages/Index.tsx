@@ -143,7 +143,7 @@ const Index = () => {
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-32 px-4">
+      <section className="relative pt-24 pb-20 sm:pt-32 sm:pb-32 px-4">
         <div className="absolute top-20 left-1/4 w-[500px] h-[500px] rounded-full blur-[180px] opacity-15 bg-primary pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-secondary pointer-events-none" />
 
