@@ -23,6 +23,8 @@ const translations: Translations = {
   "nav.pricing": { en: "Plans", es: "Planes", ru: "Тарифы", fr: "Plans", pt: "Planos" },
   "nav.settings": { en: "Settings", es: "Ajustes", ru: "Настройки", fr: "Paramètres", pt: "Configurações" },
   "nav.logout": { en: "Logout", es: "Salir", ru: "Выйти", fr: "Déconnexion", pt: "Sair" },
+  "nav.more": { en: "More", es: "Más", ru: "Ещё", fr: "Plus", pt: "Mais" },
+  "nav.close": { en: "Close", es: "Cerrar", ru: "Закрыть", fr: "Fermer", pt: "Fechar" },
   
   // Landing page
   "hero.title1": { en: "Fair.", es: "Justo.", ru: "Честно.", fr: "Juste.", pt: "Justo." },
