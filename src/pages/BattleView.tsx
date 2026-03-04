@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
-  BarChart3, Medal, Settings2, MoreVertical, Share2, Monitor, ChevronDown, ChevronUp, User, Tv
+  Users, Trophy, FileText, CheckCircle, XCircle, Trash2, UserMinus,
+  BarChart3, Medal, MoreVertical, Share2, ChevronDown, ChevronUp
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import QRCodeShare from "@/components/QRCodeShare";
 import SocialShare from "@/components/SocialShare";
 import DancerPhotoUpload from "@/components/DancerPhotoUpload";
