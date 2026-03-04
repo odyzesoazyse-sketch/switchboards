@@ -179,7 +179,7 @@ const Pricing = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Mock billing — no real charges. Stripe integration coming soon.
+          All plans include core features. Upgrade or downgrade anytime.
         </p>
       </main>
     </div>

@@ -245,7 +245,7 @@ const CreateBattle = () => {
   const CurrentIcon = STEPS[currentStep - 1].icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 sm:pb-0">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">

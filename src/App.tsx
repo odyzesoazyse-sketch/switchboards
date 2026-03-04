@@ -34,7 +34,6 @@ const App = () => (
     <LanguageProvider>
       <TooltipProvider>
         <ThemeProvider defaultTheme="dark" storageKey="battleboard-theme">
-          <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
