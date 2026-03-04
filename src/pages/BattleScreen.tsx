@@ -971,10 +971,10 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
       <div className="h-full w-full flex flex-col items-center justify-center relative overflow-hidden" style={dynamicStyles}>
         {/* Battle name — subtle top */}
         {screenState.show_battle_name && (
-          <div className="absolute top-6 left-0 right-0 text-center z-10">
+          <div className="absolute top-4 sm:top-6 left-0 right-0 text-center z-20">
             <h1
-              className={`${fontClass} font-bold ${mutedTextColor} text-lg sm:text-xl md:text-2xl uppercase tracking-[0.15em]`}
-              style={{ fontSize: `calc(1rem * ${fontScale.name})` }}
+              className={`${fontClass} font-bold ${mutedTextColor} text-sm sm:text-lg md:text-xl uppercase tracking-[0.15em]`}
+              style={{ fontSize: `calc(0.85rem * ${fontScale.name})` }}
             >
               {battleName}
             </h1>
@@ -983,17 +983,17 @@ export default function BattleScreen({ isObs = false }: { isObs?: boolean }) {
 
         {/* Timer — top right, subtle */}
         {screenState.show_timer && (
-          <div className="absolute top-6 right-8 z-10">
-            <div className={`${fontClass} font-bold tabular-nums text-2xl sm:text-3xl md:text-4xl ${
+          <div className="absolute top-4 sm:top-6 right-4 sm:right-8 z-20">
+            <div className={`${fontClass} font-bold tabular-nums text-xl sm:text-2xl md:text-3xl ${
               screenState.timer_running && timeLeft <= 10 ? 'text-red-500 animate-pulse' : mutedTextColor
-            }`} style={{ fontSize: `calc(1.5rem * ${fontScale.name})` }}>
+            }`} style={{ fontSize: `calc(1.2rem * ${fontScale.name})` }}>
               {formatTime(timeLeft)}
             </div>
           </div>
         )}
 
-        {/* Main content — centered */}
-        <div className={`w-full max-w-7xl mx-auto px-6 sm:px-8 md:px-12 ${animationClass}`}>
+        {/* Main content — centered, with top padding to clear title */}
+        <div className={`w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-12 pt-12 sm:pt-16 ${animationClass}`}>
           {/* Score — massive centered */}
           {screenState.show_score && (
             <div className="flex items-center justify-center gap-6 md:gap-12 mb-4 md:mb-8">
