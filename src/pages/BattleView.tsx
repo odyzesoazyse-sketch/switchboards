@@ -535,6 +535,10 @@ export default function BattleView() {
                     <Monitor className="h-4 w-4 mr-2" />
                     Operator Panel
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/battle/${id}/screen`)}>
+                    <Tv className="h-4 w-4 mr-2" />
+                    Screen
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate(`/battle/${id}/settings`)}>
                     <Settings2 className="h-4 w-4 mr-2" />
                     Settings
