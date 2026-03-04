@@ -21,6 +21,8 @@ const translations: Translations = {
   "nav.worldEvents": { en: "World Events", es: "Eventos Mundiales", ru: "Мировые События", fr: "Événements Mondiaux", pt: "Eventos Mundiais" },
   "nav.rankings": { en: "Rankings", es: "Rankings", ru: "Рейтинги", fr: "Classements", pt: "Rankings" },
   "nav.pricing": { en: "Plans", es: "Planes", ru: "Тарифы", fr: "Plans", pt: "Planos" },
+  "nav.settings": { en: "Settings", es: "Ajustes", ru: "Настройки", fr: "Paramètres", pt: "Configurações" },
+  "nav.logout": { en: "Logout", es: "Salir", ru: "Выйти", fr: "Déconnexion", pt: "Sair" },
   
   // Landing page
   "hero.title1": { en: "Fair.", es: "Justo.", ru: "Честно.", fr: "Juste.", pt: "Justo." },
