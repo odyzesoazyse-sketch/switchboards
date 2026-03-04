@@ -3,6 +3,7 @@ import { Trophy, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { path: "/dashboard", icon: Trophy, labelKey: "nav.battles" },
