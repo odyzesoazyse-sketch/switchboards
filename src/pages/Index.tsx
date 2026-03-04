@@ -128,6 +128,7 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
+            {isLoggedIn ? (
               <Button onClick={() => navigate("/dashboard")} size="sm" className="gap-2">
                 Dashboard <ArrowRight className="w-4 h-4" />
               </Button>
