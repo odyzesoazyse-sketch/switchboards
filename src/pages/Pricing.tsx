@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription, type SubscriptionTier } from "@/hooks/useSubscription";
 
@@ -83,7 +83,6 @@ const Pricing = () => {
     setUpgrading(tier);
 
     try {
-      // Mock billing — directly update profile tier
       const maxParticipants = tier === "pro" ? 512 : tier === "enterprise" ? 99999 : 16;
       const expiresAt = tier === "free" ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -99,8 +98,8 @@ const Pricing = () => {
       if (error) throw error;
 
       toast.success(tier === "free" ? "Downgraded to Free" : `Upgraded to ${tier.toUpperCase()}! 🎉`);
-      // Reload to reflect changes
-      window.location.reload();
+      // Navigate to dashboard to reflect changes
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed to update plan");
     } finally {
@@ -109,15 +108,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-0">
-      <header className="border-b border-border/30 bg-surface/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-black tracking-tight">Plans & Pricing</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background pb-20 sm:pb-0 sm:pt-14">
 
       <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-16 max-w-5xl">
         <div className="text-center mb-12">
@@ -188,7 +179,7 @@ const Pricing = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Mock billing — no real charges. Stripe integration coming soon.
+          All plans include core features. Upgrade or downgrade anytime.
         </p>
       </main>
     </div>

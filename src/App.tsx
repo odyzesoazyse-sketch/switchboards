@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -35,7 +34,6 @@ const App = () => (
     <LanguageProvider>
       <TooltipProvider>
         <ThemeProvider defaultTheme="dark" storageKey="battleboard-theme">
-          <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>

@@ -58,7 +58,6 @@ const PLANS = [
       "Standard bracket",
       "Basic judging modes",
       "Mobile voting",
-      '"Powered by Switchboard" watermark',
     ],
     cta: "Start Free",
     popular: false,
@@ -72,10 +71,8 @@ const PLANS = [
       "Up to 512 participants",
       "Custom branding & colors",
       "OBS transparent overlay",
-      "Sponsor logo uploads",
       "Export results (PDF/CSV)",
       "No watermark",
-      "Priority support",
     ],
     cta: "Upgrade to Pro",
     popular: true,
@@ -90,8 +87,6 @@ const PLANS = [
       "API access",
       "White-Glove setup",
       "Dedicated account manager",
-      "Custom integrations",
-      "SLA guarantee",
       "Everything in Pro",
     ],
     cta: "Contact Sales",
@@ -117,6 +112,10 @@ const Index = () => {
       setIsLoggedIn(!!session);
     });
   }, []);
+
+  const handleGetStarted = () => {
+    navigate(isLoggedIn ? "/dashboard" : "/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -190,7 +189,7 @@ const Index = () => {
             <Button
               size="lg"
               className="text-base px-8 py-6 gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
-              onClick={() => navigate(isLoggedIn ? "/dashboard" : "/auth")}
+              onClick={handleGetStarted}
             >
               <Zap className="w-5 h-5" />
               {isLoggedIn ? "Go to Dashboard" : "Start Free"}
@@ -199,10 +198,10 @@ const Index = () => {
               size="lg"
               variant="outline"
               className="text-base px-8 py-6 gap-2 border-border/50"
-              onClick={() => navigate("/battle/create")}
+              onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
             >
               <Star className="w-5 h-5" />
-              Launch Simulation
+              See How It Works
             </Button>
           </motion.div>
 
@@ -330,7 +329,7 @@ const Index = () => {
                       ? "bg-primary hover:bg-primary/90 shadow-[0_0_20px_hsl(var(--primary)/0.2)]"
                       : "bg-muted hover:bg-muted/80 text-foreground"
                   }`}
-                  onClick={() => navigate(plan.name === "ENTERPRISE" ? "/auth" : "/pricing")}
+                  onClick={handleGetStarted}
                 >
                   {plan.cta}
                 </Button>
@@ -361,7 +360,7 @@ const Index = () => {
             <Button
               size="lg"
               className="text-base px-10 py-6 gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.3)]"
-              onClick={() => navigate(isLoggedIn ? "/dashboard" : "/auth")}
+              onClick={handleGetStarted}
             >
               <Crown className="w-5 h-5" />
               {isLoggedIn ? "Go to Dashboard" : "Get Started — It's Free"}
