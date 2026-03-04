@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
  */
 
 const HIDDEN_PATTERNS = [
+  /^\/$/,
   /^\/battle\/[^/]+\/screen/,
   /^\/battle\/[^/]+\/obs/,
   /^\/cypher-swipe\//,
