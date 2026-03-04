@@ -510,8 +510,8 @@ export default function BattleView() {
             <span className="hidden sm:inline text-sm">Back</span>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="hidden sm:flex gap-1">
               <QRCodeShare url={`${window.location.origin}/battles/${id}`} title={battle.name} />
               <SocialShare url={`${window.location.origin}/battles/${id}`} title={battle.name} description={`Join ${battle.name}!`} />
             </div>
@@ -519,6 +519,9 @@ export default function BattleView() {
             <Button onClick={() => navigate(`/battles/${id}/leaderboard`)} variant="ghost" size="sm" className="text-muted-foreground">
               <Medal className="h-4 w-4" />
             </Button>
+
+            <LanguageSwitcher />
+            <ThemeToggle />
 
             {isOrganizer && (
               <DropdownMenu>
