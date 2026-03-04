@@ -125,8 +125,9 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <span className="font-black text-xl tracking-tight">SWITCHBOARD</span>
-          <div className="flex items-center gap-3">
-            {isLoggedIn ? (
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
               <Button onClick={() => navigate("/dashboard")} size="sm" className="gap-2">
                 Dashboard <ArrowRight className="w-4 h-4" />
               </Button>
