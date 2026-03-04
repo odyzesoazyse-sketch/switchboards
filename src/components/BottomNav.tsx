@@ -3,6 +3,7 @@ import { Trophy, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { path: "/dashboard", icon: Trophy, labelKey: "nav.battles" },
@@ -64,13 +65,16 @@ export default function BottomNav() {
                 );
               })}
             </div>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>{t("nav.logout") || "Logout"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{t("nav.logout") || "Logout"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
