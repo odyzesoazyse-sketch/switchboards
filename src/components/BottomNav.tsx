@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const navItems = [
   { path: "/dashboard", icon: Trophy, labelKey: "nav.battles" },
@@ -65,7 +66,8 @@ export default function BottomNav() {
                 );
               })}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <LanguageSwitcher />
               <ThemeToggle />
               <button
                 onClick={handleSignOut}
@@ -100,6 +102,8 @@ export default function BottomNav() {
               </button>
             );
           })}
+          <LanguageSwitcher />
+          <ThemeToggle />
           <button
             onClick={handleSignOut}
             className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[52px] min-h-[44px] text-muted-foreground hover:text-foreground active:scale-90"
