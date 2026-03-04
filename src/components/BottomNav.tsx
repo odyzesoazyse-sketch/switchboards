@@ -1,8 +1,7 @@
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Trophy, CreditCard, LogOut, Plus,
-  Monitor, Tv, Settings2, BarChart3, FileText, Medal, Share2,
-  Gamepad2, Users
+  Monitor, Tv, Settings2, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -54,13 +53,12 @@ export default function BottomNav() {
   // Extract battle ID from path
   const battleIdMatch = path.match(/^\/battle\/([^/]+)/);
   const battleId = battleIdMatch?.[1];
-  const isBattleContext = !!battleId;
+  const isBattleContext = !!battleId && battleId !== "create";
 
   // Determine nav items based on context
   let items: NavItem[];
 
-  if (isBattleContext && battleId !== "create") {
-    // Battle management context
+  if (isBattleContext) {
     items = [
       { path: `/battle/${battleId}`, icon: Trophy, label: t("nav.overview") || "Overview" },
       { path: `/battle/${battleId}/operator`, icon: Monitor, label: t("nav.operator") || "Operator" },
@@ -69,12 +67,16 @@ export default function BottomNav() {
       { path: `/battle/${battleId}/analytics`, icon: BarChart3, label: t("nav.stats") || "Stats" },
     ];
   } else {
-    // Dashboard / global context
     items = [
       { path: "/dashboard", icon: Trophy, label: t("nav.battles") || "Battles" },
       { path: "/battle/create", icon: Plus, label: t("nav.create") || "Create" },
       { path: "/pricing", icon: CreditCard, label: t("nav.pricing") || "Plans" },
     ];
+
+    // Add logout only in global context (fewer items, fits)
+    if (isAuthenticated) {
+      items.push({ path: "__logout__", icon: LogOut, label: t("nav.logout") || "Exit" });
+    }
   }
 
   const handleSignOut = async () => {
@@ -82,52 +84,51 @@ export default function BottomNav() {
     navigate("/");
   };
 
+  const handleNav = (item: NavItem) => {
+    if (item.path === "__logout__") {
+      handleSignOut();
+    } else {
+      navigate(item.path);
+    }
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/30 safe-area-bottom">
-      <div className="flex items-center justify-around px-1 py-1">
+      <div className="flex items-center justify-around px-0.5 py-0.5">
         {items.map((item) => {
-          const isActive = path === item.path || (item.path !== "/dashboard" && path.startsWith(item.path + "/"));
-          // For battle overview, exact match only
-          const isExactActive = isBattleContext && item.path === `/battle/${battleId}` 
-            ? path === item.path 
-            : isActive;
+          const isLogout = item.path === "__logout__";
+          // Active state logic
+          let isActive = false;
+          if (!isLogout) {
+            if (isBattleContext && item.path === `/battle/${battleId}`) {
+              isActive = path === item.path;
+            } else {
+              isActive = path === item.path || path.startsWith(item.path + "/");
+            }
+          }
 
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNav(item)}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[48px] min-h-[44px]",
+                "flex flex-col items-center gap-0 px-1.5 sm:px-3 py-1.5 rounded-xl transition-all min-w-0 flex-1 min-h-[40px]",
                 "active:scale-90",
-                isExactActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                isLogout
+                  ? "text-muted-foreground hover:text-destructive"
+                  : isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon
-                className={cn(
-                  "w-5 h-5",
-                  isExactActive && "drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
-                )}
-              />
-              <span className={cn("text-[10px] font-medium", isExactActive && "font-bold")}>
+              <item.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", isActive && "drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]")} />
+              <span className={cn("text-[9px] sm:text-[10px] font-medium leading-tight mt-0.5 truncate max-w-full", isActive && "font-bold")}>
                 {item.label}
               </span>
-              {isExactActive && <div className="w-1 h-1 rounded-full bg-primary" />}
+              {isActive && <div className="w-1 h-1 rounded-full bg-primary mt-0.5" />}
             </button>
           );
         })}
-
-        {/* Logout button */}
-        {isAuthenticated && (
-          <button
-            onClick={handleSignOut}
-            className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[48px] min-h-[44px] text-muted-foreground hover:text-destructive active:scale-90"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-[10px] font-medium">{t("nav.logout") || "Exit"}</span>
-          </button>
-        )}
       </div>
     </nav>
   );

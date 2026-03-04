@@ -45,21 +45,21 @@ export default function AppHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/30">
-      <div className="container mx-auto px-4 h-12 flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 h-10 sm:h-12 flex items-center justify-between">
         {/* Left: Back or Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {showBack && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={handleBack}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
           <span
-            className="font-black text-lg tracking-tight cursor-pointer"
+            className="font-black text-base sm:text-lg tracking-tight cursor-pointer"
             onClick={() => navigate("/dashboard")}
           >
             SWITCHBOARD
@@ -67,7 +67,7 @@ export default function AppHeader() {
         </div>
 
         {/* Right: Utility controls */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <LanguageSwitcher />
           <ThemeToggle />
         </div>

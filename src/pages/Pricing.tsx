@@ -108,7 +108,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-14 pb-20">
+    <div className="min-h-screen bg-background pt-12 sm:pt-14 pb-16 sm:pb-20">
 
       <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-16 max-w-5xl">
         <div className="text-center mb-12">
